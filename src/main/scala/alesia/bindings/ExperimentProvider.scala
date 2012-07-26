@@ -1,6 +1,6 @@
 package alesia.bindings
 
-import alesia.planning.data.Problem
+import alesia.planning.domain.Problem
 import sessl._
 import java.net.URI
 

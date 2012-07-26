@@ -3,7 +3,7 @@ package alesia.planning.actions
 import org.junit.Test
 import org.junit.Assert._
 import alesia.bindings.james.JamesExperimentProvider
-import alesia.planning.data.Problem
+import alesia.planning.domain.Problem
 import examples.sr.LinearChainSystem
 import sessl.util.Logging
 

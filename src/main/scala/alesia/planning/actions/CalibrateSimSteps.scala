@@ -1,7 +1,7 @@
 package alesia.planning.actions
 
 import alesia.bindings.ExperimentProvider
-import alesia.planning.data.Problem
+import alesia.planning.domain.Problem
 import sessl.util.Logging
 import sessl.AbstractExperiment
 import sessl.AbstractPerformanceObservation

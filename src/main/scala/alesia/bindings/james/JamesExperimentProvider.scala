@@ -1,7 +1,7 @@
 package alesia.bindings.james
 
 import alesia.bindings.ExperimentProvider
-import alesia.planning.data.Problem
+import alesia.planning.domain.Problem
 
 import sessl._
 import sessl.james._

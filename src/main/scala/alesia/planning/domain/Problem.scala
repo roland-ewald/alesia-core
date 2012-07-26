@@ -1,4 +1,4 @@
-package alesia.planning.data
+package alesia.planning.domain
 
 import java.net.URI
 
