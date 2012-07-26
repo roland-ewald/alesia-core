@@ -1,9 +1,12 @@
 package alesia.planning.actions
 
-import sessl.AbstractExperiment
-import sessl.AfterSimSteps
-import sessl.AbstractPerformanceObservation
+import alesia.bindings.ExperimentProvider
+import alesia.planning.data.Problem
 import sessl.util.Logging
+import sessl.AbstractExperiment
+import sessl.AbstractPerformanceObservation
+import sessl.AfterSimSteps
+import scala.math.max
 
 /**
  * Find out how much simulation steps need to be executed before a suitable execution time is approximated.
@@ -14,21 +17,29 @@ import sessl.util.Logging
  */
 object CalibrateSimSteps extends ExperimentAction with Logging {
 
-  /** The required type of experiment. */
-  type Experiment = AbstractExperiment with AbstractPerformanceObservation
-
   /** Returns approximate number of simulation steps until the desired execution time is reached. */
-  def apply(experiment: Experiment, desiredExecTime: Double): Int = {
-    //TODO: Add implicit ExperimentProvider
-    //TODO: Add while loop etc.
-    var simSteps = 1
-    var runtime = 0.
-    val exp = experiment.stopCondition = AfterSimSteps(simSteps)
-    experiment.withExperimentPerformance {
-      r => runtime = r.runtimes.head
+  def apply(p: Problem, execTime: Double, eps: Double = 0.1, maxSteps: Int = 10)(implicit e: ExperimentProvider): (Long, Double) = {
+
+    def runtimeForSteps(s: Long): Double = {
+      var rv = 0.
+      val exp = e.configure(p)
+      exp.stopCondition = AfterSimSteps(s)
+      exp.withExperimentPerformance { r => rv = r.runtimes.head }
+      sessl.execute(exp)
+      logger.info("Executing calibration experiment on " + p + " for " + s + " steps: it took " + rv + " seconds.")
+      rv
     }
-    logger.info("runtime:" + runtime)
-    0
+
+    var steps: Long = 1
+    var runtime = runtimeForSteps(steps)
+    var counter = 1
+
+    while (counter < maxSteps && (runtime <= (1 - eps) * execTime || runtime >= (1 + eps) * execTime)) {
+      runtime =  runtimeForSteps(steps)
+      steps *= max(10, scala.math.round(execTime / runtime ))
+      counter += 1
+    }
+    (steps, runtime)
   }
 
 }
