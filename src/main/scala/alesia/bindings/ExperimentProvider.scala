@@ -15,7 +15,9 @@ trait ExperimentProvider {
   def performanceExperiment: PerformanceExperiment
 
   /** Configures experiment for a given problem. */
-  def configure[X <: AbstractExperiment](p: Problem, exp: X = performanceExperiment): X = {
+  def performanceExperiment(p: Problem, sim: Simulator): PerformanceExperiment = {
+    val exp = performanceExperiment
+    exp.simulator = sim.entity
     exp.model_=(p.modelURI)
     p.parameters.foreach(p => exp.set(p._1 <~ p._2))
     exp

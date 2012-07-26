@@ -1,13 +1,18 @@
 package alesia.planning.actions
 
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.Assert._
+
 import alesia.bindings.james.JamesExperimentProvider
+import alesia.planning.domain.Algorithm
 import alesia.planning.domain.Problem
 import examples.sr.LinearChainSystem
 import sessl.util.Logging
 
+import scala.math._
+
 /**
+ * Tests for experiment actions.
  * @author Roland Ewald
  */
 @Test
@@ -21,9 +26,12 @@ class TestExperimentActions extends Logging {
 
   @Test
   def testCalibration = {
-    val result = CalibrateSimSteps(problem, 3.0)
+    val desiredRuntime = 3.0
+    val permEpsilon = 0.1
+    val result = CalibrateSimSteps(problem, Algorithm(sessl.james.NextReactionMethod()), desiredRuntime, eps = permEpsilon)
     logger.info("Calibration result: " + result)
-    assertTrue("More than 1000 steps should be required.", result._1 > 1000)
+    assertTrue("More than 10000 steps should be required.", result._1 > 1000)
+    assertTrue("", abs(result._2 - desiredRuntime) / desiredRuntime <= permEpsilon)
   }
 
 }
