@@ -61,7 +61,6 @@ object CalibrateSimSteps extends ExperimentAction with Logging {
     while (counter < maxIt && (runtime <= (1 - eps) * execTime || runtime >= (1 + eps) * execTime)) {
       runtime = runtimeForSteps(steps)
       steps = round(steps * min(maxFactor, execTime / runtime))
-      logger.info("#Steps:" + steps)
       counter += 1
     }
     (steps, runtime)
