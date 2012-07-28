@@ -59,8 +59,8 @@ object CalibrateSimSteps extends ExperimentAction with Logging {
     var counter = 1
 
     while (counter < maxIt && (runtime <= (1 - eps) * execTime || runtime >= (1 + eps) * execTime)) {
-      runtime = runtimeForSteps(steps)
       steps = round(steps * min(maxFactor, execTime / runtime))
+      runtime = runtimeForSteps(steps)
       counter += 1
     }
     (steps, runtime)
