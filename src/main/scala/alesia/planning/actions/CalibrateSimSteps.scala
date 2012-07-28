@@ -10,35 +10,35 @@ import scala.math.min
 import scala.math.round
 import alesia.bindings.Simulator
 
-/**
- * Find out how much simulation steps need to be executed before a suitable execution time is approximated.
- * Running too short (only few ms) means that stochastic noise is high and results may be biased.
- * Running too long means that computational resources are wasted.
+/** Find out how much simulation steps need to be executed before a suitable execution time is approximated.
+ *  Running too short (only few ms) means that stochastic noise is high and results may be biased.
+ *  Running too long means that computational resources are wasted.
  *
- * @author Roland Ewald
+ *  @param p
+ *          the problem
+ *  @param a
+ *          the algorithm
+ *  @param execTime
+ *          the desired execution time
+ *  @param eps
+ *          the acceptable relative deviation from the desired execution time, e.g. epsilon = 0.1 means +/- 10% deviation is OK
+ *  @param maxIt
+ *          the maximal number of iterations
+ *  @param maxFactor
+ *          the maximal factor by which the number of steps will be increased
+ *
+ *  @author Roland Ewald
  */
-object CalibrateSimSteps extends ExperimentAction with Logging {
+case class CalibrateSimSteps(problem: Problem, sim: Simulator, execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
 
-  /**
-   * Apply the action.
-   *
-   * @param p
-   *          the problem
-   * @param a
-   *          the algorithm
-   * @param execTime
-   *          the desired execution time
-   * @param eps
-   *          the acceptable relative deviation from the desired execution time, e.g. epsilon = 0.1 means +/- 10% deviation is OK
-   * @param maxIt
-   *          the maximal number of iterations
-   * @param maxFactor
-   *          the maximal factor by which the number of steps will be increased
-   * @param provider
+  val result = "result"
+  
+  /** Execute the action.
+   *  @param provider
    *          the experiment provider
-   * @return the scala. tuple2
+   *  @return the tuple (#steps, achieved runtime)
    */
-  def apply(p: Problem, a: Simulator, execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10)(implicit provider: ExperimentProvider): (Long, Double) = {
+  override def execute(implicit provider: ExperimentProvider): Unit = {
     require(execTime > 0, "Desired execution time has to be positive.")
     require(eps > 0 && eps < 1, "Epsilon should be in (0,1).")
     require(maxIt > 1, "The maximal number of iterations should be > 1.")
@@ -46,11 +46,11 @@ object CalibrateSimSteps extends ExperimentAction with Logging {
 
     def runtimeForSteps(s: Long): Double = {
       var rv = 0.
-      val exp = provider.performanceExperiment(p, a)
+      val exp = provider.performanceExperiment(problem, sim)
       exp.stopCondition = AfterSimSteps(s)
       exp.withExperimentPerformance { r => rv = r.runtimes.head }
       sessl.execute(exp)
-      logger.info("Executing calibration experiment on " + p + " for " + s + " steps: it took " + rv + " seconds.")
+      logger.info("Executing calibration experiment on " + problem + " for " + s + " steps: it took " + rv + " seconds.")
       rv
     }
 
@@ -63,7 +63,7 @@ object CalibrateSimSteps extends ExperimentAction with Logging {
       runtime = runtimeForSteps(steps)
       counter += 1
     }
-    (steps, runtime)
+    addResult(result, (steps, runtime))
   }
 
 }
