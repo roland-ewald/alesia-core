@@ -2,26 +2,40 @@ package alesia.planning.execution.actors
 
 import scala.actors.Actor
 import alesia.planning.execution.PlanExecutor
-import sessl.util.Logging
 import alesia.planning.plans.Plan
+import alesia.planning.plans.PlanExecutionResult
+import alesia.planning.plans.SingleActionPlan
+import alesia.planning.plans.PlanExecutionResult
+import alesia.planning.plans.EmptyPlanExecutionResult
+import alesia.planning.plans.DependentActionPlan
+import alesia.planning.plans.IndependentActionPlan
 
 /** Actor to execute a plan action-by-action.
  *  @author Roland Ewald
  */
-class PlanExecutionMaster extends ExecutionActor with PlanExecutor {
+class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends ExecutionActor with PlanExecutor {
 
-  override def execute(plan: Plan) {
-    
+  require(slaves.nonEmpty, "List of slaves must not be empty.")
+
+  override def execute(plan: Plan): PlanExecutionResult = {
+    val result = (this !! plan).apply()
+    result.asInstanceOf[PlanExecutionResult]
   }
 
   override def act = Actor.loop {
     react {
-      case PlanJobMessage(plan) => reply { distributePlanOverSlaves(plan); PlanJobDoneMessage(plan) }
+      case plan: Plan => reply { distributePlanOverSlaves(plan) }
       case msg => reportUnsupported(msg)
     }
   }
 
-  private def distributePlanOverSlaves(plan: Plan) = {
-
+  /** Executes a plan by letting the actions be executed by execution slaves. */
+  private[this] def distributePlanOverSlaves(plan: Plan): PlanExecutionResult = plan match {
+    case SingleActionPlan(a) => { (grabSlave() !! ActionJobMessage(a)).apply(); EmptyPlanExecutionResult() }
+    case DependentActionPlan(children) => { EmptyPlanExecutionResult() } //TODO
+    case IndependentActionPlan(children) => { EmptyPlanExecutionResult() } //TODO
   }
+
+  /** Selects a slave for execution of an experiment action. */
+  private[this] def grabSlave() = slaves.head
 }
