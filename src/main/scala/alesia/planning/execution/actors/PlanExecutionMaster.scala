@@ -13,9 +13,11 @@ import alesia.planning.plans.IndependentActionPlan
 /** Actor to execute a plan action-by-action.
  *  @author Roland Ewald
  */
-class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends ExecutionActor with PlanExecutor {
+case class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends ExecutionActor with PlanExecutor {
 
   require(slaves.nonEmpty, "List of slaves must not be empty.")
+  slaves.foreach(_.start)
+  start
 
   override def execute(plan: Plan): PlanExecutionResult = {
     val result = (this !! plan).apply()

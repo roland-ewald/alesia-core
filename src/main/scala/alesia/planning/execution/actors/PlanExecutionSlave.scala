@@ -2,11 +2,12 @@ package alesia.planning.execution.actors
 
 import scala.actors.Actor
 import sessl.util.Logging
+import alesia.bindings.ExperimentProvider
 
 /** Slave to execute single experiment actions.
  *  @author Roland Ewald
  */
-class PlanExecutionSlave(implicit val provider: alesia.bindings.ExperimentProvider) extends ExecutionActor {
+case class PlanExecutionSlave(implicit val provider: ExperimentProvider) extends ExecutionActor {
 
   override def act = Actor.loop {
     react {
@@ -15,4 +16,11 @@ class PlanExecutionSlave(implicit val provider: alesia.bindings.ExperimentProvid
     }
   }
 
+}
+
+object PlanExecutionSlave {
+
+  /** Create a number of execution slaves. */
+  def apply(number: Int)(implicit provider: ExperimentProvider): Seq[PlanExecutionSlave] =
+    (1 to number).map(_ => PlanExecutionSlave()).toList
 }
