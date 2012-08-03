@@ -1,19 +1,27 @@
 package alesia.planning.execution.actors
 
 import scala.actors.Actor
-
 import alesia.planning.execution.PlanExecutor
+import sessl.util.Logging
 import alesia.planning.plans.Plan
 
-/** @author Roland Ewald
+/** Actor to execute a plan action-by-action.
+ *  @author Roland Ewald
  */
-class PlanExecutionMaster extends Actor with PlanExecutor {
+class PlanExecutionMaster extends ExecutionActor with PlanExecutor {
 
-  override def execute(p: Plan) = {
-
+  override def execute(plan: Plan) {
+    
   }
 
-  def act {
+  override def act = Actor.loop {
+    react {
+      case PlanJobMessage(plan) => reply { distributePlanOverSlaves(plan); PlanJobDoneMessage(plan) }
+      case msg => reportUnsupported(msg)
+    }
+  }
+
+  private def distributePlanOverSlaves(plan: Plan) = {
 
   }
 }
