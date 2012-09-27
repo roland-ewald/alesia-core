@@ -7,8 +7,7 @@ import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.plans.SingleActionPlan
 import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.plans.EmptyPlanExecutionResult
-import alesia.planning.plans.DependentActionPlan
-import alesia.planning.plans.IndependentActionPlan
+
 
 /** Actor to execute a plan action-by-action.
  *  @author Roland Ewald
@@ -34,8 +33,6 @@ case class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends Exec
   /** Executes a plan by letting the actions be executed by execution slaves. */
   private[this] def distributePlanOverSlaves(plan: Plan): PlanExecutionResult = plan match {
     case SingleActionPlan(a) => { (grabSlave() !! ActionJobMessage(a)).apply(); EmptyPlanExecutionResult() }
-    case DependentActionPlan(children) => { EmptyPlanExecutionResult() } //TODO
-    case IndependentActionPlan(children) => { EmptyPlanExecutionResult() } //TODO
   }
 
   /** Selects a slave for execution of an experiment action. */
