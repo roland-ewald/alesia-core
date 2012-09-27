@@ -1,7 +1,6 @@
 package alesia.planning.actions
 
 import alesia.bindings.ExperimentProvider
-import alesia.planning.domain.Problem
 import sessl.util.Logging
 import sessl.AbstractExperiment
 import sessl.AbstractPerformanceObservation
@@ -9,6 +8,7 @@ import sessl.AfterSimSteps
 import scala.math.min
 import scala.math.round
 import alesia.bindings.Simulator
+import alesia.planning.domain.ProblemSpaceElement
 
 /** Find out how much simulation steps need to be executed before a suitable execution time is approximated.
  *  Running too short (only few ms) means that stochastic noise is high and results may be biased.
@@ -29,7 +29,7 @@ import alesia.bindings.Simulator
  *
  *  @author Roland Ewald
  */
-case class CalibrateSimSteps(problem: Problem, sim: Simulator, execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
+case class CalibrateSimSteps(problem: ProblemSpaceElement, sim: Simulator, execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
 
   val result = "result"
   

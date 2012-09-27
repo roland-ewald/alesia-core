@@ -1,8 +1,8 @@
 package alesia.bindings
 
-import alesia.planning.domain.Problem
 import sessl._
 import java.net.URI
+import alesia.planning.domain.ProblemSpaceElement
 
 /**
  * Creates experiments for a certain simulation system.
@@ -15,7 +15,7 @@ trait ExperimentProvider {
   def performanceExperiment: PerformanceExperiment
 
   /** Configures experiment for a given problem. */
-  def performanceExperiment(p: Problem, sim: Simulator): PerformanceExperiment = {
+  def performanceExperiment(p: ProblemSpaceElement, sim: Simulator): PerformanceExperiment = {
     val exp = performanceExperiment
     exp.simulator = sim.entity
     exp.model_=(p.modelURI)

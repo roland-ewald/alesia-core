@@ -1,15 +1,12 @@
 package alesia.planning.actions
 
+import scala.math.abs
+
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import alesia.bindings.james.JamesExperimentProvider
+
+import alesia.ExperimentationTest
 import alesia.planning.domain.Algorithm
-import alesia.planning.domain.Problem
-import examples.sr.LinearChainSystem
-import sessl.util.Logging
-import scala.math._
-import alesia.ExperimentationTest
-import alesia.ExperimentationTest
 
 /** Tests for experiment actions.
  *  @author Roland Ewald
@@ -42,5 +39,4 @@ object TestCalibrationSimSteps extends ExperimentationTest {
       assertTrue("", abs(runtime - desiredRuntime) / desiredRuntime <= permEpsilon)
     }
   }
-
 }
