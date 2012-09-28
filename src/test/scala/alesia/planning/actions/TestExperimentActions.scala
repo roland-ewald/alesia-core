@@ -2,19 +2,20 @@ package alesia.planning.actions
 
 import scala.math.abs
 
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 import alesia.ExperimentationTest
 import alesia.planning.domain.Algorithm
 
-/** Tests for experiment actions.
+/**
+ * Tests for experiment actions.
  *  @author Roland Ewald
  */
+@RunWith(classOf[JUnitRunner])
 class TestExperimentActions extends ExperimentationTest {
 
-  @Test
-  def testCalibration = {
+  test("calibration") {
     val action = TestCalibrationSimSteps.action
     TestCalibrationSimSteps.checkResult(action)
   }
@@ -35,8 +36,8 @@ object TestCalibrationSimSteps extends ExperimentationTest {
       val steps = s.asInstanceOf[Long]
       val runtime = r.asInstanceOf[Double]
       logger.info("Calibration result: " + result)
-      assertTrue("More than 10000 steps should be required.", steps > 1000)
-      assertTrue("", abs(runtime - desiredRuntime) / desiredRuntime <= permEpsilon)
+      assert(steps > 1000, "More than 10000 steps should be required.")
+      assert(abs(runtime - desiredRuntime) / desiredRuntime <= permEpsilon)
     }
   }
 }

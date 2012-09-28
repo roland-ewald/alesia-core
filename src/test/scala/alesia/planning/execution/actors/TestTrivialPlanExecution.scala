@@ -1,21 +1,22 @@
 package alesia.planning.execution.actors
 
-import org.junit.Test
-import org.junit.Assert._
+import org.junit.Assert.assertNotNull
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-import alesia.planning.execution.PlanExecutor
 import alesia.ExperimentationTest
-import alesia.planning.plans.SingleActionPlan
 import alesia.planning.actions.TestCalibrationSimSteps
+import alesia.planning.execution.PlanExecutor
+import alesia.planning.plans.SingleActionPlan
 
-/** Test execution of a trivial plan.
+/**
+ * Test execution of a trivial plan.
  *  @author Roland Ewald
  */
-@Test
+@RunWith(classOf[JUnitRunner])
 class TestTrivialPlanExecution extends ExperimentationTest {
 
-  @Test
-  def testOneElementCalibrationPlan() = {
+  test("executing a single calibration action") {
     val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
     val result = executor.execute(SingleActionPlan(TestCalibrationSimSteps.action))
     assertNotNull(result)
