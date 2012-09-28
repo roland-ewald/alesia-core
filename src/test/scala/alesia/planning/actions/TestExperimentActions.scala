@@ -1,23 +1,21 @@
 package alesia.planning.actions
 
-import org.junit.Assert.assertTrue
-import org.junit.Test
-import alesia.bindings.james.JamesExperimentProvider
-import alesia.planning.domain.Algorithm
-import alesia.planning.domain.Problem
-import examples.sr.LinearChainSystem
-import sessl.util.Logging
-import scala.math._
-import alesia.ExperimentationTest
-import alesia.ExperimentationTest
+import scala.math.abs
 
-/** Tests for experiment actions.
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
+import alesia.ExperimentationTest
+import alesia.planning.domain.Algorithm
+
+/**
+ * Tests for experiment actions.
  *  @author Roland Ewald
  */
+@RunWith(classOf[JUnitRunner])
 class TestExperimentActions extends ExperimentationTest {
 
-  @Test
-  def testCalibration = {
+  test("calibration") {
     val action = TestCalibrationSimSteps.action
     TestCalibrationSimSteps.checkResult(action)
   }
@@ -38,9 +36,8 @@ object TestCalibrationSimSteps extends ExperimentationTest {
       val steps = s.asInstanceOf[Long]
       val runtime = r.asInstanceOf[Double]
       logger.info("Calibration result: " + result)
-      assertTrue("More than 10000 steps should be required.", steps > 1000)
-      assertTrue("", abs(runtime - desiredRuntime) / desiredRuntime <= permEpsilon)
+      assert(steps > 1000, "More than 10000 steps should be required.")
+      assert(abs(runtime - desiredRuntime) / desiredRuntime <= permEpsilon)
     }
   }
-
 }
