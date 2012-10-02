@@ -48,6 +48,9 @@ class PlanningDomain {
   /** @return the number of boolean functions defined in the domain */
   def numFunctions = table.instructionCount
 
+  /** @return the number of available actions */
+  def numActions = actions.size
+
   /** Creates variable by id and name. */
   private def createVarById(id: Int, name: String = "unknown") = PlanningDomainVariable(id, varNames.getOrElseUpdate(id, name))
 

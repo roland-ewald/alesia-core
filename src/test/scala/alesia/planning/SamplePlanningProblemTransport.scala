@@ -1,6 +1,4 @@
-package alesia.planning.planners.nondet
-
-import alesia.planning.PlanningProblem
+package alesia.planning
 
 /**
  * This is a representation of the planning problem used as an example in:

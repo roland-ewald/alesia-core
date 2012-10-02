@@ -5,6 +5,7 @@ import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
 import alesia.planning.PlanningDomain
 import alesia.planning.PlanningProblem
+import alesia.planning.SamplePlanningProblemTransport
 
 /**
  * Tests for the non-deterministic policy planner.

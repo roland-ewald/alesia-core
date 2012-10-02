@@ -5,7 +5,7 @@ package alesia.planning
  *
  * @author Roland Ewald
  */
-abstract case class PlanningProblem extends PlanningDomain {
+abstract case class PlanningProblem() extends PlanningDomain {
 
   /** Instruction id for function that characterizes initial state. */
   val initialState: PlanningDomainVariable
