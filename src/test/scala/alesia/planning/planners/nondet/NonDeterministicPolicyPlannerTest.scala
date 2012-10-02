@@ -3,8 +3,8 @@ package alesia.planning.planners.nondet
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
-import alesia.utils.bdd.UniqueTable
-import alesia.planning.domain.Domain
+
+import alesia.planning.PlanningDomain
 
 /**
  * Tests for the non-deterministic policy planner.
@@ -19,7 +19,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec {
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
 
-      val domain = new Domain {
+      val domain = new PlanningDomain {
 
         val posTrainStation = v("pos=train-station")
         val posVictoriaStation = v("pos=Victoria-station")

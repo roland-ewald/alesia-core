@@ -1,4 +1,4 @@
-package alesia.planning.domain
+package alesia.planning
 
 import alesia.utils.bdd.UniqueTable
 
@@ -7,7 +7,7 @@ import alesia.utils.bdd.UniqueTable
  *
  * @author Roland Ewald
  */
-class Domain {
+class PlanningDomain {
 
   /** The table to manage the boolean functions. */
   private[this] val table = new UniqueTable
