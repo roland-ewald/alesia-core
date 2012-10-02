@@ -15,14 +15,31 @@ class Domain {
   /** Maps instruction ids for the boolean functions f(x) = x to the variable x's name in the domain. */
   val varNames = scala.collection.mutable.Map[Int, String]()
 
+  /** Contains actions available in this domain. */
+  var actions = IndexedSeq[DomainAction]()
+
   /**
    * Creates a new variable. Names does not need to be unique, but the id of the [[DomainVariable]] will be.
+   * @param name does not need to be unique
    * @return domain variable
    */
   def v(name: String): DomainVariable = {
     val instrId = table.unique(table.variableCount + 1, 0, 1)
     varNames(instrId) = name
     new DomainVariable(instrId, name)
+  }
+
+  /**
+   * Creates a new action.
+   * @param name does not need to be unique
+   * @param precondition the precondition
+   * @param effects both deterministic and nondeterministic effects
+   * @return action
+   */
+  def action(name: String, precondition: DomainVariable, effects: Effect*): DomainAction = {
+    val rv = new DomainAction(name, precondition, effects: _*)
+    actions = actions :+ rv
+    rv
   }
 
   /** @return the number of variables defined in the domain */
@@ -57,4 +74,12 @@ class Domain {
   object Effect {
     def apply(oldState: DomainVariable, newState: DomainVariable) = new Effect(oldState, add = List(newState), del = List(oldState))
   }
+
+  /**
+   * Represents a domain action.
+   * @param name the name of the action, does not need to be unique
+   * @param precondition the precondition of the action
+   * @param effects the effects of the action
+   */
+  case class DomainAction(name: String, precondition: DomainVariable, effects: Effect*)
 }
