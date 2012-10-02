@@ -16,17 +16,17 @@ class PlanningDomain {
   val varNames = scala.collection.mutable.Map[Int, String]()
 
   /** Contains actions available in this domain. */
-  var actions = IndexedSeq[DomainAction]()
+  private[this] var actions = IndexedSeq[DomainAction]()
 
   /**
-   * Creates a new variable. Names does not need to be unique, but the id of the [[DomainVariable]] will be.
+   * Creates a new variable. Names does not need to be unique, but the id of the [[PlanningDomainVariable]] will be.
    * @param name does not need to be unique
    * @return domain variable
    */
-  def v(name: String): DomainVariable = {
+  def v(name: String): PlanningDomainVariable = {
     val instrId = table.unique(table.variableCount + 1, 0, 1)
     varNames(instrId) = name
-    new DomainVariable(instrId, name)
+    new PlanningDomainVariable(instrId, name)
   }
 
   /**
@@ -36,7 +36,7 @@ class PlanningDomain {
    * @param effects both deterministic and nondeterministic effects
    * @return action
    */
-  def action(name: String, precondition: DomainVariable, effects: Effect*): DomainAction = {
+  def action(name: String, precondition: PlanningDomainVariable, effects: Effect*): DomainAction = {
     val rv = new DomainAction(name, precondition, effects: _*)
     actions = actions :+ rv
     rv
@@ -49,30 +49,36 @@ class PlanningDomain {
   def numFunctions = table.instructionCount
 
   /** Creates variable by id and name. */
-  private def createVarById(id: Int, name: String = "unknown") = DomainVariable(id, varNames.getOrElseUpdate(id, name))
+  private def createVarById(id: Int, name: String = "unknown") = PlanningDomainVariable(id, varNames.getOrElseUpdate(id, name))
+
+  /** Facilitates usage of variables in code that relies on instruction ids only.*/
+  implicit def variableToInstructionId(v: PlanningDomainVariable): Int = v.id
 
   /** Represents a domain variable, or a function of these. */
-  case class DomainVariable(id: Int, name: String) {
+  case class PlanningDomainVariable(id: Int, name: String) {
+
+    /** Creates readable name (useful for debugging).*/
     def createName(otherName: String, operator: Char) = '(' + name + ')' + operator + '(' + otherName + ')'
+
     //Pass all operators to the table
-    def or(v: DomainVariable) = createVarById(table.or(id, v.id), createName(v.name, '∨'))
-    def and(v: DomainVariable) = createVarById(table.and(id, v.id), createName(v.name, '∧'))
-    def xor(v: DomainVariable) = createVarById(table.xor(id, v.id), createName(v.name, '⊕'))
+    def or(v: PlanningDomainVariable) = createVarById(table.or(id, v.id), createName(v.name, '∨'))
+    def and(v: PlanningDomainVariable) = createVarById(table.and(id, v.id), createName(v.name, '∧'))
+    def xor(v: PlanningDomainVariable) = createVarById(table.xor(id, v.id), createName(v.name, '⊕'))
     def unary_! = createVarById(table.not(id), "¬(" + name + ')')
   }
 
   /** The trivial domain variable for 'false'. */
-  object FalseVariable extends DomainVariable(0, "false")
+  object FalseVariable extends PlanningDomainVariable(0, "false")
 
   /** The trivial domain variable for 'true'. */
-  object TrueVariable extends DomainVariable(1, "true")
+  object TrueVariable extends PlanningDomainVariable(1, "true")
 
   /** Represents an effect of an action. */
-  case class Effect(condition: DomainVariable = TrueVariable, add: List[DomainVariable] = List(), del: List[DomainVariable] = List(), nondeterministic: Boolean = false)
+  case class Effect(condition: PlanningDomainVariable = TrueVariable, add: List[PlanningDomainVariable] = List(), del: List[PlanningDomainVariable] = List(), nondeterministic: Boolean = false)
 
   /** Supplies helper functions to create effects. */
   object Effect {
-    def apply(oldState: DomainVariable, newState: DomainVariable) = new Effect(oldState, add = List(newState), del = List(oldState))
+    def apply(oldState: PlanningDomainVariable, newState: PlanningDomainVariable) = new Effect(oldState, add = List(newState), del = List(oldState))
   }
 
   /**
@@ -81,5 +87,5 @@ class PlanningDomain {
    * @param precondition the precondition of the action
    * @param effects the effects of the action
    */
-  case class DomainAction(name: String, precondition: DomainVariable, effects: Effect*)
+  case class DomainAction(name: String, precondition: PlanningDomainVariable, effects: Effect*)
 }
