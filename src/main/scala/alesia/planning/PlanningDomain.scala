@@ -12,21 +12,22 @@ class PlanningDomain {
   /** The table to manage the boolean functions. */
   private[this] val table = new UniqueTable
 
-  /** Maps instruction ids for the boolean functions f(x) = x to the variable x's name in the domain. */
-  val varNames = scala.collection.mutable.Map[Int, String]()
+  /** Maps instruction ids for the boolean functions f(x) = x to their descriptions in the domain (mostly for debugging purposes). */
+  val descriptions = scala.collection.mutable.Map[Int, String]()
 
   /** Contains actions available in this domain. */
   private[this] var actions = IndexedSeq[DomainAction]()
 
   /**
-   * Creates a new variable. Names does not need to be unique, but the id of the [[PlanningDomainVariable]] will be.
-   * @param name does not need to be unique
+   * Creates a function f(x) = x for a new variable x.
+   * The name does not need to be unique, but the id of the function will be.
+   * @param name, does not need to be unique
    * @return domain variable
    */
-  def v(name: String): PlanningDomainVariable = {
+  def v(name: String): PlanningDomainFunction = {
     val instrId = table.unique(table.variableCount + 1, 0, 1)
-    varNames(instrId) = name
-    new PlanningDomainVariable(instrId, name)
+    descriptions(instrId) = name
+    new PlanningDomainFunction(instrId, name)
   }
 
   /**
@@ -36,14 +37,11 @@ class PlanningDomain {
    * @param effects both deterministic and nondeterministic effects
    * @return action
    */
-  def action(name: String, precondition: PlanningDomainVariable, effects: Effect*): DomainAction = {
+  def action(name: String, precondition: PlanningDomainFunction, effects: Effect*): DomainAction = {
     val rv = new DomainAction(name, precondition, effects: _*)
     actions = actions :+ rv
     rv
   }
-
-  /** @return the number of variables defined in the domain */
-  def numVariables = varNames.size
 
   /** @return the number of boolean functions defined in the domain */
   def numFunctions = table.instructionCount
@@ -52,36 +50,36 @@ class PlanningDomain {
   def numActions = actions.size
 
   /** Creates variable by id and name. */
-  private def createVarById(id: Int, name: String = "unknown") = PlanningDomainVariable(id, varNames.getOrElseUpdate(id, name))
+  private def createVarById(id: Int, name: String = "unknown") = PlanningDomainFunction(id, descriptions.getOrElseUpdate(id, name))
 
-  /** Facilitates usage of variables in code that relies on instruction ids only.*/
-  implicit def variableToInstructionId(v: PlanningDomainVariable): Int = v.id
+  /** Facilitates usage of functions in code that relies on instruction ids only.*/
+  implicit def variableToInstructionId(f: PlanningDomainFunction): Int = f.id
 
-  /** Represents a domain variable, or a function of these. */
-  case class PlanningDomainVariable(id: Int, name: String) {
+  /** Represents a boolean function within the domain. */
+  case class PlanningDomainFunction(id: Int, name: String) {
 
     /** Creates readable name (useful for debugging).*/
     def createName(otherName: String, operator: Char) = '(' + name + ')' + operator + '(' + otherName + ')'
 
     //Pass all operators to the table
-    def or(v: PlanningDomainVariable) = createVarById(table.or(id, v.id), createName(v.name, '∨'))
-    def and(v: PlanningDomainVariable) = createVarById(table.and(id, v.id), createName(v.name, '∧'))
-    def xor(v: PlanningDomainVariable) = createVarById(table.xor(id, v.id), createName(v.name, '⊕'))
+    def or(f: PlanningDomainFunction) = createVarById(table.or(id, f.id), createName(f.name, '∨'))
+    def and(f: PlanningDomainFunction) = createVarById(table.and(id, f.id), createName(f.name, '∧'))
+    def xor(f: PlanningDomainFunction) = createVarById(table.xor(id, f.id), createName(f.name, '⊕'))
     def unary_! = createVarById(table.not(id), "¬(" + name + ')')
   }
 
-  /** The trivial domain variable for 'false'. */
-  object FalseVariable extends PlanningDomainVariable(0, "false")
+  /** The trivial constant domain function () -> false. */
+  object FalseVariable extends PlanningDomainFunction(0, "false")
 
-  /** The trivial domain variable for 'true'. */
-  object TrueVariable extends PlanningDomainVariable(1, "true")
+  /** The trivial constant domain function () -> true. */
+  object TrueVariable extends PlanningDomainFunction(1, "true")
 
   /** Represents an effect of an action. */
-  case class Effect(condition: PlanningDomainVariable = TrueVariable, add: List[PlanningDomainVariable] = List(), del: List[PlanningDomainVariable] = List(), nondeterministic: Boolean = false)
+  case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false)
 
   /** Supplies helper functions to create effects. */
   object Effect {
-    def apply(oldState: PlanningDomainVariable, newState: PlanningDomainVariable) = new Effect(oldState, add = List(newState), del = List(oldState))
+    def apply(oldState: PlanningDomainFunction, newState: PlanningDomainFunction) = new Effect(oldState, add = List(newState), del = List(oldState))
   }
 
   /**
@@ -90,5 +88,5 @@ class PlanningDomain {
    * @param precondition the precondition of the action
    * @param effects the effects of the action
    */
-  case class DomainAction(name: String, precondition: PlanningDomainVariable, effects: Effect*)
+  case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)
 }

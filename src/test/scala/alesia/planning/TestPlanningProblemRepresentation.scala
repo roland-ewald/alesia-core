@@ -22,8 +22,7 @@ class TestPlanningProblemRepresentation extends FunSuite {
     assert(sampleProblem.numActions === 7)
   }
 
-  test("there are several variables and functions") {
-    assert(sampleProblem.numVariables > 10)
+  test("there are several functions defined") {
     assert(sampleProblem.numFunctions > 20)
   }
 
