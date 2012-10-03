@@ -10,7 +10,7 @@ import alesia.utils.bdd.UniqueTable
 class PlanningDomain {
 
   /** The table to manage the boolean functions. */
-  private[this] val table = new UniqueTable
+  protected[alesia] val table = new UniqueTable
 
   /** Maps instruction ids for the boolean functions f(x) = x to their descriptions in the domain (mostly for debugging purposes). */
   val descriptions = scala.collection.mutable.Map[Int, String]()
