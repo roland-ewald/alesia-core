@@ -16,7 +16,7 @@ trait Plan {
 }
 
 /** Trivial plan. */
-case object EmptyPlan extends Plan {
+trait EmptyPlan extends Plan {
   override def decide(c: Context) = Seq()
 }
 

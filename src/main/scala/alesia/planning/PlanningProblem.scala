@@ -7,10 +7,15 @@ package alesia.planning
  */
 abstract case class PlanningProblem() extends PlanningDomain {
 
-  /** Instruction id for function that characterizes initial state. */
+  /** Initial state. */
   val initialState: PlanningDomainVariable
 
-  /** Instruction id for function that characterizes goal state. */
+  /** Goal state. */
   val goalState: PlanningDomainVariable
 
+  /** Instruction id for function that characterizes initial state. */
+  def initialStateId = initialState.id
+
+  /** Instruction id for function that characterizes goal state. */
+  def goalStateId = goalState.id
 }
