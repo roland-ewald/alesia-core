@@ -20,6 +20,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec {
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val plan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
+      println(plan)
       pending
     }
 
