@@ -1,6 +1,7 @@
 package alesia.planning
 
 import alesia.utils.bdd.UniqueTable
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Represents a general planning domain.
@@ -15,8 +16,11 @@ class PlanningDomain {
   /** Maps instruction ids for the boolean functions f(x) = x to their descriptions in the domain (mostly for debugging purposes). */
   val descriptions = scala.collection.mutable.Map[Int, String]()
 
-  /** Contains actions available in this domain. */
-  private[this] var actions = IndexedSeq[DomainAction]()
+  /** Buffers actions available in this domain. */
+  private[this] var actionBuffer = ArrayBuffer[DomainAction]()
+
+  /** All actions defined in this domain. */
+  lazy val actions = actionBuffer.toArray
 
   /**
    * Creates a function f(x) = x for a new variable x.
@@ -39,7 +43,7 @@ class PlanningDomain {
    */
   def action(name: String, precondition: PlanningDomainFunction, effects: Effect*): DomainAction = {
     val rv = new DomainAction(name, precondition, effects: _*)
-    actions = actions :+ rv
+    actionBuffer += rv
     rv
   }
 
@@ -47,7 +51,7 @@ class PlanningDomain {
   def numFunctions = table.instructionCount
 
   /** @return the number of available actions */
-  def numActions = actions.size
+  def numActions = actionBuffer.size
 
   /** Creates variable by id and name. */
   private def createVarById(id: Int, name: String = "unknown") = PlanningDomainFunction(id, descriptions.getOrElseUpdate(id, name))
