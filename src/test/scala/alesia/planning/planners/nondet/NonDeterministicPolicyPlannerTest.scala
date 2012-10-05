@@ -7,6 +7,7 @@ import alesia.planning.PlanningDomain
 import alesia.planning.PlanningProblem
 import alesia.planning.SamplePlanningProblemTransport
 import alesia.planning.TrivialPlanningProblem
+import sessl.util.Logging
 
 /**
  * Tests for the non-deterministic policy planner.
@@ -15,7 +16,7 @@ import alesia.planning.TrivialPlanningProblem
  *
  */
 @RunWith(classOf[JUnitRunner])
-class NonDeterministicPolicyPlannerTest extends FunSpec {
+class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
 
   describe("The OBDD-Planner") {
 
@@ -27,14 +28,17 @@ class NonDeterministicPolicyPlannerTest extends FunSpec {
       val problem = new TrivialPlanningProblem {
         val solve = action("solve", solvable, Effect(solvable, add = List(solved)))
       }
-      //TODO      assert(new NonDeterministicPolicyPlanner().plan(problem) != FailurePolicy)
-      pending
+      val plan = new NonDeterministicPolicyPlanner().plan(problem)
+      assert(plan != FailurePolicy)
+      logger.info("Plan for trivial planning problem:" + plan)
+      assert(plan.asInstanceOf[DeterministicPolicy].decide(problem.initialState.id) === 0)
     }
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val plan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
-      println(plan)
-      pending
+      logger.info("Plan for sample planning problem:" + plan)
+      assert(plan != FailurePolicy)
+      //TODO: Pretty-print plans and implement execution control / plan validation
     }
 
     it("is able to solve a simple problem in the ALeSiA domain") {

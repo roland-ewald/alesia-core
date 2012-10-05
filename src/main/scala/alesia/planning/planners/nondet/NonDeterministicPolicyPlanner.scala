@@ -1,17 +1,17 @@
 package alesia.planning.planners.nondet
 
+import scala.tools.nsc.transform.Flatten
 import alesia.planning.PlanningProblem
+import alesia.planning.PlanningProblem
+import alesia.planning.actions.ExperimentAction
 import alesia.planning.context.Context
 import alesia.planning.planners.Planner
 import alesia.planning.plans.EmptyPlan
 import alesia.planning.plans.EmptyPlan
 import alesia.planning.plans.Plan
-import sessl.util.Logging
 import alesia.utils.bdd.UniqueTable
-import scala.collection.SeqLike
-import alesia.planning.PlanningProblem
-import alesia.planning.actions.ExperimentAction
-import scala.tools.nsc.transform.Flatten
+import sessl.util.Logging
+import scala.annotation.tailrec
 
 /**
  * Creates a plan assuming a non-deterministic environment.
@@ -96,12 +96,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   def makeDeterministic(policy: Policy): Plan = policy match {
     case EmptyPolicy => new EmptyPlan {}
     case FailurePolicy => FailurePolicy
-    case pol: NonDeterministicPolicy => {
-      new Plan {
-        val policy = pol
-        def decide(c: Context): Seq[ExperimentAction] = Seq()
-      }
-    }
+    case pol: NonDeterministicPolicy => DeterministicPolicy(pol)
   }
 }
 
@@ -126,4 +121,28 @@ case class NonDeterministicPolicy(val problem: PlanningProblem, val stateActionT
     }
   }
   override def decide(c: Context): Seq[ExperimentAction] = Seq()
+}
+
+case class DeterministicPolicy(val policy: NonDeterministicPolicy) extends Plan {
+  require(policy.stateActionTable.nonEmpty)
+
+  def decide(c: Context): Seq[ExperimentAction] = Seq()
+
+  /**
+   * Decides upon an action, chooses the first one of which the preconditions are fulfilled.
+   * TODO: This strategy needs to be refined, otherwise one may end up within an infinite loop
+   */
+  def decide(state: Int): Int = {
+    @tailrec
+    def decideFor(currentState: Int, stateActionPair: (Int, Int), stateActionPairs: Iterator[(Int, Int)]): Int = {
+      if (policy.problem.table.isContained(stateActionPair._1, currentState))
+        stateActionPair._2
+      else if (stateActionPairs.isEmpty)
+        -1
+      else
+        decideFor(currentState, stateActionPairs.next, stateActionPairs)
+    }
+    val stateActionPairs = policy.stateActionTable.iterator
+    decideFor(state, stateActionPairs.next, stateActionPairs)
+  }
 }
