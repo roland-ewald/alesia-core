@@ -40,11 +40,27 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       logger.info("Plan for sample planning problem:\n" + plan.asInstanceOf[DeterministicPolicy].symbolicRepresentation)
     }
 
-    it("is able to solve a simple problem in the ALeSiA domain") {
+    it("is able to deal with non-deterministic problems") {
       pending
     }
 
-    it("terminates when confronted with a planning problem that does not have a solution") {
+    it("is able to solve generate strong-cyclic plans") {
+      pending
+    }
+
+    it("is able to solve generate weak plans") {
+      pending
+    }
+
+    it("produces deterministic policies that can be executed and will work") {
+      pending
+    }
+
+    it("allows to consider extended goals") {
+      pending
+    }
+
+    it("is able to solve a simple problem in the ALeSiA domain") {
       pending
     }
 
