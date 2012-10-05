@@ -3,7 +3,6 @@ package alesia.planning
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.FunSuite
-import alesia.utils.bdd.TestUniqueTable
 import alesia.utils.bdd.UniqueTable
 
 /**
