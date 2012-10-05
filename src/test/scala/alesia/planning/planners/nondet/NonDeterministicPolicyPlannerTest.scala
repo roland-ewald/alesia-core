@@ -30,14 +30,14 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       }
       val plan = new NonDeterministicPolicyPlanner().plan(problem)
       assert(plan != FailurePolicy)
-      logger.info("Plan for trivial planning problem:\n" + plan.asInstanceOf[DeterministicPolicy].symbolicRepresentation)
-      assert(plan.asInstanceOf[DeterministicPolicy].decide(problem.initialState.id) === 0)
+      logger.info("Plan for trivial planning problem:\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
+      assert(plan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id) === 0)
     }
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val plan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
       assert(plan != FailurePolicy)
-      logger.info("Plan for sample planning problem:\n" + plan.asInstanceOf[DeterministicPolicy].symbolicRepresentation)
+      logger.info("Plan for sample planning problem:\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
     }
 
     it("is able to deal with non-deterministic problems") {

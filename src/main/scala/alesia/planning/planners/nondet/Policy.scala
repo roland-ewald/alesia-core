@@ -19,13 +19,20 @@ sealed trait Policy extends Plan {
 
   /** Joins to policies. */
   def ++(other: Policy) = other
+
+  /** The symbolic representation of the policy. */
+  val symbolicRepresentation: String
 }
 
 /** Represents a failure to find a plan. */
-case object FailurePolicy extends Policy with EmptyPlan
+case object FailurePolicy extends Policy with EmptyPlan {
+  override val symbolicRepresentation = "Failure"
+}
 
 /** Represents the trivial policy.*/
-case object EmptyPolicy extends Policy with EmptyPlan
+case object EmptyPolicy extends Policy with EmptyPlan {
+  override val symbolicRepresentation = "Empty"
+}
 
 /**
  * Represents a non-deterministic policy, in which the states in which actions are executed may still overlap.
@@ -36,19 +43,29 @@ case class NonDeterministicPolicy(val problem: PlanningProblem, val stateActionT
 
   override def ++(other: Policy) = other match {
     case EmptyPolicy => this
-    case FailurePolicy => FailurePolicy
+    case FailurePolicy => FailurePolicy 
     case pol: NonDeterministicPolicy => {
       require(pol.problem == problem, "Policies to be joined must refer to the same problem domain.")
       new NonDeterministicPolicy(problem, stateActionTable ++ pol.stateActionTable, problem.table.union(states, pol.states))
     }
   }
-  override def decide(c: Context): Seq[ExperimentAction] = Seq()
+
+  override def decide(c: Context): Seq[ExperimentAction] = throw new UnsupportedOperationException
+
+  /**
+   * Constructs a symbolic representation of the preconditions (as nested if statements) and the action they trigger if true.
+   */
+  override lazy val symbolicRepresentation: String = stateActionTable.map {
+    case (state, action) =>
+      problem.table.structureOf(state, problem.variableNames, "  ").mkString("\n") +
+        " => " + problem.actions(action).name + "\n===="
+  }.mkString("\n")
 }
 
 /**
  * Represents a deterministic policy, in which for each state there is a single action to be executed.
  */
-case class DeterministicPolicy(val policy: NonDeterministicPolicy) extends Plan {
+case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends Plan {
   require(policy.stateActionTable.nonEmpty)
 
   //TODO: Merge this with the other decision method
@@ -72,12 +89,5 @@ case class DeterministicPolicy(val policy: NonDeterministicPolicy) extends Plan 
     decideFor(state, stateActionPairs.next, stateActionPairs)
   }
 
-  /**
-   * Constructs a symbolic representation of the nested if statements and the action they trigger if true.
-   */
-  lazy val symbolicRepresentation: String = policy.stateActionTable.map {
-    case (state, action) =>
-      policy.problem.table.structureOf(state, policy.problem.variableNames, "  ").mkString("\n") +
-        " => " + policy.problem.actions(action).name + "\n===="
-  }.mkString("\n")
+  lazy val symbolicRepresentation = policy.symbolicRepresentation
 }
