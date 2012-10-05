@@ -6,6 +6,7 @@ import org.scalatest.junit.JUnitRunner
 import alesia.planning.PlanningDomain
 import alesia.planning.PlanningProblem
 import alesia.planning.SamplePlanningProblemTransport
+import alesia.planning.TrivialPlanningProblem
 
 /**
  * Tests for the non-deterministic policy planner.
@@ -17,6 +18,18 @@ import alesia.planning.SamplePlanningProblemTransport
 class NonDeterministicPolicyPlannerTest extends FunSpec {
 
   describe("The OBDD-Planner") {
+
+    it("returns with a failure for the trivial planning problem that does not define any actions ") {
+      assert(new NonDeterministicPolicyPlanner().plan(new TrivialPlanningProblem) === FailurePolicy)
+    }
+
+    it("returns a correct policy for the trivial planning problem that does define an action") {
+      val problem = new TrivialPlanningProblem {
+        val solve = action("solve", solvable, Effect(solvable, add = List(solved)))
+      }
+      //TODO      assert(new NonDeterministicPolicyPlanner().plan(problem) != FailurePolicy)
+      pending
+    }
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val plan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
