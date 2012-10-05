@@ -55,6 +55,9 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       // π' <- π ∪ π"
       currentPolicy = currentPolicy ++ newPolicy
 
+      if (currentPolicy.isInstanceOf[NonDeterministicPolicy])
+        logger.info("current policy:\n" + DeterministicPolicy(currentPolicy.asInstanceOf[NonDeterministicPolicy]).symbolicRepresentation)
+
       // update S_π'∪ S_g
       reached = domain.union(goalState, currentPolicy.states)
     }
