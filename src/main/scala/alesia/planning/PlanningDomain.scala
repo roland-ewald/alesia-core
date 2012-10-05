@@ -13,8 +13,8 @@ class PlanningDomain {
   /** The table to manage the boolean functions. */
   protected[alesia] val table = new UniqueTable
 
-  /** Maps instruction ids for the boolean functions f(x) = x to their descriptions in the domain (mostly for debugging purposes). */
-  val descriptions = scala.collection.mutable.Map[Int, String]()
+  /** Maps variable numbers to variable names.*/
+  val variableNames = scala.collection.mutable.Map[Int, String]()
 
   /** Buffers actions available in this domain. */
   private[this] var actionBuffer = ArrayBuffer[DomainAction]()
@@ -29,9 +29,9 @@ class PlanningDomain {
    * @return domain variable
    */
   def v(name: String): PlanningDomainFunction = {
-    val instrId = table.unique(table.variableCount + 1, 0, 1)
-    descriptions(instrId) = name
-    new PlanningDomainFunction(instrId, name)
+    val variableNumber = table.variableCount + 1
+    variableNames(variableNumber) = name
+    new PlanningDomainFunction(table.unique(variableNumber, 0, 1), name)
   }
 
   /**
@@ -53,9 +53,6 @@ class PlanningDomain {
   /** @return the number of available actions */
   def numActions = actionBuffer.size
 
-  /** Creates variable by id and name. */
-  private def createVarById(id: Int, name: String = "unknown") = PlanningDomainFunction(id, descriptions.getOrElseUpdate(id, name))
-
   /** Facilitates usage of functions in code that relies on instruction ids only.*/
   implicit def variableToInstructionId(f: PlanningDomainFunction): Int = f.id
 
@@ -66,10 +63,10 @@ class PlanningDomain {
     def createName(otherName: String, operator: Char) = '(' + name + ')' + operator + '(' + otherName + ')'
 
     //Pass all operators to the table
-    def or(f: PlanningDomainFunction) = createVarById(table.or(id, f.id), createName(f.name, '∨'))
-    def and(f: PlanningDomainFunction) = createVarById(table.and(id, f.id), createName(f.name, '∧'))
-    def xor(f: PlanningDomainFunction) = createVarById(table.xor(id, f.id), createName(f.name, '⊕'))
-    def unary_! = createVarById(table.not(id), "¬(" + name + ')')
+    def or(f: PlanningDomainFunction) = PlanningDomainFunction(table.or(id, f.id), createName(f.name, '∨'))
+    def and(f: PlanningDomainFunction) = PlanningDomainFunction(table.and(id, f.id), createName(f.name, '∧'))
+    def xor(f: PlanningDomainFunction) = PlanningDomainFunction(table.xor(id, f.id), createName(f.name, '⊕'))
+    def unary_! = PlanningDomainFunction(table.not(id), "¬(" + name + ')')
   }
 
   /** The trivial constant domain function () -> false. */

@@ -30,15 +30,14 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       }
       val plan = new NonDeterministicPolicyPlanner().plan(problem)
       assert(plan != FailurePolicy)
-      logger.info("Plan for trivial planning problem:" + plan)
+      logger.info("Plan for trivial planning problem:\n" + plan.asInstanceOf[DeterministicPolicy].symbolicRepresentation)
       assert(plan.asInstanceOf[DeterministicPolicy].decide(problem.initialState.id) === 0)
     }
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val plan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
-      logger.info("Plan for sample planning problem:" + plan)
       assert(plan != FailurePolicy)
-      //TODO: Pretty-print plans and implement execution control / plan validation
+      logger.info("Plan for sample planning problem:\n" + plan.asInstanceOf[DeterministicPolicy].symbolicRepresentation)
     }
 
     it("is able to solve a simple problem in the ALeSiA domain") {
@@ -56,6 +55,8 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     it("warns the user and stops execution when the state space grows too large") {
       pending
     }
+
+    //TODO: execution control / plan validation ?
   }
 
 }

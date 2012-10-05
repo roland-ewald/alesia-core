@@ -145,4 +145,13 @@ case class DeterministicPolicy(val policy: NonDeterministicPolicy) extends Plan 
     val stateActionPairs = policy.stateActionTable.iterator
     decideFor(state, stateActionPairs.next, stateActionPairs)
   }
+
+  /**
+   * Constructs a symbolic representation of the nested if statements and the action they trigger if true.
+   */
+  lazy val symbolicRepresentation: String = policy.stateActionTable.map {
+    case (state, action) =>
+      policy.problem.table.structureOf(state, policy.problem.variableNames, "  ").mkString("\n") +
+        " => " + policy.problem.actions(action).name + "\n===="
+  }.mkString("\n")
 }
