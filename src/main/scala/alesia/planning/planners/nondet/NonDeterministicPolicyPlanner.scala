@@ -26,8 +26,9 @@ import scala.annotation.tailrec
  */
 class NonDeterministicPolicyPlanner extends Planner with Logging {
 
+  //TODO: this finds strong plans, extend/generalize toward strong-cyclic and weak plans
+
   def plan(problem: PlanningProblem) = {
-    //TODO: this finds strong plans, extend/generalize toward strong-cyclic and weak plans
 
     implicit val domain = problem.table
     val initialState = problem.initialStateId //S_0
@@ -35,19 +36,26 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
     var previousPolicy: Policy = FailurePolicy //π
     var currentPolicy: Policy = EmptyPolicy //π'    
-    var reached = domain.union(goalState, currentPolicy.states) // S_π'∪ S_g
+    var reachedStates = domain.union(goalState, currentPolicy.states) // S_π'∪ S_g
     var counter = 0
 
-    // while π != π' and S_0 ⊈ S_π'∪ S_g  
-    while (previousPolicy != currentPolicy && !domain.isContained(initialState, reached)) {
-
-      logger.info("ITERATION " + counter)
+    /** Log output if necessary. */
+    def logOutput() = {
       counter += 1
+      if (currentPolicy.isInstanceOf[NonDeterministicPolicy] && currentPolicy.states != 0)
+        "iteration #" + counter + ", current policy:\n" +
+          DeterministicPolicy(currentPolicy.asInstanceOf[NonDeterministicPolicy]).symbolicRepresentation
+      else ""
+    }
 
-      val preImage = strongPreImage(reached, problem)
+    // while π != π' and S_0 ⊈ S_π'∪ S_g  
+    while (previousPolicy != currentPolicy && !domain.isContained(initialState, reachedStates)) {
 
-      // Create π"
-      val newPolicy = pruneStates(preImage, reached, problem)
+      // Create pre-image, i.e. all (state,action) pairs whose results are in S_π'∪ S_g
+      val preImage = strongPreImage(reachedStates, problem)
+
+      // Create new policy π" by adding pre-image for those states that have not been reached yet
+      val newPolicy = pruneStates(preImage, reachedStates, problem)
 
       // π <- π'
       previousPolicy = currentPolicy
@@ -55,14 +63,14 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       // π' <- π ∪ π"
       currentPolicy = currentPolicy ++ newPolicy
 
-      if (currentPolicy.isInstanceOf[NonDeterministicPolicy])
-        logger.info("current policy:\n" + DeterministicPolicy(currentPolicy.asInstanceOf[NonDeterministicPolicy]).symbolicRepresentation)
-
       // update S_π'∪ S_g
-      reached = domain.union(goalState, currentPolicy.states)
+      reachedStates = domain.union(goalState, currentPolicy.states)
+
+      logger.debug(logOutput())
     }
 
-    if (domain.isContained(initialState, reached))
+    //Check results and return plan
+    if (domain.isContained(initialState, reachedStates))
       makeDeterministic(currentPolicy)
     else
       FailurePolicy

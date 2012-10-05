@@ -30,11 +30,10 @@ class SamplePlanningProblemTransport extends PlanningProblem {
   val goalState = posGatwick
 
   //Actions
-  /*action("drive-train",
+  action("drive-train",
     posTrainStation or (posVictoriaStation and lightIsGreen),
     Effect(posTrainStation, posVictoriaStation),
     Effect(posVictoriaStation and lightIsGreen, add = List(posGatwick), del = List(posVictoriaStation)))
-    */
 
   action("wait-at-light", posVictoriaStation)
 
@@ -53,13 +52,11 @@ class SamplePlanningProblemTransport extends PlanningProblem {
     !fuel and (posCityCenter or posTruckStation),
     Effect(TrueVariable, add = List(fuel)))
 
-  /*
   action("fly",
     posAirStation or posLuton,
     Effect(!fog and posAirStation, add = List(posGatwick), del = List(posAirStation)),
     Effect(fog and posAirStation, add = List(posLuton), del = List(posAirStation)),
     Effect(posLuton, posAirStation))
-    */
 
   action("air-truck-transit",
     posAirStation,
