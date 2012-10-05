@@ -1,6 +1,8 @@
 package alesia.planning.planners.nondet
 
+import scala.annotation.tailrec
 import scala.tools.nsc.transform.Flatten
+
 import alesia.planning.PlanningProblem
 import alesia.planning.PlanningProblem
 import alesia.planning.actions.ExperimentAction
@@ -11,10 +13,10 @@ import alesia.planning.plans.EmptyPlan
 import alesia.planning.plans.Plan
 import alesia.utils.bdd.UniqueTable
 import sessl.util.Logging
-import scala.annotation.tailrec
 
 /**
  * Creates a plan assuming a non-deterministic environment.
+ * Implementation relies on ordered binary decision diagrams (OBDDs).
  *
  * The algorithms are mostly taken from chapter 17, p. 403 et sqq., of
  *
@@ -32,7 +34,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
     def logOutput(policy: Policy) = "New policy of iteration:\n" + policy.symbolicRepresentation
     implicit val domain = problem.table
-    
+
     val initialState = problem.initialStateId //S_0
     val goalState = problem.goalStateId //S_g
 
@@ -58,7 +60,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       // update S_π'∪ S_g
       reachedStates = domain.union(goalState, currentPolicy.states)
 
-      logger.debug(logOutput(newPolicy))
+      logger.info(logOutput(newPolicy))
     }
 
     //Check results and return plan
@@ -72,16 +74,19 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     problem.actions.zipWithIndex.map {
       case (action, index) =>
         {
-          logger.info("Evaluating action '" + action.name + "'...")
-          val effect = action.effects.filter(!_.nondeterministic).flatMap {
-            e => e.add.map(_.id) ::: e.del.map(f => tab.not(f.id))
-          }.foldLeft(1)((f, g) => tab.and(f, g))
+          def effectConj(e: problem.Effect) = e.add.map(_.id) ::: e.del.map(f => tab.not(f.id))
+          def and(f: Int, g: Int) = tab.and(f, g)
+          def or(f: Int, g: Int) = tab.or(f, g)
 
-          val nonDeterministicActions = action.effects.filter(_.nondeterministic)
+          //all deterministic effects are joined together via and
+          val effect = action.effects.filter(!_.nondeterministic).flatMap(effectConj).foldLeft(1)(and)
 
-          //TODO: check correctness, make more efficient (by doing the work once, in the effects), deal with non-determinism          
-          if (tab.isContained(effect, reachedStates)) {
-            logger.info("Action '" + action.name + "' is applicable.")
+          //all nondeterministic effects are joined together via or
+          val nonDetEffect = action.effects.filter(_.nondeterministic).
+            map(effectConj(_).foldLeft(1)(and)).map(and(effect, _)).foldLeft(effect)(or)
+
+          //TODO: check correctness, make more efficient (by doing the work once, in the effects)          
+          if (tab.isContained(nonDetEffect, reachedStates)) {
             Some((problem.actions(index).precondition.id, index))
           } else None
         }
