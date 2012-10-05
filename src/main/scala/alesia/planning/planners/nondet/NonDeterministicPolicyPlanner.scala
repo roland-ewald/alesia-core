@@ -81,20 +81,22 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
         }
     }.flatten
 
-  def pruneStates(actions: Seq[(Int, Int)], reachedStates: Int, problem: PlanningProblem)(implicit tab: UniqueTable): Policy =
-    new NonDetPolicy(problem, actions.map {
+  def pruneStates(actions: Iterable[(Int, Int)], reachedStates: Int, problem: PlanningProblem)(implicit tab: UniqueTable): Policy = {
+    val prunedActions = actions.map {
       case (precond, actionIdx) => {
-        val newStates = tab.difference(reachedStates, precond)
+        val newStates = tab.difference(precond, reachedStates)
         if (!tab.isEmpty(newStates))
           Some(newStates, actionIdx)
         else None
       }
-    }.flatten.toMap, reachedStates)
+    }.flatten.toMap
+    new NonDeterministicPolicy(problem, prunedActions, reachedStates)
+  }
 
   def makeDeterministic(policy: Policy): Plan = policy match {
     case EmptyPolicy => new EmptyPlan {}
     case FailurePolicy => FailurePolicy
-    case pol: NonDetPolicy => {
+    case pol: NonDeterministicPolicy => {
       new Plan {
         val policy = pol
         def decide(c: Context): Seq[ExperimentAction] = Seq()
@@ -111,16 +113,16 @@ sealed trait Policy extends Plan {
 case object FailurePolicy extends Policy with EmptyPlan
 case object EmptyPolicy extends Policy with EmptyPlan
 
-case class NonDetPolicy(val problem: PlanningProblem, val stateActionTable: Map[Int, Int], val reachedStates: Int) extends Policy {
+case class NonDeterministicPolicy(val problem: PlanningProblem, val stateActionTable: Map[Int, Int], val reachedStates: Int) extends Policy {
 
-  override val states = (reachedStates :: stateActionTable.keys.toList).foldLeft(0)((s1, s2) => problem.table.union(s1, s2))
+  override val states = stateActionTable.keys.foldLeft(reachedStates)((s1, s2) => problem.table.union(s1, s2))
 
   override def ++(other: Policy) = other match {
     case EmptyPolicy => this
     case FailurePolicy => FailurePolicy
-    case pol: NonDetPolicy => {
+    case pol: NonDeterministicPolicy => {
       require(pol.problem == problem, "Policies to be joined must refer to the same problem domain.")
-      new NonDetPolicy(problem, stateActionTable ++ pol.stateActionTable, problem.table.union(states, pol.states))
+      new NonDeterministicPolicy(problem, stateActionTable ++ pol.stateActionTable, problem.table.union(states, pol.states))
     }
   }
   override def decide(c: Context): Seq[ExperimentAction] = Seq()
