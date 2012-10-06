@@ -45,16 +45,13 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       val plan = new NonDeterministicPolicyPlanner() plan {
         new TrivialPlanningProblem {
           val useActA = v("use-action-a")
-          val triedA = v("triedUsingA")
           val useActB = v("use-action-b")
           val solveWithA = action("solveWithA", solvable and useActA, Effect(solvable and useActA, add = List(solved)))
           val solveWithB = action("solveWithB", solvable and useActB, Effect(solvable and useActB, add = List(solved)))
-          val tryA = action("trySolveWithA", solvable, Effect(solvable, add = List(triedA)),
-            Effect(solvable, add = List(useActA), nondeterministic = true))
-          val useB = action("useB", solvable and triedA, Effect(solvable, add = List(useActB)))
+          val trySolutions = action("trySolutions", solvable, Effect(solvable, add = List(useActA or useActB)))
         }
       }
-      //      assert(plan != FailurePolicy)
+      assert(plan != FailurePolicy)
       logger.info("Plan for trivial non-deterministic planning problem:" + plan)
       pending
     }

@@ -28,9 +28,12 @@ import sessl.util.Logging
  */
 class NonDeterministicPolicyPlanner extends Planner with Logging {
 
-  //TODO: this finds strong plans, extend/generalize toward strong-cyclic and weak plans
+  def plan(problem: PlanningProblem) = createPlan(problem)
 
-  def plan(problem: PlanningProblem) = {
+  /**
+   *
+   */
+  def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = NonDeterministicPlanTypes.Strong) = {
 
     def logOutput(policy: Policy) = "New policy of iteration:\n" + policy.symbolicRepresentation
     implicit val domain = problem.table
@@ -45,8 +48,8 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     // while π != π' and S_0 ⊈ S_π'∪ S_g  
     while (previousPolicy != currentPolicy && !domain.isContained(initialState, reachedStates)) {
 
-      // Create pre-image, i.e. all (state,action) pairs whose results are in S_π'∪ S_g
-      val preImage = strongPreImage(reachedStates, problem)
+      // Create pre-image, i.e. all (state,action) pairs whose results are comparable with S_π'∪ S_g (depends on plan type)
+      val preImage = findPreImage(reachedStates, problem, preImageCompareForPlanType(planType))
 
       // Create new policy π" by adding pre-image for those states that have not been reached yet
       val newPolicy = pruneStates(preImage, reachedStates, problem)
@@ -70,7 +73,14 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       FailurePolicy
   }
 
-  def strongPreImage(reachedStates: Int, problem: PlanningProblem)(implicit tab: UniqueTable): Array[(Int, Int)] =
+  def preImageCompareForPlanType(t: NonDeterministicPlanTypes.Value) = t match {
+    case NonDeterministicPlanTypes.Strong => (effect: Int, states: Int, t: UniqueTable) => t.isContained(effect, states)
+    case NonDeterministicPlanTypes.Weak => (effect: Int, states: Int, t: UniqueTable) => !t.isEmpty(t.intersection(effect, states))
+    case NonDeterministicPlanTypes.StrongCyclic => throw new UnsupportedOperationException
+  }
+
+  def findPreImage(reachedStates: Int, problem: PlanningProblem,
+    compare: (Int, Int, UniqueTable) => Boolean)(implicit tab: UniqueTable): Array[(Int, Int)] =
     problem.actions.zipWithIndex.map {
       case (action, index) =>
         {
@@ -82,11 +92,19 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
           val effect = action.effects.filter(!_.nondeterministic).flatMap(effectConj).foldLeft(1)(and)
 
           //all nondeterministic effects are joined together via or
-          val nonDetEffect = action.effects.filter(_.nondeterministic).
+          val effectWithNonDeterminism = action.effects.filter(_.nondeterministic).
             map(effectConj(_).foldLeft(1)(and)).map(and(effect, _)).foldLeft(effect)(or)
 
-          //TODO: check correctness, make more efficient (by doing the work once, in the effects)          
-          if (tab.isContained(nonDetEffect, reachedStates)) {
+          //the precondition is joined via and to the non-deterministic effect
+          val overallEffect = tab.and(action.precondition.id, effectWithNonDeterminism)
+
+          logger.debug("Comparing expression for action #" + index + "\n with effects " +
+            tab.structureOf(overallEffect, problem.variableNames).mkString("\n") +
+            "\nwith current reachable state\n" + tab.structureOf(reachedStates, problem.variableNames).mkString("\n") +
+            "inclusion ? " + tab.isContained(overallEffect, reachedStates))
+          //TODO: check correctness, make more efficient (by doing the work once, in the effects)
+          //weak plan: tab.and(overallEffect, reachedStates) != 0
+          if (tab.isContained(overallEffect, reachedStates)) {
             Some((problem.actions(index).precondition.id, index))
           } else None
         }
