@@ -2,6 +2,7 @@ package alesia.planning
 
 import alesia.utils.bdd.UniqueTable
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.immutable.List
 
 /**
  * Represents a general planning domain.
@@ -9,6 +10,7 @@ import scala.collection.mutable.ArrayBuffer
  * @author Roland Ewald
  */
 class PlanningDomain {
+  //TODO: Simplify effects/actions, refactor them to use the domain implicitly
 
   /** The table to manage the boolean functions. */
   protected[alesia] val table = new UniqueTable

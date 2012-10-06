@@ -8,6 +8,7 @@ import alesia.planning.PlanningProblem
 import alesia.planning.SamplePlanningProblemTransport
 import alesia.planning.TrivialPlanningProblem
 import sessl.util.Logging
+import alesia.planning.plans.Plan
 
 /**
  * Tests for the non-deterministic policy planner.
@@ -17,6 +18,10 @@ import sessl.util.Logging
  */
 @RunWith(classOf[JUnitRunner])
 class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
+
+  /** Logs plan representation. */
+  def logPlanRepresentation(desc: String, plan: Plan) =
+    logger.info(desc + ":\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
 
   describe("The OBDD-Planner") {
 
@@ -30,15 +35,15 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       }
       val plan = new NonDeterministicPolicyPlanner().plan(problem)
       assert(plan != FailurePolicy)
-      logger.info("Plan for trivial planning problem:\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
+      logPlanRepresentation("Plan for trivial planning problem", plan)
       assert(plan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id) === 0)
     }
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val plan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
       assert(plan != FailurePolicy)
-      logger.info("Plan for sample planning problem:\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
-      pending
+      logPlanRepresentation("Plan for sample planning problem", plan)
+      //TODO: Check if policy is correct
     }
 
     it("is able to deal with non-deterministic problems") {
@@ -52,8 +57,8 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
         }
       }
       assert(plan != FailurePolicy)
-      logger.info("Plan for trivial non-deterministic planning problem:" + plan)
-      pending
+      logPlanRepresentation("Plan for trivial non-deterministic planning problem", plan)
+      //TODO: Check if policy is correct
     }
 
     it("is able to solve generate strong-cyclic plans") {

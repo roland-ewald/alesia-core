@@ -1,7 +1,7 @@
 package alesia.planning.planners.nondet
 
 import scala.annotation.tailrec
-import scala.tools.nsc.transform.Flatten
+import scala.collection.Iterable
 
 import alesia.planning.PlanningProblem
 import alesia.planning.PlanningProblem
@@ -15,7 +15,7 @@ import alesia.utils.bdd.UniqueTable
 import sessl.util.Logging
 
 /**
- * Creates a plan assuming a non-deterministic environment.
+ * Creates a plan assuming a non-deterministic environment, via techniques for symbolic model checking.
  * Implementation relies on ordered binary decision diagrams (OBDDs).
  *
  * The algorithms are mostly taken from chapter 17, p. 403 et sqq., of
@@ -28,10 +28,12 @@ import sessl.util.Logging
  */
 class NonDeterministicPolicyPlanner extends Planner with Logging {
 
-  def plan(problem: PlanningProblem) = createPlan(problem)
+  override def plan(problem: PlanningProblem) = createPlan(problem)
 
   /**
-   *
+   * Creates a plan.
+   * @param problem the planning problem
+   * @param planType the type of plan to be generated
    */
   def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = NonDeterministicPlanTypes.Strong) = {
 
@@ -48,7 +50,8 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     // while π != π' and S_0 ⊈ S_π'∪ S_g  
     while (previousPolicy != currentPolicy && !domain.isContained(initialState, reachedStates)) {
 
-      // Create pre-image, i.e. all (state,action) pairs whose results are comparable with S_π'∪ S_g (depends on plan type)
+      // Create pre-image, i.e. all (state,action) pairs whose results are included in (strong plans) 
+      // or overlap with (weak plans) S_π'∪ S_g
       val preImage = findPreImage(reachedStates, problem, preImageCompareForPlanType(planType))
 
       // Create new policy π" by adding pre-image for those states that have not been reached yet
@@ -63,7 +66,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       // update S_π'∪ S_g
       reachedStates = domain.union(goalState, currentPolicy.states)
 
-      logger.info(logOutput(newPolicy))
+      logger.debug(logOutput(newPolicy))
     }
 
     //Check results and return plan
@@ -73,17 +76,25 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       FailurePolicy
   }
 
+  /** @return suitable comparison method for pre-image method to yield strong or weak plans */
   def preImageCompareForPlanType(t: NonDeterministicPlanTypes.Value) = t match {
-    case NonDeterministicPlanTypes.Strong => (effect: Int, states: Int, t: UniqueTable) => t.isContained(effect, states)
-    case NonDeterministicPlanTypes.Weak => (effect: Int, states: Int, t: UniqueTable) => !t.isEmpty(t.intersection(effect, states))
-    case NonDeterministicPlanTypes.StrongCyclic => throw new UnsupportedOperationException
+    case NonDeterministicPlanTypes.Strong =>
+      (effect: Int, states: Int, t: UniqueTable) => t.isContained(effect, states)
+    case NonDeterministicPlanTypes.Weak =>
+      (effect: Int, states: Int, t: UniqueTable) => !t.isEmpty(t.intersection(effect, states))
+    case NonDeterministicPlanTypes.StrongCyclic =>
+      throw new UnsupportedOperationException
   }
 
+  /**
+   *
+   */
   def findPreImage(reachedStates: Int, problem: PlanningProblem,
     compare: (Int, Int, UniqueTable) => Boolean)(implicit tab: UniqueTable): Array[(Int, Int)] =
     problem.actions.zipWithIndex.map {
       case (action, index) =>
         {
+          //TODO: make more efficient (by doing the work once, in the effects)
           def effectConj(e: problem.Effect) = e.add.map(_.id) ::: e.del.map(f => tab.not(f.id))
           def and(f: Int, g: Int) = tab.and(f, g)
           def or(f: Int, g: Int) = tab.or(f, g)
@@ -95,16 +106,14 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
           val effectWithNonDeterminism = action.effects.filter(_.nondeterministic).
             map(effectConj(_).foldLeft(1)(and)).map(and(effect, _)).foldLeft(effect)(or)
 
-          //the precondition is joined via and to the non-deterministic effect
+          //the precondition is joined via and to the effect
           val overallEffect = tab.and(action.precondition.id, effectWithNonDeterminism)
 
           logger.debug("Comparing expression for action #" + index + "\n with effects " +
             tab.structureOf(overallEffect, problem.variableNames).mkString("\n") +
             "\nwith current reachable state\n" + tab.structureOf(reachedStates, problem.variableNames).mkString("\n") +
-            "inclusion ? " + tab.isContained(overallEffect, reachedStates))
-          //TODO: check correctness, make more efficient (by doing the work once, in the effects)
-          //weak plan: tab.and(overallEffect, reachedStates) != 0
-          if (tab.isContained(overallEffect, reachedStates)) {
+            "accepted ? " + compare(overallEffect, reachedStates, tab))
+          if (compare(overallEffect, reachedStates, tab)) {
             Some((problem.actions(index).precondition.id, index))
           } else None
         }
