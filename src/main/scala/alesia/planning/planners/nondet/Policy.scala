@@ -24,16 +24,6 @@ sealed trait Policy extends Plan {
   val symbolicRepresentation: String
 }
 
-/** Represents a failure to find a plan. */
-case object FailurePolicy extends Policy with EmptyPlan {
-  override val symbolicRepresentation = "Failure"
-}
-
-/** Represents the trivial policy.*/
-case object EmptyPolicy extends Policy with EmptyPlan {
-  override val symbolicRepresentation = "Empty"
-}
-
 /**
  * Represents a non-deterministic policy, in which the states in which actions are executed may still overlap.
  */
@@ -43,7 +33,7 @@ case class NonDeterministicPolicy(val problem: PlanningProblem, val stateActionT
 
   override def ++(other: Policy) = other match {
     case EmptyPolicy => this
-    case FailurePolicy => FailurePolicy 
+    case FailurePolicy => FailurePolicy
     case pol: NonDeterministicPolicy => {
       require(pol.problem == problem, "Policies to be joined must refer to the same problem domain.")
       new NonDeterministicPolicy(problem, stateActionTable ++ pol.stateActionTable, problem.table.union(states, pol.states))
@@ -90,4 +80,18 @@ case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends P
   }
 
   lazy val symbolicRepresentation = policy.symbolicRepresentation
+}
+
+/** Represents a failure to find a plan. */
+case object FailurePolicy extends Policy with EmptyPlan {
+  override val symbolicRepresentation = "Failure"
+}
+
+/** Represents the trivial policy.*/
+case object EmptyPolicy extends Policy with EmptyPlan {
+  override val symbolicRepresentation = "Empty"
+}
+
+object Policy {
+  def universal(p: PlanningProblem): NonDeterministicPolicy = throw new UnsupportedOperationException
 }

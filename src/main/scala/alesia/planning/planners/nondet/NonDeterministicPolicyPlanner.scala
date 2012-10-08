@@ -1,18 +1,18 @@
 package alesia.planning.planners.nondet
 
-import scala.annotation.tailrec
+import scala.Array.canBuildFrom
+import scala.Option.option2Iterable
 import scala.collection.Iterable
+
+import NonDeterministicPlanTypes.Strong
+import NonDeterministicPlanTypes.StrongCyclic
+import NonDeterministicPlanTypes.Weak
 import alesia.planning.PlanningProblem
-import alesia.planning.PlanningProblem
-import alesia.planning.actions.ExperimentAction
-import alesia.planning.context.Context
 import alesia.planning.planners.Planner
-import alesia.planning.plans.EmptyPlan
 import alesia.planning.plans.EmptyPlan
 import alesia.planning.plans.Plan
 import alesia.utils.bdd.UniqueTable
 import sessl.util.Logging
-import alesia.planning.PlanningProblem
 
 /**
  * Creates a plan assuming a non-deterministic environment, via techniques for symbolic model checking.
@@ -30,12 +30,16 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
   override def plan(problem: PlanningProblem) = createPlan(problem)
 
-  def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = NonDeterministicPlanTypes.Strong): Plan = {
+  /**
+   * Creates a plan of a certain type.
+   */
+  def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = Strong): Plan = {
     implicit val domain = problem.table
     planType match {
-      case NonDeterministicPlanTypes.Strong => planWeakOrStrong(problem, strongPreImage)
-      case NonDeterministicPlanTypes.StrongCyclic => planStrongCyclic(problem)
-      case NonDeterministicPlanTypes.Weak => planWeakOrStrong(problem, weakPreImage)
+      case Strong => planWeakOrStrong(problem, strongPreImage)
+      case StrongCyclic => planStrongCyclic(problem)
+      case Weak => planWeakOrStrong(problem, weakPreImage)
+      case _ => throw new UnsupportedOperationException
     }
   }
 
@@ -88,11 +92,30 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
   /**
    * Creates a strong-cyclic plan.
-   * @param the planning problem
+   * @param problem the planning problem
    */
-  def planStrongCyclic(poblem: PlanningProblem)(implicit t: UniqueTable): Plan = {
-
+  def planStrongCyclic(problem: PlanningProblem)(implicit t: UniqueTable): Plan = {
+    var previousPolicy: Policy = EmptyPolicy //π
+    var currentPolicy: Policy = Policy.universal(problem) //π' TODO
+    val goalStates = problem.goalState.id //TODO: rename to goal*states*
+    while (previousPolicy != currentPolicy) {
+      previousPolicy = currentPolicy
+      currentPolicy = pruneUnconnected(pruneOutgoing(currentPolicy, goalStates), goalStates);
+    }
+    //TODO: ...
     new EmptyPlan {}
+  }
+
+  def pruneUnconnected(policy: Policy, goalStates: Int)(implicit t: UniqueTable) = {
+    import t._
+    //TODO
+    policy
+  }
+
+  def pruneOutgoing(policy: Policy, goalStates: Int)(implicit t: UniqueTable) = {
+    import t._
+    //TODO 
+    policy
   }
 
   /** The pre-image function for weak plans.*/
