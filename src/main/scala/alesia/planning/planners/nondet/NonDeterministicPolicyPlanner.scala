@@ -2,7 +2,6 @@ package alesia.planning.planners.nondet
 
 import scala.annotation.tailrec
 import scala.collection.Iterable
-
 import alesia.planning.PlanningProblem
 import alesia.planning.PlanningProblem
 import alesia.planning.actions.ExperimentAction
@@ -13,6 +12,7 @@ import alesia.planning.plans.EmptyPlan
 import alesia.planning.plans.Plan
 import alesia.utils.bdd.UniqueTable
 import sessl.util.Logging
+import alesia.planning.PlanningProblem
 
 /**
  * Creates a plan assuming a non-deterministic environment, via techniques for symbolic model checking.
@@ -30,32 +30,42 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
   override def plan(problem: PlanningProblem) = createPlan(problem)
 
+  def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = NonDeterministicPlanTypes.Strong): Plan = {
+    implicit val domain = problem.table
+    planType match {
+      case NonDeterministicPlanTypes.Strong => planWeakOrStrong(problem, strongPreImage)
+      case NonDeterministicPlanTypes.StrongCyclic => planStrongCyclic(problem)
+      case NonDeterministicPlanTypes.Weak => planWeakOrStrong(problem, weakPreImage)
+    }
+  }
+
   /**
-   * Creates a plan.
+   * Creates a weak or a strong plan, depending on the preImage function.
    * @param problem the planning problem
-   * @param planType the type of plan to be generated
+   * @param preImage the pre-image function to be used
    */
-  def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = NonDeterministicPlanTypes.Strong) = {
+  def planWeakOrStrong(problem: PlanningProblem, preImage: (Int, PlanningProblem) => Array[(Int, Int)])(implicit t: UniqueTable) = {
+
+    import t._
 
     def logOutput(policy: Policy) = "New policy of iteration:\n" + policy.symbolicRepresentation
-    implicit val domain = problem.table
 
     val initialState = problem.initialStateId //S_0
     val goalState = problem.goalStateId //S_g
 
     var previousPolicy: Policy = FailurePolicy //π
     var currentPolicy: Policy = EmptyPolicy //π'    
-    var reachedStates = domain.union(goalState, currentPolicy.states) // S_π'∪ S_g
+    var reachedStates = union(goalState, currentPolicy.states) // S_π'∪ S_g
 
     // while π != π' and S_0 ⊈ S_π'∪ S_g  
-    while (previousPolicy != currentPolicy && !domain.isContained(initialState, reachedStates)) {
+    while (previousPolicy != currentPolicy && !isContained(initialState, reachedStates)) {
 
       // Create pre-image, i.e. all (state,action) pairs whose results are included in (strong plans) 
       // or overlap with (weak plans) S_π'∪ S_g
-      val preImage = findPreImage(reachedStates, problem, preImageCompareForPlanType(planType))
+      val preImg = preImage(reachedStates, problem)
 
       // Create new policy π" by adding pre-image for those states that have not been reached yet
-      val newPolicy = pruneStates(preImage, reachedStates, problem)
+      val newPolicy = pruneStates(preImg, reachedStates, problem)
 
       // π <- π'
       previousPolicy = currentPolicy
@@ -64,40 +74,46 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       currentPolicy = currentPolicy ++ newPolicy
 
       // update S_π'∪ S_g
-      reachedStates = domain.union(goalState, currentPolicy.states)
+      reachedStates = union(goalState, currentPolicy.states)
 
-      logger.debug(logOutput(newPolicy))
+      this.logger.debug(logOutput(newPolicy))
     }
 
     //Check results and return plan
-    if (domain.isContained(initialState, reachedStates))
+    if (isContained(initialState, reachedStates))
       makeDeterministic(currentPolicy)
     else
       FailurePolicy
   }
 
-  /** @return suitable comparison method for pre-image method to yield strong or weak plans */
-  def preImageCompareForPlanType(t: NonDeterministicPlanTypes.Value) = t match {
-    case NonDeterministicPlanTypes.Strong =>
-      (effect: Int, states: Int, t: UniqueTable) => t.isContained(effect, states)
-    case NonDeterministicPlanTypes.Weak =>
-      (effect: Int, states: Int, t: UniqueTable) => !t.isEmpty(t.intersection(effect, states))
-    case NonDeterministicPlanTypes.StrongCyclic =>
-      throw new UnsupportedOperationException
+  /**
+   * Creates a strong-cyclic plan.
+   * @param the planning problem
+   */
+  def planStrongCyclic(poblem: PlanningProblem)(implicit t: UniqueTable): Plan = {
+
+    new EmptyPlan {}
   }
 
+  /** The pre-image function for weak plans.*/
+  def weakPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) = findPreImage(s, p,
+    (effect: Int, states: Int) => !t.isEmpty(t.intersection(effect, states)))
+
+  /** The pre-image function for strong plans.*/
+  def strongPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) = findPreImage(s, p,
+    (effect: Int, states: Int) => t.isContained(effect, states))
+
   /**
-   *
+   * Pre-image function for both weak and strong plans.
    */
   def findPreImage(reachedStates: Int, problem: PlanningProblem,
-    compare: (Int, Int, UniqueTable) => Boolean)(implicit tab: UniqueTable): Array[(Int, Int)] =
+    compare: (Int, Int) => Boolean)(implicit t: UniqueTable): Array[(Int, Int)] = {
+    import t._
     problem.actions.zipWithIndex.map {
       case (action, index) =>
         {
           //TODO: make more efficient (by doing the work once, in the effects)
-          def effectConj(e: problem.Effect) = e.add.map(_.id) ::: e.del.map(f => tab.not(f.id))
-          def and(f: Int, g: Int) = tab.and(f, g)
-          def or(f: Int, g: Int) = tab.or(f, g)
+          def effectConj(e: problem.Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
 
           //all deterministic effects are joined together via and
           val effect = action.effects.filter(!_.nondeterministic).flatMap(effectConj).foldLeft(1)(and)
@@ -107,17 +123,18 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
             map(effectConj(_).foldLeft(1)(and)).map(and(effect, _)).foldLeft(effect)(or)
 
           //the precondition is joined via and to the effect
-          val overallEffect = tab.and(action.precondition.id, effectWithNonDeterminism)
+          val overallEffect = and(action.precondition.id, effectWithNonDeterminism)
 
-          logger.debug("Comparing expression for action #" + index + "\n with effects " +
-            tab.structureOf(overallEffect, problem.variableNames).mkString("\n") +
-            "\nwith current reachable state\n" + tab.structureOf(reachedStates, problem.variableNames).mkString("\n") +
-            "accepted ? " + compare(overallEffect, reachedStates, tab))
-          if (compare(overallEffect, reachedStates, tab)) {
+          this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
+            t.structureOf(overallEffect, problem.variableNames).mkString("\n") +
+            "\nwith current reachable state\n" + structureOf(reachedStates, problem.variableNames).mkString("\n") +
+            "accepted ? " + compare(overallEffect, reachedStates))
+          if (compare(overallEffect, reachedStates)) {
             Some((problem.actions(index).precondition.id, index))
           } else None
         }
     }.flatten
+  }
 
   /**
    * Remove those actions that do not extend the set of reached states, and restrict those that do to the *new* states.
@@ -126,11 +143,12 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
    * @param problem the planning problem
    * @return a policy containing
    */
-  def pruneStates(actions: Iterable[(Int, Int)], reachedStates: Int, problem: PlanningProblem)(implicit tab: UniqueTable): Policy = {
+  def pruneStates(actions: Iterable[(Int, Int)], reachedStates: Int, problem: PlanningProblem)(implicit t: UniqueTable): Policy = {
+    import t._
     val prunedActions = actions.map {
       case (precond, actionIdx) => {
-        val newStates = tab.difference(precond, reachedStates)
-        if (!tab.isEmpty(newStates))
+        val newStates = difference(precond, reachedStates)
+        if (!isEmpty(newStates))
           Some(newStates, actionIdx)
         else None
       }

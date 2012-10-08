@@ -58,7 +58,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       }
       assert(plan != FailurePolicy)
       logPlanRepresentation("Plan for trivial non-deterministic planning problem", plan)
-      //TODO: Check if policy is correct
+      //TODO: policy is not quite as given in the paper, 
     }
 
     it("is able to solve generate strong-cyclic plans") {
