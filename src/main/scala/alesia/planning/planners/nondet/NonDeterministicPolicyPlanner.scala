@@ -153,24 +153,11 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     problem.actions.zipWithIndex.map {
       case (action, index) =>
         {
-          //TODO: make more efficient (by doing the work once, in the effects)
-          def effectConj(e: problem.Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
-
-          //all deterministic effects are joined together via and
-          val effect = action.effects.filter(!_.nondeterministic).flatMap(effectConj).foldLeft(1)(and)
-
-          //all nondeterministic effects are joined together via or
-          val effectWithNonDeterminism = action.effects.filter(_.nondeterministic).
-            map(effectConj(_).foldLeft(1)(and)).map(and(effect, _)).foldLeft(effect)(or)
-
-          //the precondition is joined via and to the effect
-          val overallEffect = and(action.precondition.id, effectWithNonDeterminism)
-
           this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
-            t.structureOf(overallEffect, problem.variableNames).mkString("\n") +
+            t.structureOf(action.effect, problem.variableNames).mkString("\n") +
             "\nwith current reachable state\n" + structureOf(reachedStates, problem.variableNames).mkString("\n") +
-            "accepted ? " + compare(overallEffect, reachedStates))
-          if (compare(overallEffect, reachedStates)) {
+            "accepted ? " + compare(action.effect, reachedStates))
+          if (compare(action.effect, reachedStates)) {
             Some((problem.actions(index).precondition.id, index))
           } else None
         }

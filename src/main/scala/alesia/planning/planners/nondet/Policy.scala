@@ -6,6 +6,7 @@ import alesia.planning.plans.EmptyPlan
 import alesia.planning.actions.ExperimentAction
 import alesia.planning.context.Context
 import scala.annotation.tailrec
+import alesia.utils.bdd.UniqueTable
 
 /**
  * Represents a policy, as produced by a planner for non-deterministic domains.
@@ -93,5 +94,7 @@ case object EmptyPolicy extends Policy with EmptyPlan {
 }
 
 object Policy {
-  def universal(p: PlanningProblem): NonDeterministicPolicy = throw new UnsupportedOperationException
+  def universal(p: PlanningProblem)(implicit t: UniqueTable): NonDeterministicPolicy = {
+    NonDeterministicPolicy(p, p.actions.map(a => (a.precondition.id, 1)).toMap, t.emptySet)
+  }
 }

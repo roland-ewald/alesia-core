@@ -13,7 +13,7 @@ class PlanningDomain {
   //TODO: Simplify effects/actions, refactor them to use the domain implicitly
 
   /** The table to manage the boolean functions. */
-  protected[alesia] val table = new UniqueTable
+  protected[alesia] implicit val table = new UniqueTable
 
   /** Maps variable numbers to variable names.*/
   val variableNames = scala.collection.mutable.Map[Int, String]()
@@ -91,5 +91,20 @@ class PlanningDomain {
    * @param precondition the precondition of the action
    * @param effects the effects of the action
    */
-  case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)
+  case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)(implicit t: UniqueTable) {
+    import t._
+
+    //TODO: revise 
+    def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
+
+    //all deterministic effects are joined together via and
+    val detEffect = effects.filter(!_.nondeterministic).flatMap(effectConj).foldLeft(1)(and)
+
+    //all nondeterministic effects are joined together via or
+    val nonDetEffect = effects.filter(_.nondeterministic).
+      map(effectConj(_).foldLeft(1)(and)).map(and(detEffect, _)).foldLeft(detEffect)(or)
+
+    //the precondition is joined via and to the effect
+    val effect = and(precondition.id, nonDetEffect) //TODO: Check this
+  }
 }
