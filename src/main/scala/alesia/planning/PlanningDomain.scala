@@ -13,10 +13,22 @@ class PlanningDomain {
   //TODO: Simplify effects/actions, refactor them to use the domain implicitly
 
   /** The table to manage the boolean functions. */
-  protected[alesia] implicit val table = new UniqueTable
+  private[alesia] implicit val table = new UniqueTable
 
   /** Maps variable numbers to variable names.*/
   val variableNames = scala.collection.mutable.Map[Int, String]()
+
+  /** Maps variable function instruction ids to their corresponding next-state variables. */
+  val nextStateVars = scala.collection.mutable.Map[Int, PlanningDomainFunction]()
+
+  /** Maps variable numbers to their corresponding next-state variable numbers (for substitution). */
+  val nextStateVarNums = scala.collection.mutable.Map[Int, Int]()
+
+  /** Maps next-state variable function instruction ids to their corresponding current-state variables. */
+  val currentStateVars = scala.collection.mutable.Map[Int, PlanningDomainFunction]()
+
+  /** Maps next-state variable numbers to their corresponding current-state variable numbers (for substitution). */
+  val currentStateVarNums = scala.collection.mutable.Map[Int, Int]()
 
   /** Buffers actions available in this domain. */
   private[this] var actionBuffer = ArrayBuffer[DomainAction]()
@@ -25,15 +37,29 @@ class PlanningDomain {
   lazy val actions = actionBuffer.toArray
 
   /**
+   * Allows to define a variable v. Internally, two variables named v and v' will be created,
+   * representing the value of v for the current and the next state.
+   */
+  def v(name: String): PlanningDomainFunction = {
+    val (currentStateVarNum, currentStateVar) = createVariable(name)
+    val (nextStateVarNum, nextStateVar) = createVariable(name + "'")
+    nextStateVars(currentStateVar) = nextStateVar
+    nextStateVarNums(currentStateVarNum) = nextStateVarNum
+    currentStateVars(nextStateVar) = currentStateVar
+    currentStateVarNums(nextStateVarNum) = currentStateVarNum
+    currentStateVar
+  }
+
+  /**
    * Creates a function f(x) = x for a new variable x.
    * The name does not need to be unique, but the id of the function will be.
    * @param name, does not need to be unique
-   * @return domain variable
+   * @return (variable number, domain variable)
    */
-  def v(name: String): PlanningDomainFunction = {
+  private[this] def createVariable(name: String): (Int, PlanningDomainFunction) = {
     val variableNumber = table.variableCount + 1
     variableNames(variableNumber) = name
-    new PlanningDomainFunction(table.unique(variableNumber, 0, 1), name)
+    (variableNumber, new PlanningDomainFunction(table.unique(variableNumber, 0, 1), name))
   }
 
   /**
@@ -78,7 +104,9 @@ class PlanningDomain {
   object TrueVariable extends PlanningDomainFunction(1, "true")
 
   /** Represents an effect of an action. */
-  case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false)
+  case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false) {
+    //    val addList = add.map() TODO: Substitute with next-state vars!
+  }
 
   /** Supplies helper functions to create effects. */
   object Effect {
@@ -94,7 +122,21 @@ class PlanningDomain {
   case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)(implicit t: UniqueTable) {
     import t._
 
-    //TODO: revise 
+    //TODO: revise!!!
+    def statesAfter(e: Effect): Int = {
+
+      e.condition :: e.add.map(_.id) ::: e.del.map(f => not(f.id))
+
+      val del = e.del.map(_.id).foldLeft(0)(or)
+      val notDel = not(del)
+      val precon = and(precondition, e.condition)
+      val preConAndNotDel = or(notDel, precon)
+
+      val delStates = e.del.map(f => not(f.id)).foldLeft(1)(and)
+      val addStates = e.add.map(_.id).foldLeft(1)(and)
+      difference(union(intersection(precondition, e.condition), addStates), delStates)
+    }
+
     def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
 
     //all deterministic effects are joined together via and
