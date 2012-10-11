@@ -131,7 +131,7 @@ class PlanningDomain {
       effects.filter(_.nondeterministic).map(expressionForEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
 
-    //TODO: revise!!!
+    //TODO: revise, the following is incomplete!!!
 
     def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
 
@@ -143,6 +143,6 @@ class PlanningDomain {
       map(effectConj(_).foldLeft(1)(and)).map(and(detEffect, _)).foldLeft(detEffect)(or)
 
     //the precondition is joined via and to the effect
-    val effect = and(precondition.id, nonDetEffect) //TODO: Check this
+    val effect = and(precondition.id, nonDetEffect)
   }
 }
