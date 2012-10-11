@@ -45,31 +45,26 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
   /**
    * Creates a weak or a strong plan, depending on the preImage function.
-   * @param problem the planning problem
+   * @param p the planning problem
    * @param preImage the pre-image function to be used
    */
-  def planWeakOrStrong(problem: PlanningProblem, preImage: (Int, PlanningProblem) => Array[(Int, Int)])(implicit t: UniqueTable) = {
+  def planWeakOrStrong(p: PlanningProblem, preImage: (Int, PlanningProblem) => Array[(Int, Int)])(implicit t: UniqueTable) = {
 
     import t._
 
-    def logOutput(policy: Policy) = "New policy of iteration:\n" + policy.symbolicRepresentation
-
-    val initialStates = problem.initialStateId //S_0
-    val goalStates = problem.goalStateId //S_g
-
     var previousPolicy: Policy = FailurePolicy //π
     var currentPolicy: Policy = EmptyPolicy //π'    
-    var reachedStates = union(goalStates, currentPolicy.states) // S_π'∪ S_g
+    var reachedStates = union(p.goalStates, currentPolicy.states) // S_g ∪ S_π' 
 
     // while π != π' and S_0 ⊈ S_π'∪ S_g  
-    while (previousPolicy != currentPolicy && !isContained(initialStates, reachedStates)) {
+    while (previousPolicy != currentPolicy && !isContained(p.initialStates, reachedStates)) {
 
       // Create pre-image, i.e. all (state,action) pairs whose results are included in (strong plans) 
       // or overlap with (weak plans) S_π'∪ S_g
-      val preImg = preImage(reachedStates, problem)
+      val preImg = preImage(reachedStates, p)
 
       // Create new policy π" by adding pre-image for those states that have not been reached yet
-      val newPolicy = pruneStates(preImg, reachedStates, problem)
+      val newPolicy = pruneStates(preImg, reachedStates, p)
 
       // π <- π'
       previousPolicy = currentPolicy
@@ -78,45 +73,31 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       currentPolicy = currentPolicy ++ newPolicy
 
       // update S_π'∪ S_g
-      reachedStates = union(goalStates, currentPolicy.states)
+      reachedStates = union(currentPolicy.states, p.goalStates)
 
       this.logger.debug(logOutput(newPolicy))
     }
 
-    createPlanIfPossible(initialStates, reachedStates, currentPolicy)
-  }
-
-  /**
-   * Checks whether results are valid (the goal states can be reached from all initial states) and converts policy to deterministic plan.
-   * @param initialStates the set of initial states
-   * @param reachedStates the set of reached states
-   * @param policy the policy that has been constructed
-   */
-  def createPlanIfPossible(initialStates: Int, reachedStates: Int, policy: Policy)(implicit t: UniqueTable) = {
-    if (t.isContained(initialStates, reachedStates))
-      makeDeterministic(policy)
-    else
-      FailurePolicy
+    createPlanIfPossible(p.initialStates, reachedStates, currentPolicy)
   }
 
   /**
    * Creates a strong-cyclic plan.
    * @param problem the planning problem
    */
-  def planStrongCyclic(problem: PlanningProblem)(implicit t: UniqueTable): Plan = {
+  def planStrongCyclic(p: PlanningProblem)(implicit t: UniqueTable): Plan = {
 
     import t._
 
     var previousPolicy: Policy = EmptyPolicy //π
-    var currentPolicy: Policy = Policy.universal(problem) //π' TODO
-    val goalStates = problem.goalState.id //TODO: rename to goal*states*//TODO: rename to initial *states*
+    var currentPolicy: Policy = Policy.universal(p) //π'
     while (previousPolicy != currentPolicy) {
       previousPolicy = currentPolicy
-      currentPolicy = pruneUnconnected(pruneOutgoing(currentPolicy, goalStates), goalStates);
+      currentPolicy = pruneUnconnected(pruneOutgoing(currentPolicy, p.goalStates), p.goalStates);
     }
 
-    createPlanIfPossible(problem.initialState.id, union(goalStates, currentPolicy.states),
-      removeNonProgress(currentPolicy, goalStates))
+    createPlanIfPossible(p.initialStates, union(p.goalStates, currentPolicy.states),
+      removeNonProgress(currentPolicy, p.goalStates))
   }
 
   def pruneUnconnected(policy: Policy, goalStates: Int)(implicit t: UniqueTable) = {
@@ -133,6 +114,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
   def removeNonProgress(policy: Policy, goalStates: Int)(implicit t: UniqueTable) = {
     import t._
+    //TODO
     policy
   }
 
@@ -185,6 +167,20 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   }
 
   /**
+   * Checks whether results are valid (the goal states can be reached from all initial states) and converts policy to deterministic plan.
+   * @param initialStates the set of initial states
+   * @param reachedStates the set of reached states
+   * @param policy the policy that has been constructed
+   * @return deterministic policy
+   */
+  def createPlanIfPossible(initialStates: Int, reachedStates: Int, policy: Policy)(implicit t: UniqueTable) = {
+    if (t.isContained(initialStates, reachedStates))
+      makeDeterministic(policy)
+    else
+      FailurePolicy
+  }
+
+  /**
    * Creates a deterministic policy to be handed over as a result.
    * @param policy the policy that has been found
    * @return a corresponding plan
@@ -194,4 +190,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     case FailurePolicy => FailurePolicy
     case pol: NonDeterministicPolicy => DeterministicPolicyPlan(pol)
   }
+
+  /** Creates debugging output. */
+  protected def logOutput(policy: Policy) = "New policy of iteration:\n" + policy.symbolicRepresentation
 }

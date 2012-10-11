@@ -12,10 +12,10 @@ abstract case class PlanningProblem() extends PlanningDomain {
 
   /** Function to characterize set of goal states. */
   val goalState: PlanningDomainFunction
-
+ 
   /** Instruction id for function that characterizes initial state. */
-  def initialStateId = initialState.id
+  lazy val initialStates = initialState.id
 
   /** Instruction id for function that characterizes goal state. */
-  def goalStateId = goalState.id
+  lazy val goalStates = goalState.id
 }

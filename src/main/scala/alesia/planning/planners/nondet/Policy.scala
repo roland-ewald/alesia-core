@@ -95,6 +95,6 @@ case object EmptyPolicy extends Policy with EmptyPlan {
 
 object Policy {
   def universal(p: PlanningProblem)(implicit t: UniqueTable): NonDeterministicPolicy = {
-    NonDeterministicPolicy(p, p.actions.map(a => (a.precondition.id, 1)).toMap, t.emptySet)
+    NonDeterministicPolicy(p, p.actions.map(a => (a.precondition.id, a.effect)).toMap, t.emptySet)
   }
 }
