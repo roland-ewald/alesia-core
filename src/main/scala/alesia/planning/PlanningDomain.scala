@@ -10,7 +10,6 @@ import scala.collection.immutable.List
  * @author Roland Ewald
  */
 class PlanningDomain {
-  //TODO: Simplify effects/actions, refactor them to use the domain implicitly
 
   /** The table to manage the boolean functions. */
   private[alesia] implicit val table = new UniqueTable
@@ -40,15 +39,17 @@ class PlanningDomain {
    * Allows to define a variable v. Internally, two variables named v and v' will be created,
    * representing the value of v for the current and the next state.
    */
-  def v(name: String): PlanningDomainFunction = {
-    val (currentStateVarNum, currentStateVar) = createVariable(name)
-    val (nextStateVarNum, nextStateVar) = createVariable(name + "'")
-    nextStateVars(currentStateVar) = nextStateVar
-    nextStateVarNums(currentStateVarNum) = nextStateVarNum
-    currentStateVars(nextStateVar) = currentStateVar
-    currentStateVarNums(nextStateVarNum) = currentStateVarNum
-    currentStateVar
-  }
+  def v(name: String): PlanningDomainFunction =
+    synchronized {
+      //TODO: Once substitution works for general mappings, there is no need for synchronization anymore
+      val (currentStateVarNum, currentStateVar) = createVariable(name)
+      val (nextStateVarNum, nextStateVar) = createVariable(name + "'")
+      nextStateVars(currentStateVar) = nextStateVar
+      nextStateVarNums(currentStateVarNum) = nextStateVarNum
+      currentStateVars(nextStateVar) = currentStateVar
+      currentStateVarNums(nextStateVarNum) = currentStateVarNum
+      currentStateVar
+    }
 
   /**
    * Creates a function f(x) = x for a new variable x.
@@ -104,8 +105,9 @@ class PlanningDomain {
   object TrueVariable extends PlanningDomainFunction(1, "true")
 
   /** Represents an effect of an action. */
-  case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false) {
-    //    val addList = add.map() TODO: Substitute with next-state vars!
+  case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false)(implicit t: UniqueTable) {
+    val addNextState = add.map(t.substitute(_, nextStateVarNums))
+    val delNextState = del.map(t.substitute(_, nextStateVarNums))
   }
 
   /** Supplies helper functions to create effects. */
@@ -122,20 +124,14 @@ class PlanningDomain {
   case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)(implicit t: UniqueTable) {
     import t._
 
-    //TODO: revise!!!
-    def statesAfter(e: Effect): Int = {
+    def expressionForEffect(e: Effect): Int = t.implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not(_))).foldLeft(1)(and))
 
-      e.condition :: e.add.map(_.id) ::: e.del.map(f => not(f.id))
-
-      val del = e.del.map(_.id).foldLeft(0)(or)
-      val notDel = not(del)
-      val precon = and(precondition, e.condition)
-      val preConAndNotDel = or(notDel, precon)
-
-      val delStates = e.del.map(f => not(f.id)).foldLeft(1)(and)
-      val addStates = e.add.map(_.id).foldLeft(1)(and)
-      difference(union(intersection(precondition, e.condition), addStates), delStates)
+    lazy val expressionForAction: Int = {
+      val detEffect = and(precondition, effects.filter(!_.nondeterministic).map(expressionForEffect).foldLeft(1)(and))
+      effects.filter(_.nondeterministic).map(expressionForEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
+
+    //TODO: revise!!!
 
     def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
 
