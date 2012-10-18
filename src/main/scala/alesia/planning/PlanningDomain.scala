@@ -85,6 +85,12 @@ class PlanningDomain {
   /** Facilitates usage of functions in code that relies on instruction ids only.*/
   implicit def variableToInstructionId(f: PlanningDomainFunction): Int = f.id
 
+  /** Replaces all references to 'current state'-variables with their corresponding 'next state'-variables. f[x/x'].  */
+  def forwardShift(f: Int) = table.substitute(f, nextStateVarNums)
+
+  /** Replaces all references to 'next state'-variables with their corresponding 'current state'-variables. f[x'/x].  */
+  def backwardShift(f: Int) = table.substitute(f, currentStateVarNums)
+
   /** Represents a boolean function within the domain. */
   case class PlanningDomainFunction(id: Int, name: String) {
 
@@ -121,15 +127,25 @@ class PlanningDomain {
    * @param precondition the precondition of the action
    * @param effects the effects of the action
    */
-  case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)(implicit t: UniqueTable) {
+  case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)(implicit table: UniqueTable) {
+
+    /** The action is only valid in the given planning domain. */
+    private[this] val t = table
+
     import t._
 
     def expressionForEffect(e: Effect): Int = t.implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not(_))).foldLeft(1)(and))
 
-    lazy val expressionForAction: Int = {
-      val detEffect = and(precondition, effects.filter(!_.nondeterministic).map(expressionForEffect).foldLeft(1)(and))
+    //ξ(a) / the relation R(s, this, s')
+    lazy val stateTransition: Int = {
+      val detEffect = effects.filter(!_.nondeterministic).map(expressionForEffect).foldLeft(precondition.id)(and)
       effects.filter(_.nondeterministic).map(expressionForEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
+
+    lazy val variables = variablesOf(effects.map(_.condition.id) :+ precondition.id: _*)
+
+    /** (exists x_i: R(x_i,x'_i)∧(Q(x)[x/x']))[x'/x] */
+    def backImgFormula(currentState: Int) = backwardShift(exists(variables, and(stateTransition, forwardShift(currentState))))
 
     //TODO: revise, the following is incomplete!!!
 
