@@ -144,8 +144,13 @@ class PlanningDomain {
 
     lazy val variables = variablesOf(effects.map(_.condition.id) :+ precondition.id: _*)
 
+    def nextStateVariables(nextState: Int) = variablesOf(effects.flatMap(effectConj) :+ nextState: _*)
+
     /** (exists x_i: R(x_i,x'_i)∧(Q(x)[x/x']))[x'/x] */
-    def backImgFormula(currentState: Int) = backwardShift(exists(variables, and(stateTransition, forwardShift(currentState))))
+    def backImgFormula(currentState: Int) = {
+      val nextState = forwardShift(currentState)
+      exists(nextStateVariables(nextState), and(stateTransition, nextState))
+    }
 
     //TODO: revise, the following is incomplete!!!
 
