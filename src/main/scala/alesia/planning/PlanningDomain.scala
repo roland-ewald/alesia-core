@@ -144,12 +144,20 @@ class PlanningDomain {
 
     lazy val variables = variablesOf(effects.map(_.condition.id) :+ precondition.id: _*)
 
-    def nextStateVariables(nextState: Int) = variablesOf(effects.flatMap(effectConj) :+ nextState: _*)
+    /** Get all x' defined in the effects and the state-transition conjunction.*/
+    def nextStateVariables(stateTransition: Int) = variablesOf(effects.flatMap(effectConj) :+ stateTransition: _*).
+      filter(currentStateVarNums.contains)
 
-    /** (exists x_i: R(x_i,x'_i)∧(Q(x)[x/x']))[x'/x] */
-    def backImgFormula(currentState: Int) = {
-      val nextState = forwardShift(currentState)
-      exists(nextStateVariables(nextState), and(stateTransition, nextState))
+    /**
+     * Returns the set of states from which the current state can be reached by this action.
+     * @param currentState the instruction id of the current set of states
+     * @return the instruction id of the set of states from which this set can be reached
+     */
+    def backImage(currentState: Int) = {
+      val nextState = forwardShift(currentState) //Q(x')
+      val transitionAndNextState = and(stateTransition, nextState) // R(x_i,x'_i)∧(Q(x')
+      val xPrime = nextStateVariables(transitionAndNextState) //x'
+      exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x')
     }
 
     //TODO: revise, the following is incomplete!!!
