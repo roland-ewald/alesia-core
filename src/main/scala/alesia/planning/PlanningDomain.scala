@@ -153,7 +153,7 @@ class PlanningDomain {
      * @param currentState the instruction id of the current set of states
      * @return the instruction id of the set of states from which this set can be reached
      */
-    def backImage(currentState: Int) = {
+    def preImage(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')
       val transitionAndNextState = and(stateTransition, nextState) // R(x_i,x'_i)∧(Q(x')
       val xPrime = nextStateVariables(transitionAndNextState) //x'
