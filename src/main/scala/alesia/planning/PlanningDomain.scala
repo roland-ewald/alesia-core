@@ -28,7 +28,7 @@ class PlanningDomain {
 
   /** Maps next-state variable numbers to their corresponding current-state variable numbers (for substitution). */
   val currentStateVarNums = scala.collection.mutable.Map[Int, Int]()
-  
+
   /** Maps variable numbers to the instruction ids of their indicator functions.*/
   val varNumInstructionIds = scala.collection.mutable.Map[Int, Int]()
 
@@ -47,15 +47,15 @@ class PlanningDomain {
       //TODO: Once substitution works for general mappings, there is no need for synchronization anymore
       val (currentStateVarNum, currentStateVar) = createVariable(name)
       val (nextStateVarNum, nextStateVar) = createVariable(name + "'")
-      
+
       nextStateVars(currentStateVar) = nextStateVar
       varNumInstructionIds(currentStateVarNum) = currentStateVar
-      nextStateVarNums(currentStateVarNum) = nextStateVarNum    
-      
+      nextStateVarNums(currentStateVarNum) = nextStateVarNum
+
       currentStateVars(nextStateVar) = currentStateVar
       varNumInstructionIds(nextStateVarNum) = nextStateVar
       currentStateVarNums(nextStateVarNum) = currentStateVarNum
-      
+
       currentStateVar
     }
 
@@ -152,41 +152,41 @@ class PlanningDomain {
 
     import t._
 
-    def expressionForEffect(e: Effect): Int = {
-
+    /**
+     * Defines the strong pre-image for a given effect.
+     */
+    private[this] def strPreImgEffect(e: Effect): Int = {
       val involvedNextStateVars = variablesOf((e.addNextState ::: e.delNextState): _*)
-
-      t.implies(e.condition.id,
+      implies(e.condition.id,
         (e.addNextState ::: e.delNextState.map(not(_)) ::: frameAxioms(involvedNextStateVars)).foldLeft(1)(and))
     }
 
-    //ξ(a) / the relation R(s, this, s')
-    lazy val stateTransition: Int = {
-      val detEffect = effects.filter(!_.nondeterministic).map(expressionForEffect).foldLeft(precondition.id)(and)
-      effects.filter(_.nondeterministic).map(expressionForEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
+    /** ξ(a) / the relation R(s, this, s')*/
+    lazy val strPreImgStateTransition: Int = {
+      val detEffect = effects.filter(!_.nondeterministic).map(strPreImgEffect).foldLeft(precondition.id)(and)
+      effects.filter(_.nondeterministic).map(strPreImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
 
-    lazy val variables = variablesOf(effects.map(_.condition.id) :+ precondition.id: _*)
-
     /** Get all x' defined in the effects and the state-transition conjunction.*/
-    def nextStateVariables(stateTransition: Int) = variablesOf(effects.flatMap(effectConj) :+ stateTransition: _*).
-      filter(currentStateVarNums.contains)
+    def nextStateVariables(stateTransition: Int) =
+      variablesOf(effects.flatMap(effectConj) :+ stateTransition: _*).filter(currentStateVarNums.contains)
+
+    
+    def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
 
     /**
      * Returns the set of states from which the current state can be reached by this action.
      * @param currentState the instruction id of the current set of states
      * @return the instruction id of the set of states from which this set can be reached
      */
-    def preImage(currentState: Int) = {
+    def strongPreImage(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')
-      val transitionAndNextState = and(stateTransition, nextState) // R(x_i,x'_i)∧(Q(x')
+      val transitionAndNextState = and(strPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x')
       val xPrime = nextStateVariables(transitionAndNextState) //x'
       exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x')
     }
 
     //TODO: revise, the following is incomplete!!!
-
-    def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
 
     //all deterministic effects are joined together via and
     val detEffect = effects.filter(!_.nondeterministic).flatMap(effectConj).foldLeft(1)(and)

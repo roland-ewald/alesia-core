@@ -23,41 +23,52 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
   def logPlanRepresentation(desc: String, plan: Plan) =
     logger.info(desc + ":\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
 
+  /** Checks that actual plan exists and logs it with a description. */
+  def checkPlan(plan: Plan, desc: String) = {
+    assert(plan != FailurePolicy)
+    logPlanRepresentation(desc, plan)
+  }
+
   describe("The OBDD-Planner") {
 
     it("returns with a failure for the trivial planning problem that does not define any actions ") {
       assert(new NonDeterministicPolicyPlanner().plan(new TrivialPlanningProblem) === FailurePolicy)
+      assert(new NonDeterministicPolicyPlanner().createPlan(
+        new TrivialPlanningProblem, NonDeterministicPlanTypes.Strong) === FailurePolicy)
     }
 
     it("returns a correct policy for the trivial planning problem that does define an action") {
       val problem = new TrivialPlanningProblem {
         val solve = action("solve", solvable, Effect(solvable, add = List(solved)))
       }
-      val plan = new NonDeterministicPolicyPlanner().plan(problem)
-      assert(plan != FailurePolicy)
-      logPlanRepresentation("Plan for trivial planning problem", plan)
-      assert(plan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id) === 0)
+      val weakPlan = new NonDeterministicPolicyPlanner().plan(problem)
+      checkPlan(weakPlan, "Weak plan for trivial planning problem")
+      assert(weakPlan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id) === 0)
+      val strongPlan = new NonDeterministicPolicyPlanner().createPlan(problem, NonDeterministicPlanTypes.Strong)
+      checkPlan(strongPlan, "Strong plan for trivial planning problem")
+      assert(strongPlan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id) === 0)
     }
 
     it("is able to deal with non-deterministic problems") {
-      val plan = new NonDeterministicPolicyPlanner() plan {
-        new TrivialPlanningProblem {
-          val useActA = v("use-action-a")
-          val useActB = v("use-action-b")
-          val solveWithA = action("solveWithA", solvable and useActA, Effect(solvable and useActA, add = List(solved)))
-          val solveWithB = action("solveWithB", solvable and useActB, Effect(solvable and useActB, add = List(solved)))
-          val trySolutions = action("trySolutions", solvable, Effect(solvable, add = List(useActA or useActB)))
-        }
+      val problem = new TrivialPlanningProblem {
+        val useActA = v("use-action-a")
+        val useActB = v("use-action-b")
+        val solveWithA = action("solveWithA", solvable and useActA, Effect(solvable and useActA, add = List(solved)))
+        val solveWithB = action("solveWithB", solvable and useActB, Effect(solvable and useActB, add = List(solved)))
+        val trySolutions = action("trySolutions", solvable, Effect(solvable, add = List(useActA or useActB)))
       }
-      assert(plan != FailurePolicy)
-      logPlanRepresentation("Plan for trivial non-deterministic planning problem", plan)
+
+      val weakPlan = new NonDeterministicPolicyPlanner().plan(problem)
+      checkPlan(weakPlan, "Weak plan for non-deterministic trivial planning problem")
+      val strongPlan = new NonDeterministicPolicyPlanner().createPlan(problem, NonDeterministicPlanTypes.Strong)
+      checkPlan(strongPlan, "Strong plan for non-deterministic trivial planning problem")
     }
 
     it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val plan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
       pending
       //      assert(plan != FailurePolicy)
-      logPlanRepresentation("Plan for sample planning problem", plan)
+      //      logPlanRepresentation("Plan for sample planning problem", plan)
       //TODO: Check if policy is correct
     }
 

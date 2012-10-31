@@ -75,7 +75,8 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       // update S_π'∪ S_g
       reachedStates = union(currentPolicy.states, p.goalStates)
 
-      this.logger.warn(logOutput(newPolicy))
+      //Log progress
+      this.logger.debug(logOutput(newPolicy))
     }
 
     createPlanIfPossible(p.initialStates, reachedStates, currentPolicy)
@@ -119,23 +120,12 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   }
 
   /** The pre-image function for weak plans.*/
-  def weakPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) = {
-    //    println("\n\nCurrent State:\n" + t.structureOf(s, p.variableNames).mkString("\n"))
-    //    println("\n\nCurrent State (forward-shifted):\n" + t.structureOf(p.forwardShift(s), p.variableNames).mkString("\n"))
-    //    println("\nActions:" + p.actions.map(_.name).mkString(","))
-    val backImgs = p.actions.map(_.preImage(s))
-    //    backImgs.zip(p.actions).foreach(x => println("\nVariables of '" + x._2.name +
-    //      "':" + x._2.variables.map(p.variableNames(_)) + "\nTransition of '" + x._2.name +
-    //      "':\n" + t.structureOf(x._2.stateTransition, p.variableNames).mkString("\n") + "\npreImg of '" + x._2.name +
-    //      "':\n" + t.structureOf(x._1, p.variableNames).mkString("\n")))
-    backImgs.zipWithIndex.filter(x => !t.isEmpty(x._1))
-  }
-  //  findPreImage(s, p,
-  //    (effect: Int, states: Int) => !t.isEmpty(t.intersection(effect, states)))
+  def weakPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) = findPreImage(s, p,
+    (effect: Int, states: Int) => !t.isEmpty(t.intersection(effect, states)))
 
   /** The pre-image function for strong plans.*/
-  def strongPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) = findPreImage(s, p,
-    (effect: Int, states: Int) => t.isContained(effect, states))
+  def strongPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) =
+    p.actions.map(_.strongPreImage(s)).zipWithIndex.filter(x => !t.isEmpty(x._1))
 
   /**
    * Pre-image function for both weak and strong plans.
