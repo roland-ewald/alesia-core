@@ -153,17 +153,18 @@ class PlanningDomain {
     import t._
 
     /**
-     * Defines the strong pre-image for a given effect.
+     * Defines the pre-image for a given effect. TODO:move to effect
      */
-    private[this] def strPreImgEffect(e: Effect): Int = {
+    private[this] def preImgEffect(e: Effect): Int = {
       val involvedNextStateVars = variablesOf((e.addNextState ::: e.delNextState): _*)
-      (e.condition.id :: e.addNextState ::: e.delNextState.map(not(_)) ::: frameAxioms(involvedNextStateVars)).foldLeft(1)(and)
+      implies(e.condition.id,
+        (e.addNextState ::: e.delNextState.map(not(_)) ::: frameAxioms(involvedNextStateVars)).foldLeft(1)(and))
     }
 
     /** ξ(a) / the relation R(s, this, s')*/
-    lazy val preImgStateTransition: Int = {
-      val detEffect = effects.filter(!_.nondeterministic).map(strPreImgEffect).foldLeft(precondition.id)(and)
-      effects.filter(_.nondeterministic).map(strPreImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
+    lazy val strongPreImgStateTransition: Int = {
+      val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
+      effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
 
     /** Get all x' defined in the effects and the state-transition conjunction.*/
@@ -179,13 +180,16 @@ class PlanningDomain {
      */
     def strongPreImage(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')
-      val transitionAndNextState = and(preImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
+      val transitionAndNextState = and(strongPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
       val xPrime = nextStateVariables(transitionAndNextState) //x'
       exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x')
     }
 
     def weakPreImage(currentState: Int) = {
-      exists(nextStateVariables(preImgStateTransition), preImgStateTransition) //exists x_i': R(x_i,x'_i)
+      val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
+      val detEffectCurrentState = and(currentState,detEffect) 
+      val weakPreImgStateTransition = effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffectCurrentState)).foldLeft(detEffectCurrentState)(or)
+      exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
   }
 }

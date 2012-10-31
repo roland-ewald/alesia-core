@@ -70,11 +70,11 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       //TODO: Check if policy is correct
     }
 
-    it("is able to solve generate strong-cyclic plans") {
+    it("is able to solve strong-cyclic plans") {
       pending
     }
 
-    it("is able to solve generate weak plans") {
+    it("is able to solve weak plans") {
       pending
     }
 

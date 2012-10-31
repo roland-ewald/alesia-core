@@ -120,17 +120,19 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   }
 
   /** The pre-image function for weak plans.*/
-  def weakPreImage(reachedStates: Int, problem: PlanningProblem)(implicit t: UniqueTable) = {
+  def weakPreImage(reachedStates: Int, p: PlanningProblem)(implicit t: UniqueTable) = 
+//    p.actions.map(_.weakPreImage(reachedStates)).zipWithIndex.filter(x => !t.isEmpty(x._1))
+  {    
     import t._
-    problem.actions.zipWithIndex.map {
+    p.actions.zipWithIndex.map {
       case (action, index) => {
         val weakPreImgSuitable = !isEmpty(intersection(action.weakPreImage(reachedStates), reachedStates))
         this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
-          t.structureOf(action.weakPreImage(reachedStates), problem.variableNames).mkString("\n") +
-          "\nwith current reachable state\n" + structureOf(reachedStates, problem.variableNames).mkString("\n") +
+          t.structureOf(action.weakPreImage(reachedStates), p.variableNames).mkString("\n") +
+          "\nwith current reachable state\n" + structureOf(reachedStates, p.variableNames).mkString("\n") +
           "accepted ? " + weakPreImgSuitable)
         if (weakPreImgSuitable) {
-          Some((problem.actions(index).precondition.id, index))
+          Some((p.actions(index).precondition.id, index))
         } else None
       }
     }.flatten
