@@ -120,32 +120,25 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   }
 
   /** The pre-image function for weak plans.*/
-  def weakPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) = findPreImage(s, p,
-    (effect: Int, states: Int) => !t.isEmpty(t.intersection(effect, states)))
-
-  /** The pre-image function for strong plans.*/
-  def strongPreImage(s: Int, p: PlanningProblem)(implicit t: UniqueTable) =
-    p.actions.map(_.strongPreImage(s)).zipWithIndex.filter(x => !t.isEmpty(x._1))
-
-  /**
-   * Pre-image function for both weak and strong plans.
-   */
-  def findPreImage(reachedStates: Int, problem: PlanningProblem,
-    compare: (Int, Int) => Boolean)(implicit t: UniqueTable): Array[(Int, Int)] = {
+  def weakPreImage(reachedStates: Int, problem: PlanningProblem)(implicit t: UniqueTable) = {
     import t._
     problem.actions.zipWithIndex.map {
-      case (action, index) =>
-        {
-          this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
-            t.structureOf(action.effect, problem.variableNames).mkString("\n") +
-            "\nwith current reachable state\n" + structureOf(reachedStates, problem.variableNames).mkString("\n") +
-            "accepted ? " + compare(action.effect, reachedStates))
-          if (compare(action.effect, reachedStates)) {
-            Some((problem.actions(index).precondition.id, index))
-          } else None
-        }
+      case (action, index) => {
+        val weakPreImgSuitable = !isEmpty(intersection(action.weakPreImage(reachedStates), reachedStates))
+        this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
+          t.structureOf(action.weakPreImage(reachedStates), problem.variableNames).mkString("\n") +
+          "\nwith current reachable state\n" + structureOf(reachedStates, problem.variableNames).mkString("\n") +
+          "accepted ? " + weakPreImgSuitable)
+        if (weakPreImgSuitable) {
+          Some((problem.actions(index).precondition.id, index))
+        } else None
+      }
     }.flatten
   }
+
+  /** The pre-image function for strong plans.*/
+  def strongPreImage(reachedStates: Int, p: PlanningProblem)(implicit t: UniqueTable) =
+    p.actions.map(_.strongPreImage(reachedStates)).zipWithIndex.filter(x => !t.isEmpty(x._1))
 
   /**
    * Remove those actions that do not extend the set of reached states, and restrict those that do to the *new* states.

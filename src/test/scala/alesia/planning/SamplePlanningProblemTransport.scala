@@ -49,12 +49,12 @@ class SamplePlanningProblemTransport extends PlanningProblem {
     Effect(fuel, del = List(fuel), nondeterministic = true))
 
   action("make-fuel",
-    !fuel and (posCityCenter or posTruckStation),
+    (!fuel) and (posCityCenter or posTruckStation),
     Effect(TrueVariable, add = List(fuel)))
 
   action("fly",
     posAirStation or posLuton,
-    Effect(!fog and posAirStation, add = List(posGatwick), del = List(posAirStation)),
+    Effect((!fog) and posAirStation, add = List(posGatwick), del = List(posAirStation)),
     Effect(fog and posAirStation, add = List(posLuton), del = List(posAirStation)),
     Effect(posLuton, posAirStation))
 

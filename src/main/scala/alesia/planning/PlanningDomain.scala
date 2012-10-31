@@ -157,12 +157,11 @@ class PlanningDomain {
      */
     private[this] def strPreImgEffect(e: Effect): Int = {
       val involvedNextStateVars = variablesOf((e.addNextState ::: e.delNextState): _*)
-      implies(e.condition.id,
-        (e.addNextState ::: e.delNextState.map(not(_)) ::: frameAxioms(involvedNextStateVars)).foldLeft(1)(and))
+      (e.condition.id :: e.addNextState ::: e.delNextState.map(not(_)) ::: frameAxioms(involvedNextStateVars)).foldLeft(1)(and)
     }
 
     /** ξ(a) / the relation R(s, this, s')*/
-    lazy val strPreImgStateTransition: Int = {
+    lazy val preImgStateTransition: Int = {
       val detEffect = effects.filter(!_.nondeterministic).map(strPreImgEffect).foldLeft(precondition.id)(and)
       effects.filter(_.nondeterministic).map(strPreImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
@@ -171,7 +170,6 @@ class PlanningDomain {
     def nextStateVariables(stateTransition: Int) =
       variablesOf(effects.flatMap(effectConj) :+ stateTransition: _*).filter(currentStateVarNums.contains)
 
-    
     def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
 
     /**
@@ -181,21 +179,13 @@ class PlanningDomain {
      */
     def strongPreImage(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')
-      val transitionAndNextState = and(strPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x')
+      val transitionAndNextState = and(preImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
       val xPrime = nextStateVariables(transitionAndNextState) //x'
       exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x')
     }
 
-    //TODO: revise, the following is incomplete!!!
-
-    //all deterministic effects are joined together via and
-    val detEffect = effects.filter(!_.nondeterministic).flatMap(effectConj).foldLeft(1)(and)
-
-    //all nondeterministic effects are joined together via or
-    val nonDetEffect = effects.filter(_.nondeterministic).
-      map(effectConj(_).foldLeft(1)(and)).map(and(detEffect, _)).foldLeft(detEffect)(or)
-
-    //the precondition is joined via and to the effect
-    val effect = and(precondition.id, nonDetEffect)
+    def weakPreImage(currentState: Int) = {
+      exists(nextStateVariables(preImgStateTransition), preImgStateTransition) //exists x_i': R(x_i,x'_i)
+    }
   }
 }
