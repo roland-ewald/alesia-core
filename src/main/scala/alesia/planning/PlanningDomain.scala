@@ -20,7 +20,7 @@ class PlanningDomain {
   /** Maps variable function instruction ids to their corresponding next-state variables. */
   val nextStateVars = scala.collection.mutable.Map[Int, PlanningDomainFunction]()
 
-  /** Maps variable numbers to their corresponding next-state variable numbers (for substitution). */
+  /** Maps current-state variable numbers to their corresponding next-state variable numbers (for substitution). */
   val nextStateVarNums = scala.collection.mutable.Map[Int, Int]()
 
   /** Maps next-state variable function instruction ids to their corresponding current-state variables. */
@@ -28,6 +28,9 @@ class PlanningDomain {
 
   /** Maps next-state variable numbers to their corresponding current-state variable numbers (for substitution). */
   val currentStateVarNums = scala.collection.mutable.Map[Int, Int]()
+  
+  /** Maps variable numbers to the instruction ids of their indicator functions.*/
+  val varNumInstructionIds = scala.collection.mutable.Map[Int, Int]()
 
   /** Buffers actions available in this domain. */
   private[this] var actionBuffer = ArrayBuffer[DomainAction]()
@@ -44,10 +47,15 @@ class PlanningDomain {
       //TODO: Once substitution works for general mappings, there is no need for synchronization anymore
       val (currentStateVarNum, currentStateVar) = createVariable(name)
       val (nextStateVarNum, nextStateVar) = createVariable(name + "'")
+      
       nextStateVars(currentStateVar) = nextStateVar
-      nextStateVarNums(currentStateVarNum) = nextStateVarNum
+      varNumInstructionIds(currentStateVarNum) = currentStateVar
+      nextStateVarNums(currentStateVarNum) = nextStateVarNum    
+      
       currentStateVars(nextStateVar) = currentStateVar
+      varNumInstructionIds(nextStateVarNum) = nextStateVar
       currentStateVarNums(nextStateVarNum) = currentStateVarNum
+      
       currentStateVar
     }
 
@@ -90,6 +98,16 @@ class PlanningDomain {
 
   /** Replaces all references to 'next state'-variables with their corresponding 'current state'-variables. f[x'/x].  */
   def backwardShift(f: Int) = table.substitute(f, currentStateVarNums)
+
+  /**
+   * Generates a list of 'frame problem' axioms given the number of next-state variable that are unaffected.
+   * @param the list of affected next-state variables V'_a
+   * @return list of instruction ids representing (v_1<=>v_1'), ..., (v_n<=>v_n') with v_1, ..., v_n not in V'_a
+   */
+  def frameAxioms(affectedNextStateVars: List[Int]): List[Int] = {
+    val unaffectedNextStateVars = (currentStateVarNums.keySet -- affectedNextStateVars.toSet).toList
+    unaffectedNextStateVars.map(v => table.iff(varNumInstructionIds(v), varNumInstructionIds(currentStateVarNums(v))))
+  }
 
   /** Represents a boolean function within the domain. */
   case class PlanningDomainFunction(id: Int, name: String) {
@@ -134,7 +152,13 @@ class PlanningDomain {
 
     import t._
 
-    def expressionForEffect(e: Effect): Int = t.implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not(_))).foldLeft(1)(and))
+    def expressionForEffect(e: Effect): Int = {
+
+      val involvedNextStateVars = variablesOf((e.addNextState ::: e.delNextState): _*)
+
+      t.implies(e.condition.id,
+        (e.addNextState ::: e.delNextState.map(not(_)) ::: frameAxioms(involvedNextStateVars)).foldLeft(1)(and))
+    }
 
     //ξ(a) / the relation R(s, this, s')
     lazy val stateTransition: Int = {
