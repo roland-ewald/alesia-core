@@ -15,6 +15,7 @@ import sessl.util.Logging
 import alesia.planning.plans.EmptyPlan
 import alesia.planning.PlanningDomain
 import alesia.planning.PlanningDomainAction
+import scala.collection.mutable.ListBuffer
 
 /**
  * Creates a plan assuming a non-deterministic environment, via techniques for symbolic model checking.
@@ -87,16 +88,34 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   /**
    * Creates a strong-cyclic plan. Implementation as developed by Rintanen, see his script fig. 4.6.
    * @param problem the planning problem
+   * @return conditional plan
    */
   def planStrongCyclic(p: PlanningProblem)(implicit t: UniqueTable): Plan = {
     import t._
-    
-    var W = p.goalStates
-    while(!isContained(p.initialStates, pruneStrongCyclic(p.actions,W, p.goalStates))) {
-      
+
+    val G = p.goalStates
+
+    var W = -1
+    var W_new = G
+    while (!isContained(p.initialStates, pruneStrongCyclic(p.actions, W, p.goalStates)) && W_new != W) {
+      W = W_new
+      //W_I = W_(i-1) ∪  (∪_(o \in O) (wpreimg_o(W_(i-1))):
+      W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union(_, _))
     }
-    
-    new EmptyPlan {}
+
+    val D_i = ListBuffer[Int]()
+    D_i += G
+    val L = pruneStrongCyclic(p.actions, W_new, G)
+
+    var S = G
+    var S_new = S
+    do {
+      S = S_new
+      S_new = p.actions.map(a => intersection(a.weakPreImage(S_new), a.strongPreImage(union(L, S_new)))).foldLeft(S_new)(union(_, _))
+      D_i += intersection(L, S_new)
+    } while (S_new != S)
+
+    new EmptyPlan {} //TODO: use D_i to construct plan
   }
 
   /**
@@ -105,7 +124,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
    */
   def pruneStrongCyclic(operators: Iterable[PlanningDomainAction], state: Int, goal: Int)(implicit t: UniqueTable): Int = {
     import t._
-    
+
     var W_new = state;
     var W = -1
     do {
