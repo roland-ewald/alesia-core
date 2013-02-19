@@ -99,7 +99,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     var W_new = G
     while (!isContained(p.initialStates, pruneStrongCyclic(p.actions, W_new, p.goalStates)) && W_new != W) {
       W = W_new
-      //W_I = W_(i-1) ∪  (∪_(o \in O) (wpreimg_o(W_(i-1))):
+      // W_I = W_(i-1) ∪  (∪_(o \in O) (wpreimg_o(W_(i-1))):
       W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union(_, _))
     }
 
@@ -127,18 +127,18 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
     var W_new = state;
     var W = -1
-    do {
-      var W = W_new
+    while (W_new != W) {
+      W = W_new
       var S_new = goal // States from which goal can be reached in i steps
       var S = -1
-      do {
+      while (S_new != S) {
         S = S_new
-        //S_k = S_(k-1) ∪  (∪_(o \in O) (wpreimg_o(S_(k-1)) ∩ spreimg_o(W_(i-1)))):
+        // S_k = S_(k-1) ∪  (∪_(o \in O) (wpreimg_o(S_(k-1)) ∩ spreimg_o(W_(i-1)))):
         S_new = operators.map(o => intersection(o.weakPreImage(S), o.strongPreImage(W))).foldLeft(S)(union(_, _))
-      } while (S_new != S) // <- States that stay within W and eventually reach G
-      W_new = intersection(W, S_new)
-    } while (W_new != W) // <- States in W_new that stay within W_new and eventually reach G
-    W_new
+      }
+      W_new = intersection(W, S_new) // <- States that stay within W and eventually reach G
+    }
+    W_new // <- States in W_new that stay within W_new and eventually reach G
   }
 
   /** The pre-image function for weak plans.*/

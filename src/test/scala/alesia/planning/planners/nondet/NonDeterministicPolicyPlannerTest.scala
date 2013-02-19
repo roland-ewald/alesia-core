@@ -71,9 +71,9 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     }
 
     it("is able to solve strong-cyclic plans") {
-      //val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new SamplePlanningProblemTransport, NonDeterministicPlanTypes.StrongCyclic)
+      val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new SamplePlanningProblemTransport, NonDeterministicPlanTypes.StrongCyclic)
+      assert(strongCyclicPlan != FailurePolicy)
       //TODO: Check if policy is correct
-      pending
     }
 
     it("is able to solve weak plans") {
