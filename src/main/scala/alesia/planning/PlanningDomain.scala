@@ -145,7 +145,7 @@ class PlanningDomain {
    * @param precondition the precondition of the action
    * @param effects the effects of the action
    */
-  case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)(implicit table: UniqueTable) {
+  case class DomainAction(name: String, precondition: PlanningDomainFunction, effects: Effect*)(implicit table: UniqueTable) extends PlanningDomainAction {
 
     /** The action is only valid in the given planning domain. */
     private[this] val t = table
@@ -178,16 +178,16 @@ class PlanningDomain {
      * @param currentState the instruction id of the current set of states
      * @return the instruction id of the set of states from which this set can be reached
      */
-    def strongPreImage(currentState: Int) = {
+    override def strongPreImage(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')
       val transitionAndNextState = and(strongPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
       val xPrime = nextStateVariables(transitionAndNextState) //x'
       exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x')
     }
 
-    def weakPreImage(currentState: Int) = {
+    override def weakPreImage(currentState: Int) = {
       val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
-      val detEffectCurrentState = and(currentState,detEffect) 
+      val detEffectCurrentState = and(currentState, detEffect)
       val weakPreImgStateTransition = effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffectCurrentState)).foldLeft(detEffectCurrentState)(or)
       exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }

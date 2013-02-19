@@ -3,7 +3,6 @@ package alesia.planning.planners.nondet
 import scala.Array.canBuildFrom
 import scala.Option.option2Iterable
 import scala.collection.Iterable
-
 import NonDeterministicPlanTypes.Strong
 import NonDeterministicPlanTypes.StrongCyclic
 import NonDeterministicPlanTypes.Weak
@@ -13,6 +12,9 @@ import alesia.planning.plans.EmptyPlan
 import alesia.planning.plans.Plan
 import alesia.utils.bdd.UniqueTable
 import sessl.util.Logging
+import alesia.planning.plans.EmptyPlan
+import alesia.planning.PlanningDomain
+import alesia.planning.PlanningDomainAction
 
 /**
  * Creates a plan assuming a non-deterministic environment, via techniques for symbolic model checking.
@@ -83,48 +85,27 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   }
 
   /**
-   * Creates a strong-cyclic plan.
+   * Creates a strong-cyclic plan. Implementation as developed by Rintanen, see his script fig. 4.6.
    * @param problem the planning problem
    */
   def planStrongCyclic(p: PlanningProblem)(implicit t: UniqueTable): Plan = {
-
     import t._
-
-    var previousPolicy: Policy = EmptyPolicy //π
-    var currentPolicy: Policy = Policy.universal(p) //π'
-    while (previousPolicy != currentPolicy) {
-      previousPolicy = currentPolicy
-      currentPolicy = pruneUnconnected(pruneOutgoing(currentPolicy, p.goalStates), p.goalStates);
+    
+    var W = p.goalStates
+    while(!isContained(p.initialStates, pruneStrongCyclic(p.actions,W, p.goalStates))) {
+      
     }
-
-    createPlanIfPossible(p.initialStates, union(p.goalStates, currentPolicy.states),
-      removeNonProgress(currentPolicy, p.goalStates))
-  }
-
-  def pruneUnconnected(policy: Policy, goalStates: Int)(implicit t: UniqueTable) = {
-    import t._
-    //TODO
-    policy
-  }
-
-  def pruneOutgoing(policy: Policy, goalStates: Int)(implicit t: UniqueTable) = {
-    import t._
-    //TODO 
-    policy
-  }
-
-  def removeNonProgress(policy: Policy, goalStates: Int)(implicit t: UniqueTable) = {
-    import t._
-    //TODO
-    policy
+    
+    new EmptyPlan {}
   }
 
   /**
    * Finds those states from which the goal will be reached eventually.
    * See Rintanen script fig. 4.5.
    */
-  def pruneStrongCyclic(p: PlanningProblem, state: Int, goal: Int)(implicit t: UniqueTable): Int = {
+  def pruneStrongCyclic(operators: Iterable[PlanningDomainAction], state: Int, goal: Int)(implicit t: UniqueTable): Int = {
     import t._
+    
     var W_new = state;
     var W = -1
     do {
@@ -134,7 +115,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       do {
         S = S_new
         //S_k = S_(k-1) ∪  (∪_(o \in O) (wpreimg_o(S_(k-1)) ∩ spreimg_o(W_(i-1)))):
-        S_new = p.actions.map(a => intersection(a.weakPreImage(S), a.strongPreImage(W))).foldLeft(S)(union(_, _))
+        S_new = operators.map(o => intersection(o.weakPreImage(S), o.strongPreImage(W))).foldLeft(S)(union(_, _))
       } while (S_new != S) // <- States that stay within W and eventually reach G
       W_new = intersection(W, S_new)
     } while (W_new != W) // <- States in W_new that stay within W_new and eventually reach G
