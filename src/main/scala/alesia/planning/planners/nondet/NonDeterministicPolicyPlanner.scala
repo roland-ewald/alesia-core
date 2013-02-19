@@ -119,24 +119,45 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     policy
   }
 
-  /** The pre-image function for weak plans.*/
-  def weakPreImage(reachedStates: Int, p: PlanningProblem)(implicit t: UniqueTable) = 
-//    p.actions.map(_.weakPreImage(reachedStates)).zipWithIndex.filter(x => !t.isEmpty(x._1))
-  {    
+  /**
+   * Finds those states from which the goal will be reached eventually.
+   * See Rintanen script fig. 4.5.
+   */
+  def pruneStrongCyclic(p: PlanningProblem, state: Int, goal: Int)(implicit t: UniqueTable): Int = {
     import t._
-    p.actions.zipWithIndex.map {
-      case (action, index) => {
-        val weakPreImgSuitable = !isEmpty(intersection(action.weakPreImage(reachedStates), reachedStates))
-        this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
-          t.structureOf(action.weakPreImage(reachedStates), p.variableNames).mkString("\n") +
-          "\nwith current reachable state\n" + structureOf(reachedStates, p.variableNames).mkString("\n") +
-          "accepted ? " + weakPreImgSuitable)
-        if (weakPreImgSuitable) {
-          Some((p.actions(index).precondition.id, index))
-        } else None
-      }
-    }.flatten
+    var W_new = state;
+    var W = -1
+    do {
+      var W = W_new
+      var S_new = goal // States from which goal can be reached in i steps
+      var S = -1
+      do {
+        S = S_new
+        //S_k = S_(k-1) ∪  (∪_(o \in O) (wpreimg_o(S_(k-1)) ∩ spreimg_o(W_(i-1)))):
+        S_new = p.actions.map(a => intersection(a.weakPreImage(S), a.strongPreImage(W))).foldLeft(S)(union(_, _))
+      } while (S_new != S) // <- States that stay within W and eventually reach G
+      W_new = intersection(W, S_new)
+    } while (W_new != W) // <- States in W_new that stay within W_new and eventually reach G
+    W_new
   }
+
+  /** The pre-image function for weak plans.*/
+  def weakPreImage(reachedStates: Int, p: PlanningProblem)(implicit t: UniqueTable) =
+    {
+      import t._
+      p.actions.zipWithIndex.map {
+        case (action, index) => {
+          val weakPreImgSuitable = !isEmpty(intersection(action.weakPreImage(reachedStates), reachedStates))
+          this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
+            t.structureOf(action.weakPreImage(reachedStates), p.variableNames).mkString("\n") +
+            "\nwith current reachable state\n" + structureOf(reachedStates, p.variableNames).mkString("\n") +
+            "accepted ? " + weakPreImgSuitable)
+          if (weakPreImgSuitable) {
+            Some((p.actions(index).precondition.id, index))
+          } else None
+        }
+      }.flatten
+    }
 
   /** The pre-image function for strong plans.*/
   def strongPreImage(reachedStates: Int, p: PlanningProblem)(implicit t: UniqueTable) =
