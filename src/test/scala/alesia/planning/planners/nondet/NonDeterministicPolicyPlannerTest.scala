@@ -29,7 +29,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     logPlanRepresentation(desc, plan)
   }
 
-  describe("The OBDD-Planner") {
+  describe("The non-deterministic planner") {
 
     it("returns with a failure for the trivial planning problem that does not define any actions ") {
       assert(new NonDeterministicPolicyPlanner().plan(new TrivialPlanningProblem) === FailurePolicy)
@@ -71,6 +71,8 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     }
 
     it("is able to solve strong-cyclic plans") {
+      //val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new SamplePlanningProblemTransport, NonDeterministicPlanTypes.StrongCyclic)
+      //TODO: Check if policy is correct
       pending
     }
 
