@@ -5,7 +5,7 @@ import alesia.planning.actions.ExperimentAction
 import alesia.planning.context.Context
 
 /**
- * Interface of a plan.
+ * Interface for a plan.
  *
  *  @author Roland Ewald
  */
@@ -13,6 +13,12 @@ trait Plan {
 
   /** Given the current context, decide for a sequence of actions, which might be carried out in parallel. */
   def decide(c: Context): Seq[ExperimentAction]
+
+  /**
+   * Decide upon action(s) based on the current state. TODO: merge with above method.
+   * @return list of action indices of actions that should be tried
+   */
+  def decide(state: Int): Iterable[Int] = throw new UnsupportedOperationException 
 }
 
 /** Trivial plan. */

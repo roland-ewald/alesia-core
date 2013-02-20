@@ -53,36 +53,6 @@ case class NonDeterministicPolicy(val problem: PlanningProblem, val stateActionT
   }.mkString("\n")
 }
 
-/**
- * Represents a deterministic policy, in which for each state there is a single action to be executed.
- */
-case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends Plan {
-  require(policy.stateActionTable.nonEmpty)
-
-  //TODO: Merge this with the other decision method
-  def decide(c: Context): Seq[ExperimentAction] = Seq()
-
-  /**
-   * Decides upon an action, chooses the first one of which the preconditions are fulfilled.
-   * TODO: This strategy needs to be refined, otherwise one may end up within an infinite loop
-   */
-  def decide(state: Int): Int = {
-    @tailrec
-    def decideFor(currentState: Int, stateActionPair: (Int, Int), stateActionPairs: Iterator[(Int, Int)]): Int = {
-      if (policy.problem.table.isContained(stateActionPair._1, currentState))
-        stateActionPair._2
-      else if (stateActionPairs.isEmpty)
-        -1
-      else
-        decideFor(currentState, stateActionPairs.next, stateActionPairs)
-    }
-    val stateActionPairs = policy.stateActionTable.iterator
-    decideFor(state, stateActionPairs.next, stateActionPairs)
-  }
-
-  lazy val symbolicRepresentation = policy.symbolicRepresentation
-}
-
 /** Represents a failure to find a plan. */
 case object FailurePolicy extends Policy with EmptyPlan {
   override val symbolicRepresentation = "Failure"

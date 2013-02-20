@@ -16,6 +16,7 @@ import alesia.planning.plans.EmptyPlan
 import alesia.planning.PlanningDomain
 import alesia.planning.PlanningDomainAction
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Creates a plan assuming a non-deterministic environment, via techniques for symbolic model checking.
@@ -103,7 +104,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union(_, _))
     }
 
-    val D_i = ListBuffer[Int]()
+    val D_i = ArrayBuffer[Int]()
     D_i += G
     val L = pruneStrongCyclic(p.actions, W_new, G)
 
@@ -115,8 +116,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       D_i += intersection(L, S_new)
     }
 
-//    constructPlan(D_i.toList)
-    new EmptyPlan {}
+    new DeterministicDistanceBasedPlan(p, D_i.toArray)
   }
 
   /**

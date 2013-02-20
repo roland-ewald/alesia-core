@@ -43,10 +43,10 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       }
       val weakPlan = new NonDeterministicPolicyPlanner().plan(problem)
       checkPlan(weakPlan, "Weak plan for trivial planning problem")
-      assert(weakPlan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id) === 0)
+      assert(weakPlan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id).head === 0)
       val strongPlan = new NonDeterministicPolicyPlanner().createPlan(problem, NonDeterministicPlanTypes.Strong)
       checkPlan(strongPlan, "Strong plan for trivial planning problem")
-      assert(strongPlan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id) === 0)
+      assert(strongPlan.asInstanceOf[DeterministicPolicyPlan].decide(problem.initialState.id).head === 0)
     }
 
     it("is able to deal with non-deterministic problems") {
