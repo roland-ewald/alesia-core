@@ -192,6 +192,5 @@ class PlanningDomain {
       exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
     
-    override def weakImage(currentState: Int) = throw new UnsupportedOperationException //TODO
   }
 }

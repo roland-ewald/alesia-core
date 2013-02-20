@@ -113,25 +113,9 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       S = S_new
       S_new = p.actions.map(a => intersection(a.weakPreImage(S_new), a.strongPreImage(union(L, S_new)))).foldLeft(S_new)(union(_, _))
       D_i += intersection(L, S_new)
-    } 
-    
-    constructPlan(p, D_i.toArray)
-  }
-
-  /**
-   * Constructs a strong-cyclic plan. Implementations developed by Rintanen, see his script fig. 
-   */
-  def constructPlan(p: PlanningProblem, D_i: Array[Int])(implicit t: UniqueTable): Plan = {
-	import t._
-    
-    def constrPlan(n: Int, S: Int) = {
-      
     }
-	
-	def progress(op: PlanningDomainAction, S: Int) = {
-	  
-	}    
-    
+
+//    constructPlan(D_i.toList)
     new EmptyPlan {}
   }
 

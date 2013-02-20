@@ -14,9 +14,5 @@ trait PlanningDomainAction {
    * The weak pre-image of this action.
    */
   def weakPreImage(currentState: Int): Int
-  
-  /**
-   * The weak image of this action.
-   */
-  def weakImage(currentState: Int): Int
+
 }
