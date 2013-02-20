@@ -191,5 +191,7 @@ class PlanningDomain {
       val weakPreImgStateTransition = effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffectCurrentState)).foldLeft(detEffectCurrentState)(or)
       exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
+    
+    override def weakImage(currentState: Int) = throw new UnsupportedOperationException //TODO
   }
 }
