@@ -101,7 +101,6 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     while (!isContained(p.initialStates, pruneStrongCyclic(p.actions, W_new, G)) && W_new != W) {
       W = W_new
       // W_I = W_(i-1) ∪  (∪_(o \in O) (wpreimg_o(W_(i-1))):
-      println(structureOf(W, p.variableNames).mkString("\n"))
       W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union(_, _))
     }
 

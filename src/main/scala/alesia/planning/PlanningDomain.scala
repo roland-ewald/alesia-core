@@ -186,8 +186,9 @@ class PlanningDomain {
     }
 
     override def weakPreImage(currentState: Int) = {
+      val nextState = forwardShift(currentState) //Q(x')
       val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
-      val detEffectCurrentState = and(currentState, detEffect)
+      val detEffectCurrentState = and(nextState, detEffect)
       val weakPreImgStateTransition = effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffectCurrentState)).foldLeft(detEffectCurrentState)(or)
       exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }

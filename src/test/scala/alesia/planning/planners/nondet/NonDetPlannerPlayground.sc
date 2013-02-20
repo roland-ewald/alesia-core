@@ -14,36 +14,21 @@ object NonDetPlannerPlayground {
                                                   //| )
   val planner = new NonDeterministicPolicyPlanner()
                                                   //> planner  : alesia.planning.planners.nondet.NonDeterministicPolicyPlanner = a
-                                                  //| lesia.planning.planners.nondet.NonDeterministicPolicyPlanner@7bfdc405
-  implicit val ut = problem.table                 //> ut  : alesia.utils.bdd.UniqueTable = alesia.utils.bdd.UniqueTable@515063db
+                                                  //| lesia.planning.planners.nondet.NonDeterministicPolicyPlanner@d1c5bb0
+  implicit val ut = problem.table                 //> ut  : alesia.utils.bdd.UniqueTable = alesia.utils.bdd.UniqueTable@40c78689
 
   val preImage = planner.strongPreImage(problem.goalState.id, problem)
-                                                  //> 5 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner 
-                                                  //| - Evaluating action 'drive-train'...
-                                                  //| 16 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Action 'drive-train' is applicable.
-                                                  //| 16 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Evaluating action 'wait-at-light'...
-                                                  //| 16 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Evaluating action 'drive-truck'...
-                                                  //| 17 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Action 'drive-truck' is applicable.
-                                                  //| 17 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Evaluating action 'drive-truck-back'...
-                                                  //| 18 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Evaluating action 'make-fuel'...
-                                                  //| 19 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Evaluating action 'fly'...
-                                                  //| 20 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Action 'fly' is applicable.
-                                                  //| 20 [main] INFO alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-                                                  //|  - Evaluating action 'air-truck-transit'...
-                                                  //| preImage  : Array[(Int, Int)] = Array((20,0), (27,2), (32,5))
+                                                  //> preImage  : Array[(Int, Int)] = Array((381,0), (12,1), (744,2), (870,3), (94
+                                                  //| 0,4), (1409,5), (1552,6))
 
   ut.structureOf(preImage(0)._1, problem.variableNames).mkString("\n")
                                                   //> res0: String = if(light=green) {
                                                   //| 	if(pos=train-station) {
-                                                  //| 		true
+                                                  //| 		if(!pos=Victoria-station) {
+                                                  //| 			if(pos=Gatwick) {
+                                                  //| 				true
+                                                  //| 			}
+                                                  //| 		}
                                                   //| 	}
                                                   //| 	else {
                                                   //| 		if(pos=Victoria-station) {
@@ -53,17 +38,23 @@ object NonDetPlannerPlayground {
                                                   //| }
                                                   //| else {
                                                   //| 	if(pos=train-station) {
-                                                  //| 		true
+                                                  //| 		if(pos=Gatwick) {
+                                                  //| 			true
+                                                  //| 		}
                                                   //| 	}
                                                   //| }
 
   new SamplePlanningProblemTransport().table.structureOf(24).mkString("\n")
                                                   //> res1: String = if(24) {
-                                                  //| 	if(!23) {
-                                                  //| 		if(9) {
-                                                  //| 			true
-                                                  //| 		}
+                                                  //| 	true
+                                                  //| }
+                                                  //| else {
+                                                  //| 	if(20) {
+                                                  //| 		true
                                                   //| 	}
                                                   //| }
+  new DeterministicDistanceBasedPlan(problem, Array[Int]())
+                                                  //> res2: alesia.planning.planners.nondet.DeterministicDistanceBasedPlan = alesi
+                                                  //| a.planning.planners.nondet.DeterministicDistanceBasedPlan@3c44899b
 
 }
