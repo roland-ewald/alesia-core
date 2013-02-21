@@ -84,18 +84,22 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       //TODO: Check if policy is correct
     }
 
-    it("is able to solve strong-cyclic plans") {
+    it("is able to find weak plans") {
       val weakPlan = new NonDeterministicPolicyPlanner().plan(new TrivialStrongCyclicPlanningProblem(5))
-      checkPlan(weakPlan, "Weak plan for non-deterministic strong-cylcic planning problem")
-
-      val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new TrivialStrongCyclicPlanningProblem(5), NonDeterministicPlanTypes.StrongCyclic)
-      //      assert(strongCyclicPlan != FailurePolicy) //FIXME
-      //TODO: Check if policy is correct
-      pending
+      checkPlan(weakPlan, "Weak plan for non-deterministic strong-cyclic planning problem")
     }
 
-    it("is able to solve weak plans") {
-      pending
+    it("is able to find strong-cyclic plans") {
+      val numOfActions = 5
+      val prob = new TrivialStrongCyclicPlanningProblem(numOfActions)
+      val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(prob, NonDeterministicPlanTypes.StrongCyclic)
+      assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
+      assert(strongCyclicPlan.decide(prob.goalStates).isEmpty)
+      for(i <- 0 until numOfActions) {
+        val decision = strongCyclicPlan.decide(prob.stepVariables(i).id).toList
+        assert(decision.length === 1)
+        assert(decision.head == i)
+      }            
     }
 
     it("produces deterministic policies that can be executed and will work") {

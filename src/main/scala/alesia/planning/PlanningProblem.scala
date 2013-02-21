@@ -7,7 +7,7 @@ import sessl.util.Logging
  *
  * @author Roland Ewald
  */
-abstract case class PlanningProblem() extends PlanningDomain with Logging {
+abstract case class PlanningProblem() extends PlanningDomain {
 
   /** Function to characterize set of initial states. */
   val initialState: PlanningDomainFunction
@@ -21,10 +21,4 @@ abstract case class PlanningProblem() extends PlanningDomain with Logging {
   /** Instruction id for function that characterizes goal state. */
   lazy val goalStates = goalState.id
 
-  /**
-   * Helper method for debugging.
-   * @param f boolean function to show
-   * @param name name of the function to display
-   */
-  def debug(f: Int, name: String) = logger.debug(name + ":\n" + table.structureOf(f, variableNames).mkString("\n"))
 }

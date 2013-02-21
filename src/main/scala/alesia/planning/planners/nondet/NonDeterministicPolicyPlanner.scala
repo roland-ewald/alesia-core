@@ -99,17 +99,10 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
     var W = -1
     var W_new = G
-    p.debug(G, "Goal")
     while (!isContained(p.initialStates, pruneStrongCyclic(p.actions, W_new, G)) && W_new != W) {
       W = W_new
       // W_I = W_(i-1) ∪  (∪_(o \in O) (wpreimg_o(W_(i-1))):
       W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union)
-      p.actions.foreach(a => {
-        println(a)
-        p.debug(a.weakPreImage(W), "pre-img:")
-        println("===")
-      })
-      p.debug(W_new, "W_new")
     }
 
     if (!isContained(p.initialStates, W_new))
