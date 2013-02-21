@@ -90,7 +90,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     }
 
     it("is able to find strong-cyclic plans") {
-      val numOfActions = 5
+      val numOfActions = 7
       val prob = new TrivialStrongCyclicPlanningProblem(numOfActions)
       val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(prob, NonDeterministicPlanTypes.StrongCyclic)
       assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
