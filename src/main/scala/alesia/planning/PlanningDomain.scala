@@ -3,13 +3,14 @@ package alesia.planning
 import alesia.utils.bdd.UniqueTable
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.immutable.List
+import sessl.util.Logging
 
 /**
  * Represents a general planning domain.
  *
  * @author Roland Ewald
  */
-class PlanningDomain {
+class PlanningDomain extends Logging {
 
   /** The table to manage the boolean functions. */
   private[alesia] implicit val table = new UniqueTable
@@ -37,6 +38,13 @@ class PlanningDomain {
 
   /** All actions defined in this domain. */
   lazy val actions = actionBuffer.toArray
+
+  /**
+   * Helper method for debugging.
+   * @param f boolean function to show
+   * @param name name of the function to display
+   */
+  def debug(f: Int, name: String) = logger.debug(name + "(#" + f + "):\n" + table.structureOf(f, variableNames).mkString("\n"))
 
   /**
    * Allows to define a variable v. Internally, two variables named v and v' will be created,
@@ -156,9 +164,7 @@ class PlanningDomain {
      * Defines the pre-image for a given effect. TODO:move to effect
      */
     private[this] def preImgEffect(e: Effect): Int = {
-      val involvedNextStateVars = variablesOf((e.addNextState ::: e.delNextState): _*)
-      implies(e.condition.id,
-        (e.addNextState ::: e.delNextState.map(not(_)) ::: frameAxioms(involvedNextStateVars)).foldLeft(1)(and))
+      implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not)).foldLeft(1)(and))
     }
 
     /** ξ(a) / the relation R(s, this, s')*/
@@ -182,16 +188,17 @@ class PlanningDomain {
       val nextState = forwardShift(currentState) //Q(x')
       val transitionAndNextState = and(strongPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
       val xPrime = nextStateVariables(transitionAndNextState) //x'
-      exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x')
+      exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x'))
     }
 
     override def weakPreImage(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')
+      val involvedNextStateVars = List(effects.flatMap(e => variablesOf((e.addNextState ::: e.delNextState): _*)): _*)
+      val frameAndNextState = frameAxioms(involvedNextStateVars).foldLeft(nextState)(and)
       val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
-      val detEffectCurrentState = and(nextState, detEffect)
-      val weakPreImgStateTransition = effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffectCurrentState)).foldLeft(detEffectCurrentState)(or)
+      val weakPreImgStateTransition = and(frameAndNextState, effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or))
       exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
-    
+
   }
 }
