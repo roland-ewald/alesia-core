@@ -112,7 +112,7 @@ class PlanningDomain extends Logging {
    * @param the list of affected next-state variables V'_a
    * @return list of instruction ids representing (v_1<=>v_1'), ..., (v_n<=>v_n') with v_1, ..., v_n not in V'_a
    */
-  def frameAxioms(affectedNextStateVars: List[Int]): List[Int] = {
+  def createFrameAxioms(affectedNextStateVars: List[Int]): List[Int] = {
     val unaffectedNextStateVars = (currentStateVarNums.keySet -- affectedNextStateVars.toSet).toList
     unaffectedNextStateVars.map(v => table.iff(varNumInstructionIds(v), varNumInstructionIds(currentStateVarNums(v))))
   }
@@ -142,7 +142,8 @@ class PlanningDomain extends Logging {
     val addNextState = add.map(t.substitute(_, nextStateVarNums))
     val delNextState = del.map(t.substitute(_, nextStateVarNums))
     val effectConjunction = add.map(_.id) ::: del.map(f => not(f.id))
-    val nextStateEffectVariables = variablesOf(effectConjunction: _*).filter(currentStateVarNums.contains)
+    val currentStateEffectVariables = variablesOf(effectConjunction: _*).filter(currentStateVarNums.contains)
+    val involvedNextStateVars = variablesOf((addNextState ::: delNextState): _*)
   }
 
   /** Supplies helper functions to create effects. */
@@ -163,8 +164,19 @@ class PlanningDomain extends Logging {
 
     import t._
 
-    val nextStateEffectVars = effects.flatMap(_.nextStateEffectVariables).toSet.toList
-    
+    lazy val nextStateEffectVars = effects.flatMap(_.currentStateEffectVariables).toSet
+
+    lazy val involvedNextStateVars = effects.flatMap(_.involvedNextStateVars).toList
+
+    //Required for weak pre-image
+    lazy val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
+
+    //Required for weak pre-image    
+    lazy val nonDetEffect = effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
+
+    //Required for weak pre-image
+    lazy val frameAxioms = createFrameAxioms(involvedNextStateVars).foldLeft(1)(and)
+
     /**
      * Defines the pre-image for a given effect. TODO: move to effect
      */
@@ -179,10 +191,9 @@ class PlanningDomain extends Logging {
     }
 
     /** Get all x' defined in the effects and the state-transition conjunction.*/
-    def nextStateVariables(stateTransition: Int):List[Int] = {
-      (variablesOf(stateTransition).filter(currentStateVarNums.contains) ++ nextStateEffectVars.toList).toSet.toList
+    def nextStateVariables(stateTransition: Int): List[Int] = {
+      varsOf(stateTransition).filter(x => (currentStateVarNums.contains(x) && !nextStateEffectVars.contains(x))) ++ nextStateEffectVars
     }
-       
 
     /**
      * Returns the set of states from which the current state can be reached by this action.
@@ -197,11 +208,8 @@ class PlanningDomain extends Logging {
     }
 
     override def weakPreImage(currentState: Int) = {
-      val nextState = forwardShift(currentState) //Q(x')
-      val involvedNextStateVars = List(effects.flatMap(e => variablesOf((e.addNextState ::: e.delNextState): _*)): _*)
-      val frameAndNextState = frameAxioms(involvedNextStateVars).foldLeft(nextState)(and)
-      val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
-      val weakPreImgStateTransition = and(frameAndNextState, effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or))
+      val nextState = forwardShift(currentState) //Q(x')      
+      val weakPreImgStateTransition = and(nextState, and(frameAxioms, nonDetEffect))
       exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
   }
