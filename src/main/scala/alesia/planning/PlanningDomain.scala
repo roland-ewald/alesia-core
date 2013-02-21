@@ -138,8 +138,11 @@ class PlanningDomain extends Logging {
 
   /** Represents an effect of an action. */
   case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false)(implicit t: UniqueTable) {
+    import t._
     val addNextState = add.map(t.substitute(_, nextStateVarNums))
     val delNextState = del.map(t.substitute(_, nextStateVarNums))
+    val effectConjunction = add.map(_.id) ::: del.map(f => not(f.id))
+    val nextStateEffectVariables = variablesOf(effectConjunction: _*).filter(currentStateVarNums.contains)
   }
 
   /** Supplies helper functions to create effects. */
@@ -160,8 +163,10 @@ class PlanningDomain extends Logging {
 
     import t._
 
+    val nextStateEffectVars = effects.flatMap(_.nextStateEffectVariables).toSet.toList
+    
     /**
-     * Defines the pre-image for a given effect. TODO:move to effect
+     * Defines the pre-image for a given effect. TODO: move to effect
      */
     private[this] def preImgEffect(e: Effect): Int = {
       implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not)).foldLeft(1)(and))
@@ -174,10 +179,10 @@ class PlanningDomain extends Logging {
     }
 
     /** Get all x' defined in the effects and the state-transition conjunction.*/
-    def nextStateVariables(stateTransition: Int) =
-      variablesOf(effects.flatMap(effectConj) :+ stateTransition: _*).filter(currentStateVarNums.contains)
-
-    def effectConj(e: Effect) = e.add.map(_.id) ::: e.del.map(f => not(f.id))
+    def nextStateVariables(stateTransition: Int):List[Int] = {
+      (variablesOf(stateTransition).filter(currentStateVarNums.contains) ++ nextStateEffectVars.toList).toSet.toList
+    }
+       
 
     /**
      * Returns the set of states from which the current state can be reached by this action.
@@ -199,6 +204,5 @@ class PlanningDomain extends Logging {
       val weakPreImgStateTransition = and(frameAndNextState, effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or))
       exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
-
   }
 }
