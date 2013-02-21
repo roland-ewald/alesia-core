@@ -37,8 +37,8 @@ class TrivialStrongCyclicPlanningProblem(val solutionLength: Int = 3) extends Pl
   for (i <- 1 to solutionLength)
     action("action_" + i,
       stepVariables(i - 1),
-      Effect(doneVariables(i - 1)),
-      Effect(stepVariables(i), nondeterministic = true))
+      Effect(add = List(doneVariables(i - 1))),
+      Effect(add = List(stepVariables(i)), nondeterministic = true))
 
   val initialState = stepVariables(0)
   val goalState = doneVariables.last
