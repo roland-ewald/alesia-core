@@ -94,14 +94,22 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   def planStrongCyclic(p: PlanningProblem)(implicit t: UniqueTable): Plan = {
     import t._
 
+
     val G = p.goalStates
 
     var W = -1
     var W_new = G
+    p.debug(G, "Goal")
     while (!isContained(p.initialStates, pruneStrongCyclic(p.actions, W_new, G)) && W_new != W) {
       W = W_new
       // W_I = W_(i-1) ∪  (∪_(o \in O) (wpreimg_o(W_(i-1))):
-      W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union(_, _))
+      W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union)
+      p.actions.foreach(a => {
+        println(a)
+        p.debug(a.weakPreImage(W), "pre-img:")
+        println("===")
+      })
+      p.debug(W_new, "W_new")
     }
 
     if (!isContained(p.initialStates, W_new))
@@ -115,7 +123,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     var S_new = G
     while (S_new != S) {
       S = S_new
-      S_new = p.actions.map(a => intersection(a.weakPreImage(S_new), a.strongPreImage(union(L, S_new)))).foldLeft(S_new)(union(_, _))
+      S_new = p.actions.map(a => intersection(a.weakPreImage(S_new), a.strongPreImage(union(L, S_new)))).foldLeft(S_new)(union)
       D_i += intersection(L, S_new)
     }
 
@@ -138,7 +146,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       while (S_new != S) {
         S = S_new
         // S_k = S_(k-1) ∪  (∪_(o \in O) (wpreimg_o(S_(k-1)) ∩ spreimg_o(W_(i-1)))):
-        S_new = operators.map(o => intersection(o.weakPreImage(S), o.strongPreImage(W))).foldLeft(S)(union(_, _))
+        S_new = operators.map(o => intersection(o.weakPreImage(S), o.strongPreImage(W))).foldLeft(S)(union)
       }
       W_new = intersection(W, S_new) // <- States that stay within W and eventually reach G
     }
@@ -153,7 +161,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
         case (action, index) => {
           val weakPreImgSuitable = !isEmpty(intersection(action.weakPreImage(reachedStates), reachedStates))
           this.logger.debug("Comparing expression for action #" + index + "\n with effects " +
-            t.structureOf(action.weakPreImage(reachedStates), p.variableNames).mkString("\n") +
+            structureOf(action.weakPreImage(reachedStates), p.variableNames).mkString("\n") +
             "\nwith current reachable state\n" + structureOf(reachedStates, p.variableNames).mkString("\n") +
             "accepted ? " + weakPreImgSuitable)
           if (weakPreImgSuitable) {
@@ -214,4 +222,6 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
   /** Creates debugging output. */
   protected def logOutput(policy: Policy) = "New policy of iteration:\n" + policy.symbolicRepresentation
+
+  
 }
