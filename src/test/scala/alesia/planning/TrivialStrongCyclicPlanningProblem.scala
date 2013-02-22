@@ -6,8 +6,10 @@ package alesia.planning
  * @author Roland Ewald
  *
  */
-class TrivialStrongCyclicPlanningProblem(val solutionLength: Int = 3) extends PlanningProblem {
+class TrivialStrongCyclicPlanningProblem(val solutionLength: Int = 3, val numOfDummyVariables:Int = 0) extends PlanningProblem {
 
+  val dummyVariables = for (i <- 1 to numOfDummyVariables) yield v("dummy_" + i)
+  
   val doneVariables = for (i <- 1 to solutionLength) yield v("action_" + i + "_done")
   val stepVariables = for (i <- 0 to solutionLength) yield v("step_" + i)
 

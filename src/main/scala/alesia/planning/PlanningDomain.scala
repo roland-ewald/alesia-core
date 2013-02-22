@@ -177,6 +177,10 @@ class PlanningDomain extends Logging {
     //Required for weak pre-image
     lazy val frameAxioms = createFrameAxioms(involvedNextStateVars).foldLeft(1)(and)
 
+    lazy val frAxiomsAndDetEffect = and(frameAxioms, nonDetEffect)
+    
+    lazy val nextStateVarsEffect = nextStateVariables(frAxiomsAndDetEffect)
+    
     /**
      * Defines the pre-image for a given effect. TODO: move to effect
      */
@@ -209,8 +213,8 @@ class PlanningDomain extends Logging {
 
     override def weakPreImage(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')      
-      val weakPreImgStateTransition = and(nextState, and(frameAxioms, nonDetEffect))
-      exists(nextStateVariables(weakPreImgStateTransition), weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
+      val weakPreImgStateTransition = and(nextState, frAxiomsAndDetEffect)
+      exists((nextStateVariables(nextState) ++ nextStateVarsEffect).distinct, weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
   }
 }

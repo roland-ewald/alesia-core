@@ -94,7 +94,6 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   def planStrongCyclic(p: PlanningProblem)(implicit t: UniqueTable): Plan = {
     import t._
 
-
     val G = p.goalStates
 
     var W = -1
@@ -103,6 +102,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       W = W_new
       // W_I = W_(i-1) ∪  (∪_(o \in O) (wpreimg_o(W_(i-1))):
       W_new = p.actions.map(_.weakPreImage(W)).foldLeft(W)(union)
+      this.logger.info("Finished round, #instructions:" + p.table.instructionCount)
     }
 
     if (!isContained(p.initialStates, W_new))

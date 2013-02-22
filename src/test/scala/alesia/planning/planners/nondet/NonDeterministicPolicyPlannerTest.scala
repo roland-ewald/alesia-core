@@ -78,28 +78,37 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
     }
 
-    it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
-      val weakPlan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
-      checkPlan(weakPlan, "Weak plan for sample planning problem")
-      //TODO: Check if policy is correct
-    }
-
     it("is able to find weak plans") {
-      val weakPlan = new NonDeterministicPolicyPlanner().plan(new TrivialStrongCyclicPlanningProblem(5))
+      val weakPlan = new NonDeterministicPolicyPlanner().plan(new TrivialStrongCyclicPlanningProblem(10))
       checkPlan(weakPlan, "Weak plan for non-deterministic strong-cyclic planning problem")
     }
 
     it("is able to find strong-cyclic plans") {
-      val numOfActions = 9
+      val numOfActions = 10
       val prob = new TrivialStrongCyclicPlanningProblem(numOfActions)
       val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(prob, NonDeterministicPlanTypes.StrongCyclic)
       assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
       assert(strongCyclicPlan.decide(prob.goalStates).isEmpty)
-      for(i <- 0 until numOfActions) {
+      for (i <- 0 until numOfActions) {
         val decision = strongCyclicPlan.decide(prob.stepVariables(i).id).toList
         assert(decision.length === 1)
         assert(decision.head == i)
-      }            
+      }
+    }
+
+    it("is able to solve sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
+      val weakPlan = new NonDeterministicPolicyPlanner().plan(new SamplePlanningProblemTransport)
+      checkPlan(weakPlan, "Weak plan for sample planning problem")
+
+      val strongPlan = new NonDeterministicPolicyPlanner().createPlan(new SamplePlanningProblemTransport, NonDeterministicPlanTypes.Strong)
+      assert(strongPlan === FailurePolicy)
+    }
+
+    it("is able to find a strong-cyclic plan for sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
+      val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new SamplePlanningProblemTransport, NonDeterministicPlanTypes.StrongCyclic)
+      // println(strongCyclicPlan)
+      // assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan]) //FIXME
+      pending
     }
 
     it("produces deterministic policies that can be executed and will work") {
