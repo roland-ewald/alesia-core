@@ -139,11 +139,13 @@ class PlanningDomain extends Logging {
   /** Represents an effect of an action. */
   case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false)(implicit t: UniqueTable) {
     import t._
-    val addNextState = add.map(t.substitute(_, nextStateVarNums))
-    val delNextState = del.map(t.substitute(_, nextStateVarNums))
-    val effectConjunction = add.map(_.id) ::: del.map(f => not(f.id))
-    val currentStateEffectVariables = variablesOf(effectConjunction: _*).filter(currentStateVarNums.contains)
-    val involvedNextStateVars = variablesOf((addNextState ::: delNextState): _*)
+    lazy val addNextState = add.map(t.substitute(_, nextStateVarNums))
+    lazy val delNextState = del.map(t.substitute(_, nextStateVarNums))
+    lazy val effectConjunction = add.map(_.id) ::: del.map(f => not(f.id))
+    lazy val currentStateEffectVariables = variablesOf(effectConjunction: _*).filter(currentStateVarNums.contains)
+    lazy val involvedNextStateVars = variablesOf((addNextState ::: delNextState): _*)
+    lazy val addVars = variablesOf(add.map(_.id): _*).toSet
+    lazy val delVars = variablesOf(del.map(_.id): _*).toSet
   }
 
   /** Supplies helper functions to create effects. */
@@ -178,9 +180,9 @@ class PlanningDomain extends Logging {
     lazy val frameAxioms = createFrameAxioms(involvedNextStateVars).foldLeft(1)(and)
 
     lazy val frAxiomsAndDetEffect = and(frameAxioms, nonDetEffect)
-    
+
     lazy val nextStateVarsEffect = nextStateVariables(frAxiomsAndDetEffect)
-    
+
     /**
      * Defines the pre-image for a given effect. TODO: move to effect
      */
@@ -211,10 +213,48 @@ class PlanningDomain extends Logging {
       exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x'))
     }
 
-    override def weakPreImage(currentState: Int) = {
+    override def weakPreImage(currentState: Int): Int = {
       val nextState = forwardShift(currentState) //Q(x')      
       val weakPreImgStateTransition = and(nextState, frAxiomsAndDetEffect)
       exists((nextStateVariables(nextState) ++ nextStateVarsEffect).distinct, weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
+    }
+
+    def weakPreImageRintanen(currentState: Int): Int = {
+
+      val ndEffects = effects.filter(_.nondeterministic)
+      val dEffects = effects.filter(!_.nondeterministic)
+      val allVarsCurrentState = nextStateVarNums.keySet
+
+      def changes(e: Effect) = e.currentStateEffectVariables
+
+      def epc(e: Effect, varNum: Int, positive: Boolean): Int = {
+        if ((positive && e.addVars.contains(varNum)) ||
+          (!positive && e.delVars.contains(varNum)))
+          e.condition
+        else FalseVariable
+      }
+
+      def plEffect(e: Effect, vars: Iterable[Int]): Int = {
+        vars.map(v => iff(
+          varNumInstructionIds(nextStateVarNums(v)), //v is true in next state iff:
+          or(
+            and(
+              varNumInstructionIds(v),
+              not(epc(e, v, false))),
+            epc(e, v, true)))).foldLeft(TrueVariable.id)(and)
+      }
+
+      def plConjunction(vars: Iterable[Int], es: Seq[Effect]): Int = {
+        val furtherChanges = es.tail.map(changes)
+        val allFurtherChanges = furtherChanges.flatten.toSet
+        val varsFirstEffect = vars.filter(!allFurtherChanges.contains(_))
+        es.tail.zip(furtherChanges).foldLeft(plEffect(es.head, varsFirstEffect))((x, eff) => and(x, plEffect(eff._1, eff._2)))
+      }
+
+      if (ndEffects.isEmpty)
+        plConjunction(allVarsCurrentState, dEffects)
+      else
+        ndEffects.map(e => plConjunction(allVarsCurrentState, dEffects :+ e)).foldLeft(plConjunction(allVarsCurrentState, dEffects))(or)
     }
   }
 }
