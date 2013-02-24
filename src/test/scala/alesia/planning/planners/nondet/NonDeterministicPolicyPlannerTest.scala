@@ -19,6 +19,8 @@ import alesia.planning.TrivialStrongCyclicPlanningProblem
 @RunWith(classOf[JUnitRunner])
 class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
 
+  val numOfTrivialNonDetPlanActions = 10
+
   /** Logs plan representation. */
   def logPlanRepresentation(desc: String, plan: Plan) =
     logger.info(desc + ":\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
@@ -79,17 +81,16 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     }
 
     it("is able to find weak plans") {
-      val weakPlan = new NonDeterministicPolicyPlanner().plan(new TrivialStrongCyclicPlanningProblem(10))
+      val weakPlan = new NonDeterministicPolicyPlanner().plan(new TrivialStrongCyclicPlanningProblem(numOfTrivialNonDetPlanActions))
       checkPlan(weakPlan, "Weak plan for non-deterministic strong-cyclic planning problem")
     }
 
     it("is able to find strong-cyclic plans") {
-      val numOfActions = 10
-      val prob = new TrivialStrongCyclicPlanningProblem(numOfActions)
+      val prob = new TrivialStrongCyclicPlanningProblem(numOfTrivialNonDetPlanActions)
       val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(prob, NonDeterministicPlanTypes.StrongCyclic)
       assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
       assert(strongCyclicPlan.decide(prob.goalStates).isEmpty)
-      for (i <- 0 until numOfActions) {
+      for (i <- 0 until numOfTrivialNonDetPlanActions) {
         val decision = strongCyclicPlan.decide(prob.stepVariables(i).id).toList
         assert(decision.length === 1)
         assert(decision.head == i)
