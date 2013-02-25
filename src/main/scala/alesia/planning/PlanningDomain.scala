@@ -224,9 +224,7 @@ class PlanningDomain extends Logging {
 
     def weakPreImgRintanen(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x')
-      debug(nextState, "S'")
       val weakPreImgStateTransition = and(nextState, preConWeakPreImgTrans)
-      println("Vars:" + (nextStateVariables(nextState) ++ preConWeakPreImgTransVars).distinct.map(variableNames).mkString(","))
       exists((nextStateVariables(nextState) ++ preConWeakPreImgTransVars).distinct, weakPreImgStateTransition)
     }
 
@@ -240,7 +238,7 @@ class PlanningDomain extends Logging {
       val dEffects = effects.filter(!_.nondeterministic)
       val allVarsCurrentState = nextStateVarNums.keySet
 
-      def changes(e: Effect) = e.currentStateEffectVariables
+      def changes(e: Effect) = e.addVars ++ e.delVars
 
       def epc(e: Effect, varNum: Int, positive: Boolean): Int = {
         if ((positive && e.addVars.contains(varNum)) ||

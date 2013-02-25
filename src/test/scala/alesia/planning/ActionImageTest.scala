@@ -17,9 +17,11 @@ class ActionImageTest extends FunSpec with Logging {
 
   val nonDetProblem = new TrivialPlanningProblemSolvableNonDeterministic
 
+  val cycProblem = new TrivialStrongCyclicPlanningProblem
+
   describe("The weak pre-image of an action") {
 
-    it("is computed correctly for a determinstic action in a trivial planning problem") {
+    it("is computed correctly for a deterministic action in a trivial planning problem") {
       import detProblem._
       assert(solve.weakPreImage(goalStates) === solvable.id)
     }
@@ -29,15 +31,30 @@ class ActionImageTest extends FunSpec with Logging {
       assert(solveWithA.weakPreImage(goalStates) === table.and(solvable, useActA))
       assert(solveWithB.weakPreImage(goalStates) === table.and(solvable, useActB))
       assert(trySolutions.weakPreImage(useActA) == solvable.id)
+      assert(trySolutions.weakPreImage(useActB) == solvable.id)
+    }
+
+    it("is computed correctly for a non-determinstic action in a planning problem with strong-cyclic solution") {
+      import cycProblem._
+      for (i <- 1 to solutionLength)
+        assert(stepActions(i - 1).weakPreImage(stepVariables(i)) === stepVariables(i - 1).id)
     }
 
   }
 
   describe("The strong pre-image of an action") {
 
-    it("is computed correctly for a determinstic action in a trivial planning problem") {
+    it("is computed correctly for a deterministic action in a trivial planning problem") {
       import detProblem._
       assert(solve.strongPreImage(goalStates) === solvable.id)
+    }
+
+    it("is computed correctly for a non-deterministic action in a trivial planning problem") {
+      import nonDetProblem._
+      assert(solveWithA.strongPreImage(goalStates) === table.and(solvable, useActA))
+      assert(solveWithB.strongPreImage(goalStates) === table.and(solvable, useActB))
+      //      debug(trySolutions.strongPreImage(useActA), "wrong strong-preimg") FIXME
+      //      assert(trySolutions.strongPreImage(useActA) == FalseVariable.id)
     }
 
   }
