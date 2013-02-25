@@ -166,17 +166,29 @@ class PlanningDomain extends Logging {
 
     import t._
 
-    lazy val nextStateEffectVars = effects.flatMap(_.currentStateEffectVariables).toSet
-
-    /**
-     * Defines the pre-image for a given effect. TODO: move to effect
-     */
-    private[this] def preImgEffect(e: Effect): Int = {
-      implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not)).foldLeft(1)(and))
+    override def strongPreImage(currentState: Int) = {
+      val nextState = forwardShift(currentState) //Q(x')
+      val transitionAndNextState = and(strongPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
+      exists(nextStateVariables(transitionAndNextState), transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x'))
     }
+
+    override def weakPreImage(currentState: Int) =
+      calculateImage(currentState, weakPreImageTransition, preConWeakPreImgTransVars)
+
+    def calculateImage(currentState: Int, actionTransition: Int, actionTransitionVars: List[Int]): Int = {
+      val nextState = forwardShift(currentState) //Q(x')
+      exists((nextStateVariables(nextState) ++ actionTransitionVars).distinct, and(nextState, actionTransition)) //exists x_i': Q(x')∧R(x_i,x'_i)
+    }
+
+    lazy val nextStateEffectVars = effects.flatMap(_.currentStateEffectVariables).toSet
 
     /** ξ(a) / the relation R(s, this, s')*/
     lazy val strongPreImgStateTransition: Int = {
+
+      def preImgEffect(e: Effect): Int = {
+        implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not)).foldLeft(1)(and))
+      }
+
       val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
       effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
@@ -186,29 +198,11 @@ class PlanningDomain extends Logging {
       varsOf(stateTransition).filter(x => (currentStateVarNums.contains(x) && !nextStateEffectVars.contains(x))) ++ nextStateEffectVars
     }
 
-    /**
-     * Returns the set of states from which the current state can be reached by this action.
-     * @param currentState the instruction id of the current set of states
-     * @return the instruction id of the set of states from which this set can be reached
-     */
-    override def strongPreImage(currentState: Int) = {
-      val nextState = forwardShift(currentState) //Q(x')
-      val transitionAndNextState = and(strongPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
-      val xPrime = nextStateVariables(transitionAndNextState) //x'
-      exists(xPrime, transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x'))
-    }
+    lazy val preConWeakPreImgTransVars = varsOf(weakPreImageTransition).filter(currentStateVarNums.contains)
 
-    override def weakPreImage(currentState: Int) = {
-      val nextState = forwardShift(currentState) //Q(x')
-      val weakPreImgStateTransition = and(nextState, preConWeakPreImgTrans) //Q(x')∧R(x_i,x'_i)
-      exists((nextStateVariables(nextState) ++ preConWeakPreImgTransVars).distinct, weakPreImgStateTransition) //exists x_i': Q(x')∧R(x_i,x'_i)
-    }
+    lazy val weakPreImageTransition = and(precondition, weakPreImageTransitionWithoutPrec)
 
-    lazy val preConWeakPreImgTransVars = varsOf(preConWeakPreImgTrans).filter(currentStateVarNums.contains)
-
-    lazy val preConWeakPreImgTrans = and(precondition, weakPreImageTransitionRintanen)
-
-    lazy val weakPreImageTransitionRintanen: Int = {
+    lazy val weakPreImageTransitionWithoutPrec: Int = {
 
       val ndEffects = effects.filter(_.nondeterministic)
       val dEffects = effects.filter(!_.nondeterministic)
