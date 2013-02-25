@@ -214,14 +214,14 @@ class PlanningDomain extends Logging {
     }
 
     override def weakPreImage(currentState: Int): Int = {
-      //weakPreImgRintanen(currentState): FIXME
-      val nextState = forwardShift(currentState) //Q(x')      
-      val weakPreImgStateTransition = and(nextState, frAxiomsAndDetEffect)
-      exists((nextStateVariables(nextState) ++ nextStateVarsEffect).distinct, weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
+      weakPreImgRintanen(currentState) //: FIXME
+      //      val nextState = forwardShift(currentState) //Q(x')      
+      //      val weakPreImgStateTransition = and(nextState, frAxiomsAndDetEffect)
+      //      exists((nextStateVariables(nextState) ++ nextStateVarsEffect).distinct, weakPreImgStateTransition) //exists x_i': R(x_i,x'_i)
     }
 
     //This is the weak pre-image computation as defined by Rintanen (unfinished):
-    
+
     def weakPreImgRintanen(currentState: Int) = {
       val nextState = forwardShift(currentState) //Q(x') 
       val weakPreImgStateTransition = and(nextState, preConWeakPreImgTrans)

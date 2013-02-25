@@ -9,6 +9,8 @@ import alesia.planning.plans.Plan
 import sessl.util.Logging
 import alesia.planning.SamplePlanningProblemTransport
 import alesia.planning.TrivialStrongCyclicPlanningProblem
+import alesia.planning.TrivialPlanningProblemSolvableDeterministic
+import alesia.planning.TrivialPlanningProblemSolvableNonDeterministic
 
 /**
  * Tests for the non-deterministic policy planner.
@@ -19,7 +21,7 @@ import alesia.planning.TrivialStrongCyclicPlanningProblem
 @RunWith(classOf[JUnitRunner])
 class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
 
-  val numOfTrivialNonDetPlanActions = 10
+  val numOfTrivialNonDetPlanActions = 8
 
   /** Logs plan representation. */
   def logPlanRepresentation(desc: String, plan: Plan) =
@@ -43,9 +45,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
 
     it("returns a correct policy for the trivial planning problem that does define an action") {
 
-      val problem = new TrivialPlanningProblem {
-        val solve = action("solve", solvable, Effect(solvable, add = List(solved)))
-      }
+      val problem = new TrivialPlanningProblemSolvableDeterministic
 
       val weakPlan = new NonDeterministicPolicyPlanner().plan(problem)
       checkPlan(weakPlan, "Weak plan for trivial planning problem")
@@ -62,21 +62,13 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     }
 
     it("is able to deal with non-deterministic problems") {
-      val problem = new TrivialPlanningProblem {
-        val useActA = v("use-action-a")
-        val useActB = v("use-action-b")
-        val solveWithA = action("solveWithA", solvable and useActA, Effect(solvable and useActA, add = List(solved)))
-        val solveWithB = action("solveWithB", solvable and useActB, Effect(solvable and useActB, add = List(solved)))
-        val trySolutions = action("trySolutions", solvable, Effect(solvable, add = List(useActA or useActB)))
-      }
-
-      val weakPlan = new NonDeterministicPolicyPlanner().plan(problem)
+      val weakPlan = new NonDeterministicPolicyPlanner().plan(new TrivialPlanningProblemSolvableNonDeterministic)
       checkPlan(weakPlan, "Weak plan for non-deterministic trivial planning problem")
 
-      val strongPlan = new NonDeterministicPolicyPlanner().createPlan(problem, NonDeterministicPlanTypes.Strong)
+      val strongPlan = new NonDeterministicPolicyPlanner().createPlan(new TrivialPlanningProblemSolvableNonDeterministic, NonDeterministicPlanTypes.Strong)
       checkPlan(strongPlan, "Strong plan for non-deterministic trivial planning problem")
 
-      val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(problem, NonDeterministicPlanTypes.StrongCyclic)
+      val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new TrivialPlanningProblemSolvableNonDeterministic, NonDeterministicPlanTypes.StrongCyclic)
       assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
     }
 
