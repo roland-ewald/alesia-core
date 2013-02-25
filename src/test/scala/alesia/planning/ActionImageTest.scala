@@ -17,7 +17,7 @@ class ActionImageTest extends FunSpec with Logging {
 
   val nonDetProblem = new TrivialPlanningProblemSolvableNonDeterministic
 
-  val cycProblem = new TrivialStrongCyclicPlanningProblem
+  val cyclicProblem = new TrivialStrongCyclicPlanningProblem
 
   describe("The weak pre-image of an action") {
 
@@ -35,7 +35,7 @@ class ActionImageTest extends FunSpec with Logging {
     }
 
     it("is computed correctly for a non-determinstic action in a planning problem with strong-cyclic solution") {
-      import cycProblem._
+      import cyclicProblem._
       for (i <- 1 to solutionLength)
         assert(stepActions(i - 1).weakPreImage(stepVariables(i)) === stepVariables(i - 1).id)
     }
