@@ -166,24 +166,35 @@ class PlanningDomain extends Logging {
 
     import t._
 
-    override def strongPreImage(currentState: Int) = {
-      val nextState = forwardShift(currentState) //Q(x')
-      val transitionAndNextState = and(strongPreImgStateTransition, nextState) // R(x_i,x'_i)∧(Q(x'))
-      exists(nextStateVariables(transitionAndNextState), transitionAndNextState) //exists x_i': R(x_i,x'_i)∧(Q(x'))
-    }
+    override def strongPreImage(currentState: Int) =
+      calculatePreImage(currentState, strongPreImageStateTransition, strongPreImageStateTransitionVars)
 
     override def weakPreImage(currentState: Int) =
-      calculateImage(currentState, weakPreImageTransition, preConWeakPreImgTransVars)
+      calculatePreImage(currentState, weakPreImageStateTransition, weakPreImageStateTransitionVars)
 
-    def calculateImage(currentState: Int, actionTransition: Int, actionTransitionVars: List[Int]): Int = {
+    /**
+     * Defines a boolean function for a pre-image. It has the form exists x_i': Q(x')∧R(x_i,x'_i).
+     * @param currentState the current state Q(x) [will be shifted forward]
+     * @param actionTransition the relation between states before and after action application, R(x,x')
+     * @param actionTransitionVars the action variables that need to be quantified (additionally, those from Q(x))
+     */
+    def calculatePreImage(currentState: Int, actionTransition: Int, actionTransitionVars: List[Int]): Int = {
       val nextState = forwardShift(currentState) //Q(x')
-      exists((nextStateVariables(nextState) ++ actionTransitionVars).distinct, and(nextState, actionTransition)) //exists x_i': Q(x')∧R(x_i,x'_i)
+      // exists x_i': Q(x')∧R(x_i,x'_i)
+      exists((nextStateVariables(nextState) ++ actionTransitionVars).distinct, and(nextState, actionTransition))
     }
 
     lazy val nextStateEffectVars = effects.flatMap(_.currentStateEffectVariables).toSet
 
+    /** Get all x' defined in the effects and the state-transition conjunction.*/
+    def nextStateVariables(stateTransition: Int): List[Int] = {
+      varsOf(stateTransition).filter(x => (currentStateVarNums.contains(x) && !nextStateEffectVars.contains(x))) ++ nextStateEffectVars
+    }
+
+    lazy val strongPreImageStateTransitionVars = nextStateVars(strongPreImageStateTransition)
+
     /** ξ(a) / the relation R(s, this, s')*/
-    lazy val strongPreImgStateTransition: Int = {
+    lazy val strongPreImageStateTransition: Int = {
 
       def preImgEffect(e: Effect): Int = {
         implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not)).foldLeft(1)(and))
@@ -193,14 +204,11 @@ class PlanningDomain extends Logging {
       effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
 
-    /** Get all x' defined in the effects and the state-transition conjunction.*/
-    def nextStateVariables(stateTransition: Int): List[Int] = {
-      varsOf(stateTransition).filter(x => (currentStateVarNums.contains(x) && !nextStateEffectVars.contains(x))) ++ nextStateEffectVars
-    }
+    lazy val weakPreImageStateTransitionVars = nextStateVars(weakPreImageStateTransition)
 
-    lazy val preConWeakPreImgTransVars = varsOf(weakPreImageTransition).filter(currentStateVarNums.contains)
+    def nextStateVars(f: Int) = varsOf(f).filter(currentStateVarNums.contains)
 
-    lazy val weakPreImageTransition = and(precondition, weakPreImageTransitionWithoutPrec)
+    lazy val weakPreImageStateTransition = and(precondition, weakPreImageTransitionWithoutPrec)
 
     lazy val weakPreImageTransitionWithoutPrec: Int = {
 
@@ -219,10 +227,11 @@ class PlanningDomain extends Logging {
         vars.map(v => iff(
           varNumInstructionIds(nextStateVarNums(v)), //v is true in next state iff:
           or(
-            and(
+            and( //... is true and not made false
               varNumInstructionIds(v),
               not(epc(e, v, false))),
-            epc(e, v, true)))).foldLeft(TrueVariable.id)(and)
+            epc(e, v, true))) //... or is made true
+            ).foldLeft(TrueVariable.id)(and)
       }
 
       def plConjunction(vars: Iterable[Int], es: Seq[Effect]): Int = {
