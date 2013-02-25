@@ -17,7 +17,7 @@ class ActionImageTest extends FunSpec with Logging {
 
   val nonDetProblem = new TrivialPlanningProblemSolvableNonDeterministic
 
-  val cyclicProblem = new TrivialStrongCyclicPlanningProblem(8)
+  val cyclicProblem = new TrivialStrongCyclicPlanningProblem(80)
 
   val transportProblem = new SamplePlanningProblemTransport
 
