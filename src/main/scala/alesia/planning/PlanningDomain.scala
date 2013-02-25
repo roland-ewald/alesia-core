@@ -223,12 +223,14 @@ class PlanningDomain extends Logging {
     //This is the weak pre-image computation as defined by Rintanen (unfinished):
 
     def weakPreImgRintanen(currentState: Int) = {
-      val nextState = forwardShift(currentState) //Q(x') 
+      val nextState = forwardShift(currentState) //Q(x')
+      debug(nextState, "S'")
       val weakPreImgStateTransition = and(nextState, preConWeakPreImgTrans)
+      println("Vars:" + (nextStateVariables(nextState) ++ preConWeakPreImgTransVars).distinct.map(variableNames).mkString(","))
       exists((nextStateVariables(nextState) ++ preConWeakPreImgTransVars).distinct, weakPreImgStateTransition)
     }
 
-    lazy val preConWeakPreImgTransVars = varsOf(preConWeakPreImgTrans)
+    lazy val preConWeakPreImgTransVars = varsOf(preConWeakPreImgTrans).filter(currentStateVarNums.contains)
 
     lazy val preConWeakPreImgTrans = and(precondition, weakPreImageTransitionRintanen)
 
