@@ -30,35 +30,35 @@ class SamplePlanningProblemTransport extends PlanningProblem {
   val goalState = posGatwick
 
   //Actions
-  action("drive-train",
+  val driveTrain = action("drive-train",
     posTrainStation or (posVictoriaStation and lightIsGreen),
     Effect(posTrainStation, posVictoriaStation),
     Effect(posVictoriaStation and lightIsGreen, add = List(posGatwick), del = List(posVictoriaStation)))
 
-  action("wait-at-light", posVictoriaStation)
+  val waitAtLight = action("wait-at-light", posVictoriaStation)
 
-  action("drive-truck",
+  val driveTruck = action("drive-truck",
     (posTruckStation and fuel) or (posCityCenter and fuel and !trafficJam),
     Effect(posTruckStation, posCityCenter),
     Effect(posCityCenter, posGatwick),
     Effect(fuel, del = List(fuel), nondeterministic = true))
 
-  action("drive-truck-back",
+  val driveTruckBack = action("drive-truck-back",
     posCityCenter and fuel and trafficJam,
     Effect(posCityCenter, posTruckStation),
     Effect(fuel, del = List(fuel), nondeterministic = true))
 
-  action("make-fuel",
+  val makeFuel = action("make-fuel",
     (!fuel) and (posCityCenter or posTruckStation),
     Effect(TrueVariable, add = List(fuel)))
 
-  action("fly",
+  val fly = action("fly",
     posAirStation or posLuton,
     Effect((!fog) and posAirStation, add = List(posGatwick), del = List(posAirStation)),
     Effect(fog and posAirStation, add = List(posLuton), del = List(posAirStation)),
     Effect(posLuton, posAirStation))
 
-  action("air-truck-transit",
+  val airTruckTransit = action("air-truck-transit",
     posAirStation,
     Effect(posAirStation, posTruckStation))
 }

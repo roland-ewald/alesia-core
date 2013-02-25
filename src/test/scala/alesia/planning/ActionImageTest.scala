@@ -19,6 +19,8 @@ class ActionImageTest extends FunSpec with Logging {
 
   val cyclicProblem = new TrivialStrongCyclicPlanningProblem
 
+  val transportProblem = new SamplePlanningProblemTransport
+
   describe("The weak pre-image of an action") {
 
     it("is computed correctly for a deterministic action in a trivial planning problem") {
@@ -36,8 +38,17 @@ class ActionImageTest extends FunSpec with Logging {
 
     it("is computed correctly for a non-determinstic action in a planning problem with strong-cyclic solution") {
       import cyclicProblem._
-      for (i <- 1 to solutionLength)
+      for (i <- 1 to solutionLength) {
+        println("#vars:" + cyclicProblem.table.variableCount + ", #instr:" + cyclicProblem.numFunctions)
         assert(stepActions(i - 1).weakPreImage(stepVariables(i)) === stepVariables(i - 1).id)
+      }
+    }
+
+    it("is computed correctly for the actions in the sample transport planning domain") {
+      import transportProblem._
+      assert(fly.weakPreImage(posLuton) === table.and(fog, posAirStation))
+      //      debug(fly.weakPreImage(posGatwick), "weak pre-img fly") FIXME
+      //      assert(fly.weakPreImage(posGatwick) === table.and(table.not(fog), posAirStation))
     }
 
   }

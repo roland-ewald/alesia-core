@@ -155,6 +155,7 @@ class PlanningDomain extends Logging {
 
   /**
    * Represents a domain action.
+   *
    * @param name the name of the action, does not need to be unique
    * @param precondition the precondition of the action
    * @param effects the effects of the action
@@ -193,7 +194,7 @@ class PlanningDomain extends Logging {
 
     lazy val strongPreImageStateTransitionVars = nextStateVars(strongPreImageStateTransition)
 
-    /** ξ(a) / the relation R(s, this, s')*/
+    /** The transition relation R(x, x') for this action. */
     lazy val strongPreImageStateTransition: Int = {
 
       def preImgEffect(e: Effect): Int = {
@@ -216,39 +217,46 @@ class PlanningDomain extends Logging {
       val dEffects = effects.filter(!_.nondeterministic)
       val allVarsCurrentState = nextStateVarNums.keySet
 
-      def epc(e: Effect, varNum: Int, positive: Boolean): Int = {
-        if ((positive && e.addVars.contains(varNum)) ||
-          (!positive && e.delVars.contains(varNum)))
-          e.condition
-        else FalseVariable
-      }
+      if (ndEffects.isEmpty)
+        detEffects(allVarsCurrentState, dEffects)
+      else
+        ndEffects.map(e => detEffects(allVarsCurrentState, dEffects :+ e)).foldLeft(detEffects(allVarsCurrentState, dEffects))(or)
+    }
 
-      def plEffect(e: Effect, vars: Iterable[Int]): Int = {
-        vars.map(v => iff(
-          varNumInstructionIds(nextStateVarNums(v)), //v is true in next state iff:
+    def detEffects(vars: Iterable[Int], e: Seq[Effect]): Int = {
+      vars.map(v => {
+        val vFunc = iff(
+          varNumInstructionIds(nextStateVarNums(v)), //v' is true (i.e. v in next state) iff:
           or(
-            and( //... is true and not made false
+            and( //v is true in current state and not made false... 
               varNumInstructionIds(v),
               not(epc(e, v, false))),
-            epc(e, v, true))) //... or is made true
-            ).foldLeft(TrueVariable.id)(and)
-      }
+            epc(e, v, true))) //... or it is made true
+        vFunc
+      }).foldLeft(TrueVariable.id)(and)
+    }
 
-      def plConjunction(vars: Iterable[Int], es: Seq[Effect]): Int = {
-        if (es.isEmpty) {
-          FalseVariable.id
-        } else {
-          val furtherChanges = es.tail.map(_.changes)
-          val allFurtherChanges = furtherChanges.flatten.toSet
-          val varsFirstEffect = vars.filter(!allFurtherChanges.contains(_))
-          es.tail.zip(furtherChanges).foldLeft(plEffect(es.head, varsFirstEffect))((x, eff) => and(x, plEffect(eff._1, eff._2)))
-        }
-      }
+    def epc(e: Seq[Effect], varNum: Int, positive: Boolean): Int = {
+      e.foldLeft(0)((x, eff) => or(x, epc(eff, varNum, positive)))
+    }
 
-      if (ndEffects.isEmpty)
-        plConjunction(allVarsCurrentState, dEffects)
-      else
-        ndEffects.map(e => plConjunction(allVarsCurrentState, dEffects :+ e)).foldLeft(plConjunction(allVarsCurrentState, dEffects))(or)
+    def epc(e: Effect, varNum: Int, positive: Boolean): Int = {
+      if ((positive && e.addVars.contains(varNum)) ||
+        (!positive && e.delVars.contains(varNum)))
+        e.condition
+      else FalseVariable
+    }
+
+    @deprecated("Conjunction of non-deterministic effects not required here", "2/2013")
+    def plConjunctionNonDetEffects(vars: Iterable[Int], es: Seq[Effect]): Int = {
+      if (es.isEmpty) {
+        FalseVariable.id
+      } else {
+        val furtherChanges = es.tail.map(_.changes)
+        val allFurtherChanges = furtherChanges.flatten.toSet
+        val varsFirstEffect = vars.filter(!allFurtherChanges.contains(_))
+        es.tail.zip(furtherChanges).foldLeft(detEffects(varsFirstEffect, Seq(es.head)))((x, eff) => and(x, detEffects(eff._2, Seq(eff._1))))
+      }
     }
   }
 }
