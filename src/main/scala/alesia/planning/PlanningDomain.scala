@@ -168,21 +168,23 @@ class PlanningDomain extends Logging {
     import t._
 
     override def strongPreImage(currentState: Int) =
-      calculatePreImage(currentState, strongPreImageStateTransition, strongPreImageStateTransitionVars)
+      calculatePreImage(currentState, strongPreImageStateTransition, strongPreImageStateTransitionVars, strongPreImageCache)
 
     override def weakPreImage(currentState: Int) =
-      calculatePreImage(currentState, weakPreImageStateTransition, weakPreImageStateTransitionVars)
+      calculatePreImage(currentState, weakPreImageStateTransition, weakPreImageStateTransitionVars, weakPreImageCache)
 
     /**
      * Defines a boolean function for a pre-image. It has the form exists x_i': Q(x')∧R(x_i,x'_i).
      * @param currentState the current state Q(x) [will be shifted forward]
      * @param actionTransition the relation between states before and after action application, R(x,x')
      * @param actionTransitionVars the action variables that need to be quantified (additionally, those from Q(x))
+     * @param cache the cache to store the results in
      */
-    def calculatePreImage(currentState: Int, actionTransition: Int, actionTransitionVars: List[Int]): Int = {
+    def calculatePreImage(currentState: Int, actionTransition: Int, actionTransitionVars: List[Int], cache: scala.collection.mutable.Map[Int, Int]): Int = {
       val nextState = forwardShift(currentState) //Q(x')
-      // exists x_i': Q(x')∧R(x_i,x'_i)
-      exists((nextStateVariables(nextState) ++ actionTransitionVars).distinct, and(nextState, actionTransition))
+      cache.getOrElseUpdate(currentState,
+        // exists x_i': Q(x')∧R(x_i,x'_i)
+        exists((nextStateVariables(nextState) ++ actionTransitionVars).distinct, and(nextState, actionTransition)))
     }
 
     lazy val nextStateEffectVars = effects.flatMap(_.currentStateEffectVariables).toSet
@@ -191,6 +193,10 @@ class PlanningDomain extends Logging {
     def nextStateVariables(stateTransition: Int): List[Int] = {
       varsOf(stateTransition).filter(x => (currentStateVarNums.contains(x) && !nextStateEffectVars.contains(x))) ++ nextStateEffectVars
     }
+
+    //Strong pre-image computation:
+
+    lazy val strongPreImageCache = scala.collection.mutable.Map[Int, Int]()
 
     lazy val strongPreImageStateTransitionVars = nextStateVars(strongPreImageStateTransition)
 
@@ -205,6 +211,10 @@ class PlanningDomain extends Logging {
       effects.filter(_.nondeterministic).map(preImgEffect).map(and(_, detEffect)).foldLeft(detEffect)(or)
     }
 
+    //Weak pre-image computation:
+
+    lazy val weakPreImageCache = scala.collection.mutable.Map[Int, Int]()
+
     lazy val weakPreImageStateTransitionVars = nextStateVars(weakPreImageStateTransition)
 
     def nextStateVars(f: Int) = varsOf(f).filter(currentStateVarNums.contains)
@@ -217,27 +227,28 @@ class PlanningDomain extends Logging {
       val dEffects = effects.filter(!_.nondeterministic)
       val allVarsCurrentState = nextStateVarNums.keySet
 
-      if (ndEffects.isEmpty)
+      if (ndEffects.isEmpty) {
         detEffects(allVarsCurrentState, dEffects)
-      else
+      } else
         ndEffects.map(e => detEffects(allVarsCurrentState, dEffects :+ e)).foldLeft(detEffects(allVarsCurrentState, dEffects))(or)
     }
 
-    def detEffects(vars: Iterable[Int], e: Seq[Effect]): Int = {
+    def detEffects(vars: Iterable[Int], es: Seq[Effect]): Int = {
       vars.map(v => {
-        val vFunc = iff(
+        iff(
           varNumInstructionIds(nextStateVarNums(v)), //v' is true (i.e. v in next state) iff:
           or(
             and( //v is true in current state and not made false... 
               varNumInstructionIds(v),
-              not(epc(e, v, false))),
-            epc(e, v, true))) //... or it is made true
-        vFunc
+              not(epc(es, v, false))),
+            epc(es, v, true))) //... or it is made true            
+        //        debug(criterion, variableNames(nextStateVarNums(v)) + "<=> ")
       }).foldLeft(TrueVariable.id)(and)
     }
 
     def epc(e: Seq[Effect], varNum: Int, positive: Boolean): Int = {
       e.foldLeft(0)((x, eff) => or(x, epc(eff, varNum, positive)))
+      // debug(result, "EPC for " + (if (positive) "" else "!") + variableNames(varNum))
     }
 
     def epc(e: Effect, varNum: Int, positive: Boolean): Int = {

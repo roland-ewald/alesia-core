@@ -17,7 +17,7 @@ class ActionImageTest extends FunSpec with Logging {
 
   val nonDetProblem = new TrivialPlanningProblemSolvableNonDeterministic
 
-  val cyclicProblem = new TrivialStrongCyclicPlanningProblem
+  val cyclicProblem = new TrivialStrongCyclicPlanningProblem(8)
 
   val transportProblem = new SamplePlanningProblemTransport
 
@@ -46,9 +46,17 @@ class ActionImageTest extends FunSpec with Logging {
 
     it("is computed correctly for the actions in the sample transport planning domain") {
       import transportProblem._
-      assert(fly.weakPreImage(posLuton) === table.and(fog, posAirStation))
-      //      debug(fly.weakPreImage(posGatwick), "weak pre-img fly") FIXME
-      //      assert(fly.weakPreImage(posGatwick) === table.and(table.not(fog), posAirStation))
+      import table._
+      assert(fly.weakPreImage(posLuton) === (fog and posAirStation).id)
+      assert(fly.weakPreImage(posGatwick) === (!fog and posAirStation).id)
+      assert(fly.weakPreImage(posAirStation) === posLuton.id)
+      assert(makeFuel.weakPreImage((posAirStation and !posCityCenter) and !posTruckStation) === FalseVariable.id)
+      assert(airTruckTransit.weakPreImage(posTruckStation) === posAirStation.id)
+      assert(waitAtLight.weakPreImage(posVictoriaStation) === posVictoriaStation.id)
+      assert(waitAtLight.weakPreImage(not(posVictoriaStation)) === FalseVariable.id)
+      assert(driveTruckBack.weakPreImage(posTruckStation) === driveTruckBack.precondition.id)
+      assert(driveTruck.weakPreImage(posCityCenter) === (posTruckStation and fuel).id)
+      assert(isContained(posCityCenter and fuel and !trafficJam, driveTruck.weakPreImage(posGatwick)))
     }
 
   }
