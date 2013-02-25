@@ -260,10 +260,14 @@ class PlanningDomain extends Logging {
       }
 
       def plConjunction(vars: Iterable[Int], es: Seq[Effect]): Int = {
-        val furtherChanges = es.tail.map(changes)
-        val allFurtherChanges = furtherChanges.flatten.toSet
-        val varsFirstEffect = vars.filter(!allFurtherChanges.contains(_))
-        es.tail.zip(furtherChanges).foldLeft(plEffect(es.head, varsFirstEffect))((x, eff) => and(x, plEffect(eff._1, eff._2)))
+        if (es.isEmpty) {
+          FalseVariable.id
+        } else {
+          val furtherChanges = es.tail.map(changes)
+          val allFurtherChanges = furtherChanges.flatten.toSet
+          val varsFirstEffect = vars.filter(!allFurtherChanges.contains(_))
+          es.tail.zip(furtherChanges).foldLeft(plEffect(es.head, varsFirstEffect))((x, eff) => and(x, plEffect(eff._1, eff._2)))
+        }
       }
 
       if (ndEffects.isEmpty)

@@ -99,8 +99,8 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
 
     it("is able to find a strong-cyclic plan for sample problem given in 'Automatic OBDD-based Generation of Universal Plans in Non-Deterministic Domains', by Cimatti et al. '98") {
       val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new SamplePlanningProblemTransport, NonDeterministicPlanTypes.StrongCyclic)
-      // println(strongCyclicPlan)
-      // assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan]) //FIXME
+      //      println(strongCyclicPlan)
+      //      assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan]) //FIXME
       pending
     }
 

@@ -25,5 +25,7 @@ class TrivialPlanningProblemSolvableNonDeterministic extends TrivialPlanningProb
   val useActB = v("use-action-b")
   val solveWithA = action("solveWithA", solvable and useActA, Effect(solvable and useActA, add = List(solved)))
   val solveWithB = action("solveWithB", solvable and useActB, Effect(solvable and useActB, add = List(solved)))
-  val trySolutions = action("trySolutions", solvable, Effect(solvable, add = List(useActA or useActB)))
+  val trySolutions = action("trySolutions", solvable,
+    Effect(TrueVariable, add = List(useActA), nondeterministic = true),
+    Effect(TrueVariable, add = List(useActB), nondeterministic = true))
 }
