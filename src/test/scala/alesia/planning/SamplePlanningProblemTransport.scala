@@ -32,15 +32,15 @@ class SamplePlanningProblemTransport extends PlanningProblem {
   //Actions
   val driveTrain = action("drive-train",
     posTrainStation or (posVictoriaStation and lightIsGreen),
-    Effect(posTrainStation, posVictoriaStation),
-    Effect(posVictoriaStation and lightIsGreen, add = List(posGatwick), del = List(posVictoriaStation)))
+    Effect(TrueVariable, add = List(posTrainStation), del = List(posVictoriaStation, posGatwick)),
+    Effect(posVictoriaStation and lightIsGreen, add = List(posGatwick), del = List(posVictoriaStation, posTrainStation)))
 
   val waitAtLight = action("wait-at-light", posVictoriaStation)
 
   val driveTruck = action("drive-truck",
     (posTruckStation and fuel) or (posCityCenter and fuel and !trafficJam),
-    Effect(posTruckStation, posCityCenter),
-    Effect(posCityCenter, posGatwick),
+    Effect(TrueVariable, add = List(posTruckStation), del = List(posCityCenter, posGatwick)),
+    Effect(TrueVariable, add = List(posCityCenter), del = List(posGatwick, posTruckStation)),
     Effect(fuel, del = List(fuel), nondeterministic = true))
 
   val driveTruckBack = action("drive-truck-back",
@@ -53,10 +53,10 @@ class SamplePlanningProblemTransport extends PlanningProblem {
     Effect(TrueVariable, add = List(fuel)))
 
   val fly = action("fly",
-    posAirStation or posLuton,
-    Effect((!fog) and posAirStation, add = List(posGatwick), del = List(posAirStation)),
-    Effect(fog and posAirStation, add = List(posLuton), del = List(posAirStation)),
-    Effect(posLuton, posAirStation))
+    posAirStation or posLuton, //Careful with encoding...:
+    Effect((!fog) and posAirStation, add = List(posGatwick), del = List(posAirStation, posLuton)),
+    Effect(fog and posAirStation, add = List(posLuton), del = List(posAirStation, posGatwick)),
+    Effect(posLuton, add = List(posAirStation), del = List(posLuton, posGatwick)))
 
   val airTruckTransit = action("air-truck-transit",
     posAirStation,
