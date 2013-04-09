@@ -1,7 +1,7 @@
 package alesia.planning.plans
 
 import alesia.planning.actions.Action
-import alesia.planning.actions.ExperimentAction
+import alesia.planning.actions.experiments.ExperimentAction
 import alesia.planning.context.Context
 
 /**

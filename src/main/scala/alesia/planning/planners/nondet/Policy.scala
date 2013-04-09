@@ -3,7 +3,7 @@ package alesia.planning.planners.nondet
 import alesia.planning.PlanningProblem
 import alesia.planning.plans.Plan
 import alesia.planning.plans.EmptyPlan
-import alesia.planning.actions.ExperimentAction
+import alesia.planning.actions.experiments.ExperimentAction
 import alesia.planning.context.Context
 import scala.annotation.tailrec
 import alesia.utils.bdd.UniqueTable

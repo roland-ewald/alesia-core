@@ -1,12 +1,11 @@
 package alesia.planning.actions
 
 import scala.math.abs
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import alesia.ExperimentationTest
 import alesia.planning.domain.Algorithm
+import alesia.planning.actions.experiments.CalibrateSimSteps
 
 /**
  * Tests for experiment actions.

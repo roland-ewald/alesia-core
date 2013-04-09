@@ -21,7 +21,7 @@ import alesia.planning.TrivialPlanningProblemSolvableNonDeterministic
 @RunWith(classOf[JUnitRunner])
 class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
 
-  val numOfTrivialNonDetPlanActions = 30
+  val numOfTrivialNonDetPlanActions = 5
 
   /** Logs plan representation. */
   def logPlanRepresentation(desc: String, plan: Plan) =

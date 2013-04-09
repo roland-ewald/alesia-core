@@ -1,6 +1,7 @@
-package alesia.planning.actions
+package alesia.planning.actions.experiments
 
 import alesia.bindings.ExperimentProvider
+import alesia.planning.actions.Action
 
 /** Trait for actions that involve the execution of experiments.
  *  @author Roland Ewald

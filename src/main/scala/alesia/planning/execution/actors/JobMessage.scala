@@ -1,6 +1,6 @@
 package alesia.planning.execution.actors
 
-import alesia.planning.actions.ExperimentAction
+import alesia.planning.actions.experiments.ExperimentAction
 import alesia.planning.plans.Plan
 
 /** Super type of all messages exchanged for plan execution. */

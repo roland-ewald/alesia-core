@@ -1,16 +1,14 @@
-package alesia.planning.actions
+package alesia.planning.actions.experiments
 
 import alesia.bindings.ExperimentProvider
 import sessl.util.Logging
-import sessl.AbstractExperiment
-import sessl.AbstractPerformanceObservation
 import sessl.AfterSimSteps
-import scala.math.min
-import scala.math.round
 import alesia.bindings.Simulator
 import alesia.planning.domain.ProblemSpaceElement
+import scala.math._
 
-/** Find out how much simulation steps need to be executed before a suitable execution time is approximated.
+/**
+ * Find out how much simulation steps need to be executed before a suitable execution time is approximated.
  *  Running too short (only few ms) means that stochastic noise is high and results may be biased.
  *  Running too long means that computational resources are wasted.
  *
@@ -32,8 +30,9 @@ import alesia.planning.domain.ProblemSpaceElement
 case class CalibrateSimSteps(problem: ProblemSpaceElement, sim: Simulator, execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
 
   val result = "result"
-  
-  /** Execute the action.
+
+  /**
+   * Execute the action.
    *  @param provider
    *          the experiment provider
    *  @return the tuple (#steps, achieved runtime)
