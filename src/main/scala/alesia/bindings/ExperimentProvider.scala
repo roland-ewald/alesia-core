@@ -23,13 +23,21 @@ trait ExperimentProvider extends Logging {
     exp
   }
 
-  def executeForNSteps(p: ProblemSpaceElement, s: Simulator, n: Long): Double = {
+  def executeForNSteps(p: ProblemSpaceElement, s: Simulator, n: Long): Double =
+    observeRuntimeFor(performanceExperiment(p, s))(_.stopCondition = AfterSimSteps(n))
+
+  def executeForSimTime(p: ProblemSpaceElement, s: Simulator, end: Double): Double =
+    observeRuntimeFor(performanceExperiment(p, s))(_.stopCondition = AfterSimTime(end))
+
+  def observeRuntimeFor(p: ProblemSpaceElement, s: Simulator)(modifier: PerformanceExperiment => Unit): Double =
+    observeRuntimeFor(performanceExperiment(p, s))(modifier)
+
+  def observeRuntimeFor(exp: PerformanceExperiment)(modifier: PerformanceExperiment => Unit): Double = {
     var rv = 0.
-    val exp = performanceExperiment(p, s)
-    exp.stopCondition = AfterSimSteps(n)
+    modifier(exp)
     exp.withExperimentPerformance { r => rv = r.runtimes.head }
     execute(exp)
-    logger.info("Executing " + s + "on " + p + " for " + s + " steps: it took " + rv + " seconds.")
+    logger.info("Executing " + exp + ", it took " + rv + " seconds.")
     rv
   }
 }

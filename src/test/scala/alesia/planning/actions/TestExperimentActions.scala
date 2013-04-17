@@ -6,6 +6,7 @@ import org.scalatest.junit.JUnitRunner
 import alesia.ExperimentationTest
 import alesia.planning.domain.Algorithm
 import alesia.planning.actions.experiments.CalibrateSimSteps
+import alesia.planning.actions.experiments.CheckQSSModelProperty
 
 /**
  * Tests for experiment actions.
@@ -16,7 +17,13 @@ class TestExperimentActions extends ExperimentationTest {
 
   test("calibration") {
     val action = TestCalibrationSimSteps.action
+//    action.execute
     TestCalibrationSimSteps.checkResult(action)
+  }
+
+  test("qss-check") {
+    val action = TestCheckQSSModelProperty.action
+    action.execute
   }
 
 }
@@ -27,7 +34,7 @@ object TestCalibrationSimSteps extends ExperimentationTest {
 
   val permEpsilon = 0.1
 
-  def action = CalibrateSimSteps(problem, Algorithm(sessl.james.NextReactionMethod()), desiredRuntime, eps = permEpsilon)
+  def action = CalibrateSimSteps(problem, nrm, desiredRuntime, eps = permEpsilon)
 
   def checkResult(action: CalibrateSimSteps) = for (result <- action.resultFor(action.result)) result match {
     case (s, r) => {
@@ -39,4 +46,10 @@ object TestCalibrationSimSteps extends ExperimentationTest {
       assert(abs(runtime - desiredRuntime) / desiredRuntime <= permEpsilon)
     }
   }
+}
+
+object TestCheckQSSModelProperty extends ExperimentationTest {
+
+  def action = CheckQSSModelProperty(problem, nrm, 20.5)
+
 }
