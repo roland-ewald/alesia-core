@@ -20,9 +20,9 @@ trait ExperimentAction extends Action[ExperimentProvider] {
 
   def postconditions = Map[String, Class[_]]()
 
-  def potentialPercepts = Map[String, Class[_]]()
+  override def potentialPercepts = Map[String, Class[_]]()
 
-  def resultFor(key: String) = results.get(key)
+  override def resultFor(key: String) = results.get(key)
 
   protected[this] def addResult(key: String, result: AnyRef): Unit = {
     results(key) = result

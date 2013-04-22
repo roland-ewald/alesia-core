@@ -2,17 +2,17 @@ package alesia.planning.actions.experiments
 
 import sessl.util.Logging
 import alesia.bindings.ExperimentProvider
-import alesia.planning.domain.ProblemSpaceElement
 import alesia.bindings.Simulator
 import sessl.AfterWallClockTime
 import sessl.AfterSimSteps
+import alesia.planning.domain.ParameterizedModel
 
 /**
  * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
  *
  * @author Roland Ewald
  */
-case class CheckQSSModelProperty(problem: ProblemSpaceElement, sim: Simulator,
+case class CheckQSSModelProperty(problem: ParameterizedModel, sim: Simulator,
   maxExecTimeSeconds: Double, linearSteps: Int = 3, errorAllowed: Double = 0.1) extends ExperimentAction with Logging {
 
   override def execute(implicit pr: ExperimentProvider) {

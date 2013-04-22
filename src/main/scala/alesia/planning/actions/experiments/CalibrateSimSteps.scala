@@ -4,8 +4,8 @@ import alesia.bindings.ExperimentProvider
 import sessl.util.Logging
 import sessl.AfterSimSteps
 import alesia.bindings.Simulator
-import alesia.planning.domain.ProblemSpaceElement
 import scala.math._
+import alesia.planning.domain.ParameterizedModel
 
 /**
  * Find out how much simulation steps need to be executed before a suitable execution time is approximated.
@@ -27,7 +27,7 @@ import scala.math._
  *
  *  @author Roland Ewald
  */
-case class CalibrateSimSteps(problem: ProblemSpaceElement, sim: Simulator,
+case class CalibrateSimSteps(problem: ParameterizedModel, sim: Simulator,
   execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
 
   val result = "result"

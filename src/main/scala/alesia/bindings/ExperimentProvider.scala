@@ -1,8 +1,8 @@
 package alesia.bindings
 
-import alesia.planning.domain.ProblemSpaceElement
 import sessl.util.Logging
 import sessl._
+import alesia.planning.domain.ParameterizedModel
 
 /**
  * Creates experiments for a certain simulation system.
@@ -15,21 +15,21 @@ trait ExperimentProvider extends Logging {
   def performanceExperiment: PerformanceExperiment
 
   /** Configures experiment for a given problem. */
-  def performanceExperiment(p: ProblemSpaceElement, sim: Simulator): PerformanceExperiment = {
+  def performanceExperiment(p: ParameterizedModel, sim: Simulator): PerformanceExperiment = {
     val exp = performanceExperiment
     exp.simulator = sim.entity
-    exp.model_=(p.modelURI)
+    exp.model_=(p.model.asURI)
     p.parameters.foreach(p => exp.set(p._1 <~ p._2))
     exp
   }
 
-  def executeForNSteps(p: ProblemSpaceElement, s: Simulator, n: Long): Double =
+  def executeForNSteps(p: ParameterizedModel, s: Simulator, n: Long): Double =
     observeRuntimeFor(performanceExperiment(p, s))(_.stopCondition = AfterSimSteps(n))
 
-  def executeForSimTime(p: ProblemSpaceElement, s: Simulator, end: Double): Double =
+  def executeForSimTime(p: ParameterizedModel, s: Simulator, end: Double): Double =
     observeRuntimeFor(performanceExperiment(p, s))(_.stopCondition = AfterSimTime(end))
 
-  def observeRuntimeFor(p: ProblemSpaceElement, s: Simulator)(modifier: PerformanceExperiment => Unit): Double =
+  def observeRuntimeFor(p: ParameterizedModel, s: Simulator)(modifier: PerformanceExperiment => Unit): Double =
     observeRuntimeFor(performanceExperiment(p, s))(modifier)
 
   def observeRuntimeFor(exp: PerformanceExperiment)(modifier: PerformanceExperiment => Unit): Double = {

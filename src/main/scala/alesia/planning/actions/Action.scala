@@ -4,17 +4,17 @@ package alesia.planning.actions
  *  @param [A] the context provider required to execute the action
  *  @author Roland Ewald
  */
-trait Action[A] {
+trait Action[-A] {
 
-  def preconditions: Map[String, Class[_]]
+  def preconditions: Map[String, Class[_]] = Map()
   
-  def constraints(precons: List[AnyRef]): Boolean
+  def constraints(precons: List[AnyRef]): Boolean = true
 
   def execute(implicit provider: A): Unit
   
-  def postconditions: Map[String, Class[_]]
+  def postConditions: Map[String, Class[_]] = Map()
   
-  def potentialPercepts: Map[String, Class[_]]
+  def potentialPercepts: Map[String, Class[_]] = Map()
 
-  def resultFor(key:String):Option[AnyRef]
+  def resultFor(key:String):Option[AnyRef]= None
 }
