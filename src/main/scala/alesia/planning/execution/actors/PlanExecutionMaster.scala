@@ -1,12 +1,13 @@
 package alesia.planning.execution.actors
 
 import scala.actors.Actor
+
+import alesia.planning.context.Context
 import alesia.planning.execution.PlanExecutor
+import alesia.planning.plans.EmptyPlanExecutionResult
 import alesia.planning.plans.Plan
 import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.plans.SingleActionPlan
-import alesia.planning.plans.PlanExecutionResult
-import alesia.planning.plans.EmptyPlanExecutionResult
 
 
 /** Actor to execute a plan action-by-action.
@@ -18,7 +19,7 @@ case class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends Exec
   slaves.foreach(_.start)
   start
 
-  override def execute(plan: Plan): PlanExecutionResult = {
+  override def execute(plan: Plan, context:Context): PlanExecutionResult = {
     val result = (this !! plan).apply()
     result.asInstanceOf[PlanExecutionResult]
   }
