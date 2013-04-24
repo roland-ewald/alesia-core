@@ -1,9 +1,19 @@
 package alesia.planning.plans
 
-/** Super type of all plan results.
+import alesia.planning.actions.ActionResults
+
+/**
+ * Super type of all plan results.
  *  @author Roland Ewald
  */
-trait PlanExecutionResult
+trait PlanExecutionResult {
+
+  /** @return the execution trace for the given plan, as a sequence of action results */
+  def trace: Seq[ActionResults]
+
+}
 
 /** The trivial result. */
-case class EmptyPlanExecutionResult() extends PlanExecutionResult
+case object EmptyPlanExecutionResult extends PlanExecutionResult {
+  override def trace = Seq()
+}

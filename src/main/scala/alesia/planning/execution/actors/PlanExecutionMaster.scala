@@ -32,7 +32,7 @@ case class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends Exec
 
   /** Executes a plan by letting the actions be executed by execution slaves. */
   private[this] def distributePlanOverSlaves(plan: Plan): PlanExecutionResult = plan match {
-    case SingleActionPlan(a) => { (grabSlave() !! ActionJobMessage(a)).apply(); EmptyPlanExecutionResult() }
+    case SingleActionPlan(a) => { (grabSlave() !! ActionJobMessage(a)).apply(); EmptyPlanExecutionResult }
   }
 
   /** Selects a slave for execution of an experiment action. */

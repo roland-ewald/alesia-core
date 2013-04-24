@@ -16,6 +16,9 @@ class SimpleComparison extends FunSpec {
   describe("Simple Comparison Scenario") {
 
     it("works in principle :)") {
+
+      import alesia.query._
+      val results = submit(null, null, null)
       pending
     }
 
