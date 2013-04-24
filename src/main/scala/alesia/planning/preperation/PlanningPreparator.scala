@@ -13,7 +13,7 @@ import alesia.planning.context.ExecutionContext
  *
  * @author Roland Ewald
  */
-trait PlanPreparator {
+trait PlanningPreparator {
 
   def preparePlanning(h: UserSpecification): (PlanningProblem, ExecutionContext)
 

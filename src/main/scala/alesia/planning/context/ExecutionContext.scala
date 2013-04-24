@@ -16,9 +16,11 @@ trait ExecutionContext {
    * The user preferences regarding execution.
    * @return user preferences
    */
-  def preferences: Seq[UserPreference] = Seq()
+  def preferences: Seq[UserPreference]
 
 }
 
 /** Empty execution context (for testing purposes). */
-case object EmptyExecutionContext extends ExecutionContext
+case object EmptyExecutionContext extends ExecutionContext {
+   override def preferences = Seq()
+}
