@@ -21,7 +21,7 @@ class SimpleComparison extends FunSpec {
       import alesia.query._
 
       pending
-      
+
       val execResults = submit {
         SingleModel("java://examples.sr.LinearChainSystem")
       } {
@@ -29,8 +29,7 @@ class SimpleComparison extends FunSpec {
       } {
         exists >> model | hasProperty("qss")
       }
-      
-      
+
       Assert.assertNotNull(execResults)
       Assert.assertTrue(execResults.trace.length > 0)
     }
@@ -54,10 +53,8 @@ class SimpleComparison extends FunSpec {
  */
 object SimpleComparison {
 
-  //TODO: Implement & test necessary actions
-  //TODO: Specify planning domain (indirectly?)
-  //TODO: Specify hypothesis
   //TODO: Implement simple mechanism to transform hypothesis into goal
+  //TODO: Implement & test necessary actions
   //TODO: Implement prototype of execution infrastructure / plan monitor
 
 }
