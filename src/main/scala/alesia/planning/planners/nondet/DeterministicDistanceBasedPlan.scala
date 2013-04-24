@@ -1,7 +1,7 @@
 package alesia.planning.planners.nondet
 
 import alesia.planning.plans.Plan
-import alesia.planning.context.Context
+import alesia.planning.context.ExecutionContext
 import alesia.planning.PlanningProblem
 
 /**
@@ -13,7 +13,7 @@ import alesia.planning.PlanningProblem
 class DeterministicDistanceBasedPlan(val problem: PlanningProblem, val distances: Array[Int]) extends Plan {
   import problem.table._
 
-  override def decide(c: Context) = throw new UnsupportedOperationException
+  override def decide(c: ExecutionContext) = throw new UnsupportedOperationException
 
   /** Check how far away from the goal the state is */
   override def decide(state: Int) = {

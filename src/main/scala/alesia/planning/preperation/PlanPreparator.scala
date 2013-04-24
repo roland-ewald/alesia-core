@@ -2,7 +2,7 @@ package alesia.planning.preperation
 
 import alesia.query.UserSpecification
 import alesia.planning.PlanningProblem
-import alesia.planning.context.Context
+import alesia.planning.context.ExecutionContext
 
 /**
  * Creates a suitable planning problem (and a context with which to start) from a user-defined hypothesis.
@@ -15,6 +15,6 @@ import alesia.planning.context.Context
  */
 trait PlanPreparator {
 
-  def preparePlanning(h: UserSpecification): (PlanningProblem, Context)
+  def preparePlanning(h: UserSpecification): (PlanningProblem, ExecutionContext)
 
 }

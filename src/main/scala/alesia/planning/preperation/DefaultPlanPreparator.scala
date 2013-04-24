@@ -2,8 +2,8 @@ package alesia.planning.preperation
 
 import alesia.query.UserSpecification
 import alesia.planning.PlanningProblem
-import alesia.planning.context.Context
-import alesia.planning.context.EmptyContext
+import alesia.planning.context.ExecutionContext
+import alesia.planning.context.EmptyExecutionContext
 
 /**
  * Default plan preparation implementation.
@@ -14,6 +14,6 @@ import alesia.planning.context.EmptyContext
  */
 class DefaultPlanPreparator extends PlanPreparator {
 
-  override def preparePlanning(specs: UserSpecification): (PlanningProblem, Context) = (null, EmptyContext)
+  override def preparePlanning(specs: UserSpecification): (PlanningProblem, ExecutionContext) = (null, EmptyExecutionContext)
 
 }

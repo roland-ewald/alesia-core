@@ -4,7 +4,7 @@ import alesia.planning.PlanningProblem
 import alesia.planning.plans.Plan
 import alesia.planning.plans.EmptyPlan
 import alesia.planning.actions.experiments.ExperimentAction
-import alesia.planning.context.Context
+import alesia.planning.context.ExecutionContext
 import scala.annotation.tailrec
 import alesia.utils.bdd.UniqueTable
 
@@ -41,7 +41,7 @@ case class NonDeterministicPolicy(val problem: PlanningProblem, val stateActionT
     }
   }
 
-  override def decide(c: Context): Seq[ExperimentAction] = throw new UnsupportedOperationException
+  override def decide(c: ExecutionContext): Seq[ExperimentAction] = throw new UnsupportedOperationException
 
   /**
    * Constructs a symbolic representation of the preconditions (as nested if statements) and the action they trigger if true.

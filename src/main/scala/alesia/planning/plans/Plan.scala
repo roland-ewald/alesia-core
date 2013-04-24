@@ -2,7 +2,7 @@ package alesia.planning.plans
 
 import alesia.planning.actions.Action
 import alesia.planning.actions.experiments.ExperimentAction
-import alesia.planning.context.Context
+import alesia.planning.context.ExecutionContext
 
 /**
  * Interface for a plan.
@@ -12,7 +12,7 @@ import alesia.planning.context.Context
 trait Plan {
 
   /** Given the current context, decide for a sequence of actions, which might be carried out in parallel. */
-  def decide(c: Context): Seq[ExperimentAction]
+  def decide(c: ExecutionContext): Seq[ExperimentAction]
 
   /**
    * Decide upon action(s) based on the current state. TODO: merge with above method.
@@ -23,11 +23,11 @@ trait Plan {
 
 /** Trivial plan. */
 trait EmptyPlan extends Plan {
-  override def decide(c: Context) = Seq()
+  override def decide(c: ExecutionContext) = Seq()
 }
 
 /** Plan for a single action. */
 case class SingleActionPlan(action: ExperimentAction) extends Plan {
-  override def decide(c: Context) = Seq(action)
+  override def decide(c: ExecutionContext) = Seq(action)
 }
 

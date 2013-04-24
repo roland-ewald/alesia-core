@@ -2,7 +2,7 @@ package alesia.planning.planners.nondet
 
 import alesia.planning.plans.Plan
 import alesia.planning.actions.experiments.ExperimentAction
-import alesia.planning.context.Context
+import alesia.planning.context.ExecutionContext
 import scala.annotation.tailrec
 
 /**
@@ -14,7 +14,7 @@ case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends P
   require(policy.stateActionTable.nonEmpty)
 
   //TODO: Merge this with the other decision method
-  override def decide(c: Context): Seq[ExperimentAction] = Seq()
+  override def decide(c: ExecutionContext): Seq[ExperimentAction] = Seq()
 
   /**
    * Decides upon an action, chooses the first one of which the preconditions are fulfilled.
