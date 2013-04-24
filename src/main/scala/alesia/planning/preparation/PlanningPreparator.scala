@@ -1,4 +1,4 @@
-package alesia.planning.preperation
+package alesia.planning.preparation
 
 import alesia.query.UserSpecification
 import alesia.planning.PlanningProblem

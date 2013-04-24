@@ -1,11 +1,11 @@
 package alesia
 
 import alesia.planning.plans.PlanExecutionResult
-import alesia.planning.preperation.PlanningPreparator
+import alesia.planning.preparation.PlanningPreparator
 import alesia.planning.planners.Planner
 import alesia.planning.execution.PlanExecutor
 import alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
-import alesia.planning.preperation.DefaultPlanningPreparator
+import alesia.planning.preparation.DefaultPlanningPreparator
 import alesia.planning.execution.DefaultPlanExecutor
 
 package object query {

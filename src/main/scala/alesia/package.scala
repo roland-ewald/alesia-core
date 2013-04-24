@@ -1,7 +1,7 @@
 import alesia.planning.execution.PlanExecutor
 import alesia.planning.planners.Planner
 import alesia.planning.plans.PlanExecutionResult
-import alesia.planning.preperation.PlanningPreparator
+import alesia.planning.preparation.PlanningPreparator
 import alesia.query.UserSpecification
 
 /**
