@@ -3,6 +3,7 @@ package alesia.planning.scenarios
 import org.scalatest.FunSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.junit.Assert
 
 /**
  * Tests for a simple scenario that aims to compare the performance of two
@@ -18,8 +19,18 @@ class SimpleComparison extends FunSpec {
     it("works in principle :)") {
 
       import alesia.query._
-      val results = submit(null, null, null)
+
+      val execResults = submit {
+        SingleModel("java://examples.sr.LinearChainSystem")
+      } {
+        WallClockTimeMaximum(seconds = 30)
+      } {
+        exists >> model | hasProperty("qss")
+      }
+
       pending
+      Assert.assertNotNull(execResults)
+      Assert.assertTrue(execResults.trace.length > 0)
     }
 
     it("fails whenever elements of the problem specification are missing") {
