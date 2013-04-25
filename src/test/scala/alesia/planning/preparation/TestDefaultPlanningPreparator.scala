@@ -19,7 +19,15 @@ class TestDefaultPlanningPreparator extends FunSpec {
 
   import alesia.query._
 
-  describe("Simple Comparison Scenario") {
+  describe("Default Planning Preparator") {
+
+    it("can extract atomic relations from user hypotheses") {
+
+      val simpleSingleElem = preparator.extractHypothesisElements(exists >> model | hasProperty("qss"))
+      Assert.assertEquals(1, simpleSingleElem.length)
+      Assert.assertEquals(simpleSingleElem(0)._1, exists)
+
+    }
 
     it("works for a simple hypothesis") {
 
