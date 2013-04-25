@@ -33,7 +33,7 @@ trait ExperimentProvider extends Logging {
     observeRuntimeFor(performanceExperiment(p, s))(modifier)
 
   def observeRuntimeFor(exp: PerformanceExperiment)(modifier: PerformanceExperiment => Unit): Double = {
-    var rv = 0.
+    var rv = .0
     modifier(exp)
     exp.withExperimentPerformance { r => rv = r.runtimes.head }
     execute(exp)

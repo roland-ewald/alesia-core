@@ -12,7 +12,7 @@ trait ExperimentAction extends Action[ExperimentProvider] {
   val results = scala.collection.mutable.Map[String, AnyRef]()
 
   /** The estimated cost of executing this action. */
-  def estimatedCost: Double = 0.
+  def estimatedCost: Double = .0
 
   override def preconditions = Map[String, Class[_]]()
 
