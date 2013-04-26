@@ -1,5 +1,7 @@
 package alesia.planning.actions.experiments
 
+import scala.language.existentials
+
 import alesia.bindings.ExperimentProvider
 import sessl.util.Logging
 import sessl.AfterSimSteps

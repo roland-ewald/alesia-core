@@ -1,5 +1,7 @@
 package alesia.planning
 
+import scala.language.implicitConversions
+
 import alesia.utils.bdd.UniqueTable
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.immutable.List
