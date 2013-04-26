@@ -47,6 +47,11 @@
 			<version>${scala.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-actors</artifactId>
+			<version>${scala.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8</version>
@@ -81,6 +86,16 @@
 				<groupId>org.scala-tools</groupId>
 				<artifactId>maven-scala-plugin</artifactId>
 				<version>2.14.1</version>
+				<configuration>
+					<jvmArgs>
+						<jvmArg>-Xms64m</jvmArg>
+						<jvmArg>-Xmx1024m</jvmArg>
+					</jvmArgs>
+					<args>
+						<arg>-deprecation</arg>
+						<arg>-feature</arg>
+					</args>
+				</configuration>
 			</plugin>
 
 			<!-- Testing -->
