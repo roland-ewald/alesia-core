@@ -37,7 +37,7 @@ object TestCalibrationSimSteps extends ExperimentationTest {
   def action = CalibrateSimSteps(problem, nrm, desiredRuntime, eps = permEpsilon)
 
   def checkResult(action: CalibrateSimSteps) = for (result <- action.resultFor(action.result)) result match {
-    case (s, r) => {
+    case (prob,sim, s, r) => {
       require(s.isInstanceOf[Long] && r.isInstanceOf[Double], "Wrong result type: " + s.getClass + " & " + r.getClass + " instead of Long & Double.")
       val steps = s.asInstanceOf[Long]
       val runtime = r.asInstanceOf[Double]

@@ -14,14 +14,6 @@ trait ExperimentAction extends Action[ExperimentProvider] {
   /** The estimated cost of executing this action. */
   def estimatedCost: Double = .0
 
-  override def preconditions = Map[String, Class[_]]()
-
-  override def constraints(p: List[AnyRef]) = true
-
-  def postconditions = Map[String, Class[_]]()
-
-  override def potentialPercepts = Map[String, Class[_]]()
-
   override def resultFor(key: String) = results.get(key)
 
   protected[this] def addResult(key: String, result: AnyRef): Unit = {

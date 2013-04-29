@@ -14,10 +14,10 @@ import alesia.planning.domain.ParameterizedModel
  *  Running too short (only few ms) means that stochastic noise is high and results may be biased.
  *  Running too long means that computational resources are wasted.
  *
- *  @param p
+ *  @param problem
  *          the problem
- *  @param a
- *          the algorithm
+ *  @param sim
+ *          the simulator
  *  @param execTime
  *          the desired execution time
  *  @param eps
@@ -32,8 +32,8 @@ import alesia.planning.domain.ParameterizedModel
 case class CalibrateSimSteps(problem: ParameterizedModel, sim: Simulator,
   execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
 
-  val result = "result"
-
+  val result = "calibrated-model-for-sim"
+  
   /**
    * Execute the action.
    *  @param provider
@@ -56,7 +56,7 @@ case class CalibrateSimSteps(problem: ParameterizedModel, sim: Simulator,
       counter += 1
     }
 
-    addResult(result, (steps, runtime))
+    addResult(result, (problem, sim, steps, runtime))
   }
 
 }
