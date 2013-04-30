@@ -25,13 +25,17 @@ case class SingleModel(val url: String) extends ModelIntroduction {
 
 object SingleModelSpecification extends ActionSpecification[ResourceProvider, SingleModel] {
 
-  def preCondition: Option[ActionFormula] = None
+  override def preCondition: Option[ActionFormula] = None
 
-  def effect: ActionFormula = PublicLiteral("model-introduced")
+  override def effect: ActionFormula = PublicLiteral("model-introduced")
 
-  def publicLiterals = Seq() //TODO: Provide default implementations in separate type
+  override def publicLiterals = Seq() //TODO: Provide default implementations in separate type
 
-  def privateLiterals = Seq() //TODO 
+  override def privateLiterals = Seq() //TODO 
 
-  def createAction(logicalName: String, c: ExecutionContext) = new SingleModel("dfsdfdsf")
+  override def createAction(logicalName: String, c: ExecutionContext) = new SingleModel("dfsdfdsf")
+  
+  override def shortName = "Load Single Model"
+    
+  override def description = "Loads a single model"
 }

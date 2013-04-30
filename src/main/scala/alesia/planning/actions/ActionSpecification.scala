@@ -28,4 +28,10 @@ trait ActionSpecification[C, A <: Action[C]] {
 
   /** Factory method. */
   def createAction(logicalName: String, c: ExecutionContext): A
+  
+  /** Short name of the action. */
+  def shortName: String
+  
+  /** Description of the action. */
+  def description: String
 }

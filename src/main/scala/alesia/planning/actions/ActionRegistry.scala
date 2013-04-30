@@ -1,21 +1,70 @@
 package alesia.planning.actions
 
-import scala.reflect._
-
+import scala.collection.mutable.ListBuffer
 import org.reflections.Reflections
+import sessl.util.ReflectionHelper
+import sessl.util.Logging
 
 /**
+ * Registry for all specified actions. Loads these by scanning the classpath once it is called for the first time, via reflection.
+ * Can be configured to scan various (super-) packages via the Jave property <code>alesia.planning.actions.packages</code>,
+ * which expects a comma-separated list of package names.
+ *
  * @author Roland Ewald
  */
-object ActionRegistry extends App {
+object ActionRegistry extends Logging {
 
-  val reflections = new Reflections("alesia.planning.actions")
+  val defaultActionSuperPackage = "alesia.planning.actions"
 
-  val subTypes = reflections.getSubTypesOf(classOf[ActionSpecification[_, _]])
+  val propertyToAddCustomPath = "alesia.planning.actions.packages"
 
-  val it = subTypes.iterator()
+  
 
-  while (it.hasNext())
-    println("Detected action: " + it.next + "\n")
+  private[this] var actionSpecs: List[ActionSpecification[_, _]] = scanSpecifications()
+
+  def actionSpecifications = actionSpecs
+
+  protected[planning] def rescanActionSpecifications() {
+    actionSpecs = scanSpecifications()
+  }
+
+  private[this] def scanSpecifications(): List[ActionSpecification[_, _]] = {
+    val packageNames = packagesNamesForActionSpecs()
+    logger.info("Scanning action specifications in the following packages:\n " + packageNames.mkString("\n"))
+    val rv = loadSpecifications(packageNames)
+    logger.info("Loaded the following action specifications:\n " + rv.map(_.toString).mkString("\n"))
+    rv
+  }
+
+  /**
+   * Retrieves package names to be scanned (along with their sub-packages) for action specifications.
+   * @return list of package names
+   */
+  def packagesNamesForActionSpecs(): Seq[String] = {
+    val packageNames = ListBuffer[String]()
+    packageNames += "alesia.planning.actions"
+    val customPackageNames = System.getProperty(propertyToAddCustomPath)
+    if (customPackageNames != null)
+      packageNames ++= customPackageNames.split(",").map(_.trim)
+    packageNames.toList
+  }
+
+  /**
+   * Load all action specifications to be found in the current classpath.
+   * @param packages names of packages that may contain (also includes all of their sub-packages)
+   * @return list of available action specifications
+   */
+  private[this] def loadSpecifications(packages: Seq[String]): List[ActionSpecification[_, _]] = {
+    val actionSpecs = ListBuffer[ActionSpecification[_, _]]()
+    packages foreach { p =>
+      val reflections = new Reflections(p)
+      val subTypes = reflections.getSubTypesOf(classOf[ActionSpecification[_, _]])
+      val it = subTypes.iterator()
+      while (it.hasNext()) {
+        actionSpecs += ReflectionHelper.objectReferenceByName(it.next().getCanonicalName())
+      }
+    }
+    actionSpecs.toList
+  }
 
 }
