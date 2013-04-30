@@ -28,10 +28,9 @@ class TestActionRegistry extends FunSpec {
     }
 
     it("can be configured via the property '" + ActionRegistry.propertyToAddCustomPath + "'") {
-      System.setProperty(ActionRegistry.propertyToAddCustomPath, "alesia.plannning")
+      System.setProperty(ActionRegistry.propertyToAddCustomPath, getClass().getPackage().getName())
       ActionRegistry.rescanActionSpecifications()
       assert(ActionRegistry.actionSpecifications.exists(_.eq(TestActionSpecification)))
-      println("Done")
     }
   }
 

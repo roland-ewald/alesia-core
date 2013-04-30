@@ -18,23 +18,9 @@ object ActionRegistry extends Logging {
 
   val propertyToAddCustomPath = "alesia.planning.actions.packages"
 
-  
-
   private[this] var actionSpecs: List[ActionSpecification[_, _]] = scanSpecifications()
 
   def actionSpecifications = actionSpecs
-
-  protected[planning] def rescanActionSpecifications() {
-    actionSpecs = scanSpecifications()
-  }
-
-  private[this] def scanSpecifications(): List[ActionSpecification[_, _]] = {
-    val packageNames = packagesNamesForActionSpecs()
-    logger.info("Scanning action specifications in the following packages:\n " + packageNames.mkString("\n"))
-    val rv = loadSpecifications(packageNames)
-    logger.info("Loaded the following action specifications:\n " + rv.map(_.toString).mkString("\n"))
-    rv
-  }
 
   /**
    * Retrieves package names to be scanned (along with their sub-packages) for action specifications.
@@ -42,11 +28,29 @@ object ActionRegistry extends Logging {
    */
   def packagesNamesForActionSpecs(): Seq[String] = {
     val packageNames = ListBuffer[String]()
-    packageNames += "alesia.planning.actions"
+    packageNames += defaultActionSuperPackage
     val customPackageNames = System.getProperty(propertyToAddCustomPath)
     if (customPackageNames != null)
       packageNames ++= customPackageNames.split(",").map(_.trim)
     packageNames.toList
+  }
+
+  /**
+   * Rescans all action specification, should only used for testing and debugging purposes.
+   */
+  protected[planning] def rescanActionSpecifications() {
+    actionSpecs = scanSpecifications()
+  }
+
+  /**
+   * Scans action specifications from the class path.
+   */
+  private[this] def scanSpecifications(): List[ActionSpecification[_, _]] = {
+    val packageNames = packagesNamesForActionSpecs().reverse
+    logger.info("Scanning action specifications in the following packages: " + packageNames.map("'" + _ + "'").mkString(","))
+    val rv = loadSpecifications(packageNames)
+    logger.info("Loaded the following action specifications:\n " + rv.map(_.toString).mkString("\n"))
+    rv
   }
 
   /**
@@ -57,11 +61,14 @@ object ActionRegistry extends Logging {
   private[this] def loadSpecifications(packages: Seq[String]): List[ActionSpecification[_, _]] = {
     val actionSpecs = ListBuffer[ActionSpecification[_, _]]()
     packages foreach { p =>
+      logger.debug("Scanning for package '" + p + "'")
       val reflections = new Reflections(p)
       val subTypes = reflections.getSubTypesOf(classOf[ActionSpecification[_, _]])
       val it = subTypes.iterator()
       while (it.hasNext()) {
-        actionSpecs += ReflectionHelper.objectReferenceByName(it.next().getCanonicalName())
+        val objectName = it.next().getCanonicalName()
+        logger.debug("Found: " + objectName)
+        actionSpecs += ReflectionHelper.objectReferenceByName(objectName)
       }
     }
     actionSpecs.toList
