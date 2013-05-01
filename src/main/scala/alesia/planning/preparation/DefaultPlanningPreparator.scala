@@ -12,6 +12,7 @@ import scala.collection.mutable.ListBuffer
 import alesia.query.Negation
 import alesia.query.Conjunction
 import alesia.query.Disjunction
+import alesia.planning.actions.ActionRegistry
 
 /**
  * Default plan preparation implementation.
@@ -27,7 +28,18 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
   override def preparePlanning(spec: UserSpecification): (PlanningProblem, ExecutionContext) = {
 
+    // For each relevant variable, its representation is stored
+    val elemToReprMap = ListBuffer[(Any, String)]()
+    // For each representation, the actual variable is stored
+    val repToElemMap = ListBuffer[(String, Any)]()
+
+    //TODO: Define variables and actions
     val domainEntities = spec._1
+
+    //TODO:
+    //    ActionRegistry.actionSpecifications.filter(_.suitableFor(spec))
+
+    //TODO: Define goal state 
     val hypothesis = spec._3
 
     val hypothesisElements = extractHypothesisElements(spec._3)
