@@ -1,6 +1,7 @@
 package alesia.planning.actions
 
 import alesia.planning.context.ExecutionContext
+import alesia.query.UserSpecification
 
 /**
  * An action in the planning domain can be executed multiple times, while an action
@@ -15,7 +16,7 @@ import alesia.planning.context.ExecutionContext
 trait ActionSpecification[C, A <: Action[C]] {
 
   /** Precondition to create action. */
-  def preCondition: Option[ActionFormula]
+  def preCondition: ActionFormula
 
   /** Effect of the formula. */
   def effect: ActionFormula
@@ -28,10 +29,13 @@ trait ActionSpecification[C, A <: Action[C]] {
 
   /** Factory method. */
   def createAction(logicalName: String, c: ExecutionContext): A
-  
+
   /** Short name of the action. */
   def shortName: String
-  
+
   /** Description of the action. */
   def description: String
+
+  /** Defines scope of the action specification. */
+  def suitableFor(u: UserSpecification): Boolean
 }

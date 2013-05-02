@@ -25,6 +25,8 @@ sealed trait ActionFormula {
   def or(a: ActionFormula) = Disjunction(this, a)
 
   def and(a: ActionFormula) = Conjunction(this, a)
+
+  def unary_! = Negation(this)
 }
 
 sealed trait Literal extends ActionFormula
@@ -41,6 +43,10 @@ case class PrivateLiteral(val name: String) extends Literal
  */
 case class PublicLiteral(val name: String) extends Literal
 
+case class Negation(val expression: ActionFormula) extends ActionFormula {
+  def name = s"!($expression.name)"
+}
+
 /** Represents a conjunction. */
 case class Conjunction(val left: ActionFormula, val right: ActionFormula) extends ActionFormula {
   def name = s"($left.name AND $right.name)"
@@ -49,4 +55,12 @@ case class Conjunction(val left: ActionFormula, val right: ActionFormula) extend
 /** Represents a conjunction. */
 case class Disjunction(val left: ActionFormula, val right: ActionFormula) extends ActionFormula {
   def name = s"($left.name OR $right.name)"
+}
+
+case object TrueFormula extends ActionFormula {
+  def name = "TRUE"
+}
+
+case object FalseFormula extends ActionFormula {
+  def name = "FALSE"
 }

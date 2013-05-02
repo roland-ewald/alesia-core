@@ -1,18 +1,16 @@
 package alesia.planning.preparation
 
+import scala.collection.mutable.ListBuffer
+
 import alesia.planning.PlanningProblem
+import alesia.planning.actions.ActionRegistry
 import alesia.planning.context.ExecutionContext
 import alesia.planning.context.SimpleExecutionContext
-import alesia.query.UserSpecification
-import alesia.query.Quantifier
-import alesia.query.PredicateSubject
 import alesia.query.PredicateRelation
+import alesia.query.PredicateSubject
+import alesia.query.Quantifier
 import alesia.query.UserHypothesis
-import scala.collection.mutable.ListBuffer
-import alesia.query.Negation
-import alesia.query.Conjunction
-import alesia.query.Disjunction
-import alesia.planning.actions.ActionRegistry
+import alesia.query.UserSpecification
 
 /**
  * Default plan preparation implementation.
@@ -32,12 +30,18 @@ class DefaultPlanningPreparator extends PlanningPreparator {
     val elemToReprMap = ListBuffer[(Any, String)]()
     // For each representation, the actual variable is stored
     val repToElemMap = ListBuffer[(String, Any)]()
+    
+    //TODO: Variable names should be mapped to elements of the context, actions should be mapped to their specifications (so that executable actions can be created easily)
 
-    //TODO: Define variables and actions
+    //TODO: Define variables
     val domainEntities = spec._1
 
-    //TODO:
-    //    ActionRegistry.actionSpecifications.filter(_.suitableFor(spec))
+    println(domainEntities)
+    
+    //TODO: Define actions on variables, and new instances of action-specific variables
+    val suitableActionSpecs =  ActionRegistry.actionSpecifications.filter(_.suitableFor(spec))
+    
+    println(suitableActionSpecs)
 
     //TODO: Define goal state 
     val hypothesis = spec._3

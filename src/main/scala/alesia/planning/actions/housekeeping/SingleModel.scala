@@ -1,11 +1,13 @@
 package alesia.planning.actions.housekeeping
 
-import alesia.bindings.ResourceProvider
 import java.io.File
-import alesia.planning.actions.ActionSpecification
+import alesia.bindings.ResourceProvider
 import alesia.planning.actions.ActionFormula
+import alesia.planning.actions.ActionSpecification
+import alesia.planning.actions.PrivateLiteral
 import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
+import alesia.query.UserSpecification
 
 /**
  * Action to introduce a single model.
@@ -25,17 +27,20 @@ case class SingleModel(val url: String) extends ModelIntroduction {
 
 object SingleModelSpecification extends ActionSpecification[ResourceProvider, SingleModel] {
 
-  override def preCondition: Option[ActionFormula] = None
+  override def preCondition: ActionFormula = !PrivateLiteral("done")
 
-  override def effect: ActionFormula = PublicLiteral("model-introduced")
+  override def effect: ActionFormula = PublicLiteral("new-model") and PrivateLiteral("done")
 
   override def publicLiterals = Seq() //TODO: Provide default implementations in separate type
 
   override def privateLiterals = Seq() //TODO 
 
-  override def createAction(logicalName: String, c: ExecutionContext) = new SingleModel("dfsdfdsf")
-  
   override def shortName = "Load Single Model"
-    
+
   override def description = "Loads a single model"
+
+  override def suitableFor(u: UserSpecification) = u._1.exists(_.isInstanceOf[alesia.query.SingleModel])
+
+  override def createAction(logicalName: String, c: ExecutionContext) = new SingleModel("dfsdfdsf")
+
 }

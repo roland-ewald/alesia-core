@@ -9,6 +9,8 @@ import alesia.planning.actions.Action
 import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
+import alesia.query.UserSpecification
+import alesia.planning.actions.TrueFormula
 
 /**
  * Tests for ActionRegistry. The test is not situated in <code>alessia.planning.actions</code> because it should
@@ -47,7 +49,7 @@ class DummyAction extends Action[Any] {
 /** Dummy action specification for testing. */
 object TestActionSpecification extends ActionSpecification[Any, DummyAction] {
 
-  override def preCondition: Option[ActionFormula] = None
+  override def preCondition: ActionFormula = TrueFormula
 
   override def effect: ActionFormula = PublicLiteral("")
 
@@ -60,4 +62,6 @@ object TestActionSpecification extends ActionSpecification[Any, DummyAction] {
   override def shortName = "Dummy Action (for testing)"
 
   override def description = "If you see this in production, remove the test-jars from the classpath."
+
+  override def suitableFor(u: UserSpecification) = true
 }
