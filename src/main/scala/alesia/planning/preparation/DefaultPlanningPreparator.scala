@@ -30,17 +30,20 @@ class DefaultPlanningPreparator extends PlanningPreparator {
     val elemToReprMap = ListBuffer[(Any, String)]()
     // For each representation, the actual variable is stored
     val repToElemMap = ListBuffer[(String, Any)]()
-    
+
     //TODO: Variable names should be mapped to elements of the context, actions should be mapped to their specifications (so that executable actions can be created easily)
+
+    val suitableActionSpecs = ActionRegistry.actionSpecifications.filter(_.suitableFor(spec))
+
+    val publicLiterals = suitableActionSpecs.flatMap(s => s.effect.publicLiterals ++ s.preCondition.publicLiterals)
 
     //TODO: Define variables
     val domainEntities = spec._1
 
     println(domainEntities)
-    
+
     //TODO: Define actions on variables, and new instances of action-specific variables
-    val suitableActionSpecs =  ActionRegistry.actionSpecifications.filter(_.suitableFor(spec))
-    
+
     println(suitableActionSpecs)
 
     //TODO: Define goal state 
@@ -52,6 +55,8 @@ class DefaultPlanningPreparator extends PlanningPreparator {
       val initialState = FalseVariable
       val goalState = FalseVariable
     }
+
+    println(problem)
 
     (problem, new SimpleExecutionContext(spec._2))
   }

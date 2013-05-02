@@ -1,5 +1,7 @@
 package alesia.planning.actions
 
+import scala.reflect.ClassTag
+
 /**
  * Super trait for all formulas to be specified by action specifications.
  *
@@ -17,17 +19,17 @@ sealed trait ActionFormula {
   def unary_! = Negation(this)
 
   /** Declared public literals. */
-  def publicLiterals: Seq[Literal] = ActionFormula.literalsOf(this).filter(_.isInstanceOf[PublicLiteral])
+  def publicLiterals = ActionFormula.literalsOf[PublicLiteral](this)
 
   /** Declared private literals. */
-  def privateLiterals: Seq[Literal] = ActionFormula.literalsOf(this).filter(_.isInstanceOf[PrivateLiteral])
+  def privateLiterals = ActionFormula.literalsOf[PrivateLiteral](this)
 }
 
 object ActionFormula {
 
   /** Get all literals used in an action formula. */
-  def literalsOf(a: ActionFormula): Seq[Literal] = a match {
-    case l: Literal => Seq(l)
+  def literalsOf[X <: Literal: ClassTag](a: ActionFormula): Seq[X] = a match {
+    case l: X => Seq(l)
     case u: UnaryOperator => literalsOf(u.expression)
     case b: BinaryOperator => literalsOf(b.left) ++ literalsOf(b.right)
     case _ => Seq()
