@@ -53,10 +53,6 @@ object TestActionSpecification extends ActionSpecification[Any, DummyAction] {
 
   override def effect: ActionFormula = PublicLiteral("")
 
-  override def publicLiterals = Seq()
-
-  override def privateLiterals = Seq()
-
   override def createAction(logicalName: String, c: ExecutionContext) = new DummyAction
 
   override def shortName = "Dummy Action (for testing)"

@@ -7,9 +7,11 @@ import alesia.query.UserSpecification
  * An action in the planning domain can be executed multiple times, while an action
  * implementing the {@link Action} trait should be executed just once (all specifics are given in the constructor).
  *
- * This difference is resolved by the action specification
+ * This difference is resolved by the action specification, which contains all necessary meta-data required by users and 
+ * the planning preparation mechanism.
  *
  * @see Action
+ * @see PlanningPreparator
  *
  * @author Roland Ewald
  */
@@ -20,12 +22,6 @@ trait ActionSpecification[C, A <: Action[C]] {
 
   /** Effect of the formula. */
   def effect: ActionFormula
-
-  /** Declared public literals. */
-  def publicLiterals: Seq[Literal]
-
-  /** Declared private literals. */
-  def privateLiterals: Seq[Literal]
 
   /** Factory method. */
   def createAction(logicalName: String, c: ExecutionContext): A
@@ -38,4 +34,5 @@ trait ActionSpecification[C, A <: Action[C]] {
 
   /** Defines scope of the action specification. */
   def suitableFor(u: UserSpecification): Boolean
+ 
 }

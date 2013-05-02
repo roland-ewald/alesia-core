@@ -33,10 +33,6 @@ object SingleModelIntroductionSpecification extends ActionSpecification[Resource
 
   override def effect: ActionFormula = PublicLiteral("new-model") and PrivateLiteral("done")
 
-  override def publicLiterals = Seq() //TODO: Provide default implementations in separate type
-
-  override def privateLiterals = Seq() //TODO 
-
   override def shortName = "Load Single Model"
 
   override def description = "Loads a single model"
