@@ -19,19 +19,19 @@ sealed trait ActionFormula {
   def unary_! = Negation(this)
 
   /** Declared public literals. */
-  def publicLiterals = ActionFormula.literalsOf[PublicLiteral](this)
+  def publicLiterals = ActionFormula.literals[PublicLiteral](this)
 
   /** Declared private literals. */
-  def privateLiterals = ActionFormula.literalsOf[PrivateLiteral](this)
+  def privateLiterals = ActionFormula.literals[PrivateLiteral](this)
 }
 
 object ActionFormula {
 
   /** Get all literals used in an action formula. */
-  def literalsOf[X <: Literal: ClassTag](a: ActionFormula): Seq[X] = a match {
+  def literals[X <: Literal: ClassTag](a: ActionFormula): Seq[X] = a match {
     case l: X => Seq(l)
-    case u: UnaryOperator => literalsOf(u.expression)
-    case b: BinaryOperator => literalsOf(b.left) ++ literalsOf(b.right)
+    case u: UnaryOperator => literals(u.expression)
+    case b: BinaryOperator => literals(b.left) ++ literals(b.right)
     case _ => Seq()
   }
 }
