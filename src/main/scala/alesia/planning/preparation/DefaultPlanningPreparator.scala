@@ -1,7 +1,6 @@
 package alesia.planning.preparation
 
 import scala.collection.mutable.ListBuffer
-
 import alesia.planning.PlanningProblem
 import alesia.planning.actions.ActionDeclaration
 import alesia.planning.actions.AllDeclaredActions
@@ -15,6 +14,7 @@ import alesia.query.PredicateSubject
 import alesia.query.Quantifier
 import alesia.query.UserHypothesis
 import alesia.query.UserSpecification
+import sessl.util.Logging
 
 /**
  * Default plan preparation implementation.
@@ -110,22 +110,34 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
 }
 
-object DefaultPlanningPreparator {
+object DefaultPlanningPreparator extends Logging {
 
+  val maxRounds = 100
+
+  /**
+   * @param spec the user specification
+   */
   def retrieveDeclaredActions(spec: UserSpecification): AllDeclaredActions = {
 
     val actionSpecs = ActionRegistry.actionSpecifications
-
     val declaredActions = scala.collection.mutable.Map[ActionSpecification, Seq[ActionDeclaration]]()
-    actionSpecs.foreach(declaredActions(_) = Seq())
-    
+
     var newActionsDeclared = true
-    while (newActionsDeclared) {
+    var counter = 0
+    actionSpecs.foreach(declaredActions(_) = Seq())
+
+    while (newActionsDeclared && counter < maxRounds) {
       val currentActions = declaredActions.toMap
-      val newActions = actionSpecs.map(x => (x, x.declareConcreteActions(spec, currentActions))).toMap       
-      val x = currentActions zip newActions
+      val newActions = actionSpecs.map(x => (x, x.declareConcreteActions(spec, currentActions))).toMap
+      for (a <- newActions if a._2 != null && a._2.nonEmpty) {
+        declaredActions(a._1) = declaredActions(a._1) ++ a._2
+      }
       newActionsDeclared = newActions.values.exists(_.nonEmpty)
+      counter += 1
     }
+
+    if (counter == maxRounds)
+      logger.warn(s"Action declaration during plan preparation took the maximum number of rounds! ($maxRounds)")
 
     declaredActions.toMap
   }

@@ -38,6 +38,8 @@ class TestDefaultPlanningPreparator extends FunSpec {
       assertProperty("nested", multipleElems(2))
     }
 
+    //TODO: test action declaration loop!
+    
     it("works for a simple hypothesis") {
 
       val (problem, context) = preparator.preparePlanning(
