@@ -19,18 +19,18 @@ class TestDefaultPlanningPreparator extends FunSpec {
   val preparator = new DefaultPlanningPreparator()
 
   import alesia.query._
-  
+
   describe("Default Planning Preparator") {
 
     it("can extract atomic relations from user hypotheses") {
-      
-      def assertProperty(name:String, e:(Quantifier,PredicateSubject, PredicateRelation)) =
-          assertEquals(hasProperty(name), e._3)
-      
+
+      def assertProperty(name: String, e: (Quantifier, PredicateSubject, PredicateRelation)) =
+        assertEquals(hasProperty(name), e._3)
+
       val simpleSingleElem = preparator.extractHypothesisElements(exists >> model | hasProperty("qss"))
       assertEquals(1, simpleSingleElem.length)
       assertProperty("qss", simpleSingleElem(0))
-      
+
       val multipleElems = preparator.extractHypothesisElements(exists >> model | ((hasProperty("qss") and hasProperty("small")) or hasProperty("nested")))
       assertEquals(3, multipleElems.length)
       assertProperty("qss", multipleElems(0))
@@ -41,7 +41,9 @@ class TestDefaultPlanningPreparator extends FunSpec {
     it("works for a simple hypothesis") {
 
       val (problem, context) = preparator.preparePlanning(
-        (Seq(SingleModel("java://examples.sr.LinearChainSystem")),
+        (Seq(
+          SingleModel("java://examples.sr.LinearChainSystem"),
+          SingleModel("java://examples.sr.TotallyIndependentSystem")),
           Seq(WallClockTimeMaximum(seconds = 30)),
           exists >> model | hasProperty("qss")))
 

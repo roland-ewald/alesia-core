@@ -7,6 +7,7 @@ package alesia.planning
  */
 package object actions {
 
+  type AllDeclaredActions = Map[ActionSpecification[_, _], Seq[ActionDeclaration]]
 
 
 }

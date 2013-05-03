@@ -11,6 +11,8 @@ import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
 import alesia.query.UserSpecification
 import alesia.planning.actions.TrueFormula
+import alesia.planning.actions.ActionDeclaration
+import alesia.planning.actions.AllDeclaredActions
 
 /**
  * Tests for ActionRegistry. The test is not situated in <code>alessia.planning.actions</code> because it should
@@ -59,5 +61,5 @@ object TestActionSpecification extends ActionSpecification[Any, DummyAction] {
 
   override def description = "If you see this in production, remove the test-jars from the classpath."
 
-  override def suitableFor(u: UserSpecification) = true
+  override def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = Seq()
 }

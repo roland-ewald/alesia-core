@@ -11,6 +11,7 @@ import alesia.query.Quantifier
 import alesia.query.UserHypothesis
 import alesia.query.UserSpecification
 import alesia.planning.actions.Literal
+import alesia.planning.actions.ActionDeclaration
 
 /**
  * Default plan preparation implementation.
@@ -54,9 +55,9 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
   override def preparePlanning(spec: UserSpecification): (PlanningProblem, ExecutionContext) = {
 
-    val suitableActionSpecs = ActionRegistry.actionSpecifications.filter(_.suitableFor(spec))
+    val declaredActions = DefaultPlanningPreparator.retrieveDeclaredActions()
 
-    val publicLiterals = suitableActionSpecs.flatMap(s => s.effect.publicLiterals ++ s.preCondition.publicLiterals)
+    val publicLiterals = declaredActions.flatMap(s => s.effect.publicLiterals ++ s.preCondition.publicLiterals)
     publicLiterals.foreach(addVariable)
 
     //TODO: Define variables
@@ -66,7 +67,7 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
     //TODO: Define actions on variables, and new instances of action-specific variables
 
-    println(suitableActionSpecs)
+    println(declaredActions)
 
     //TODO: Define goal state 
     val hypothesis = spec._3
@@ -82,10 +83,18 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
       val initialState = FalseVariable
       val goalState = FalseVariable
+
+      lazy val detailedDescription: String = {
+        val rv = new StringBuilder
+        rv.append("Variables:\n")
+        for (varNum <- nextStateVarNums.keySet.toList.sorted)
+          rv.append(variableNames.get(varNum).getOrElse("Error in variable numbering") + "\n")
+        rv.toString
+      }
     }
 
     //TODO: full description of planning problem should be logged 
-    println(problem)
+    println(problem.detailedDescription)
     println(problem.functionByName)
 
     (problem, new SimpleExecutionContext(spec._2))
@@ -94,5 +103,15 @@ class DefaultPlanningPreparator extends PlanningPreparator {
   /** Extracts single hypothesis elements. */
   def extractHypothesisElements(h: UserHypothesis): Seq[HypothesisElement] =
     h.relation.atomicRelations.map((h.quantifier, h.subject, _))
+
+}
+
+object DefaultPlanningPreparator {
+
+  def retrieveDeclaredActions(): Seq[ActionDeclaration] = {
+    val actionSpecs = ActionRegistry.actionSpecifications
+    
+    Seq()
+  }
 
 }

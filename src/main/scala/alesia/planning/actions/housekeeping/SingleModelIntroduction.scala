@@ -3,12 +3,13 @@ package alesia.planning.actions.housekeeping
 import java.io.File
 
 import alesia.bindings.ResourceProvider
+import alesia.planning.actions.ActionDeclaration
 import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionSpecification
+import alesia.planning.actions.AllDeclaredActions
 import alesia.planning.actions.PrivateLiteral
 import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
-import alesia.query.SingleModel
 import alesia.query.UserSpecification
 
 /**
@@ -37,7 +38,11 @@ object SingleModelIntroductionSpecification extends ActionSpecification[Resource
 
   override def description = "Loads a single model"
 
-  override def suitableFor(u: UserSpecification) = u._1.exists(_.isInstanceOf[SingleModel])
+  override def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
+    //TODO: Extend as described
+    //    if(u._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).i)
+    Seq()
+  }
 
   override def createAction(logicalName: String, c: ExecutionContext) = new SingleModelIntroduction("dfsdfdsf")
 

@@ -7,7 +7,7 @@ import alesia.query.UserSpecification
  * An action in the planning domain can be executed multiple times, while an action
  * implementing the {@link Action} trait should be executed just once (all specifics are given in the constructor).
  *
- * This difference is resolved by the action specification, which contains all necessary meta-data required by users and 
+ * This difference is resolved by the action specification, which contains all necessary meta-data required by users and
  * the planning preparation mechanism.
  *
  * @see Action
@@ -32,7 +32,22 @@ trait ActionSpecification[C, A <: Action[C]] {
   /** Description of the action. */
   def description: String
 
-  /** Defines scope of the action specification. */
-  def suitableFor(u: UserSpecification): Boolean
- 
+  /**
+   * Declares additional concrete actions to be specified, given the user specification and the actions already declared by different action specs.
+   * Since some action specifications may need to 'react' on the declaration of other actions by declaring additional actions, this method is called
+   * repeatedly and only *newly* declared actions should be returned.
+   *
+   * @param spec user specification
+   * @param declaredActions holds action declarations that
+   * @return *newly* declared actions
+   */
+  def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration]
+
+}
+
+trait ActionDeclaration {
+  def name: String
+  def variables: Seq[String]
+  def preCondition: ActionFormula
+  def effect: ActionFormula
 }
