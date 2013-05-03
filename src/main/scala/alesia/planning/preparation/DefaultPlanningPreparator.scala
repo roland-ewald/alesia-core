@@ -1,8 +1,13 @@
 package alesia.planning.preparation
 
 import scala.collection.mutable.ListBuffer
+
 import alesia.planning.PlanningProblem
+import alesia.planning.actions.ActionDeclaration
+import alesia.planning.actions.AllDeclaredActions
 import alesia.planning.actions.ActionRegistry
+import alesia.planning.actions.ActionSpecification
+import alesia.planning.actions.Literal
 import alesia.planning.context.ExecutionContext
 import alesia.planning.context.SimpleExecutionContext
 import alesia.query.PredicateRelation
@@ -10,8 +15,6 @@ import alesia.query.PredicateSubject
 import alesia.query.Quantifier
 import alesia.query.UserHypothesis
 import alesia.query.UserSpecification
-import alesia.planning.actions.Literal
-import alesia.planning.actions.ActionDeclaration
 
 /**
  * Default plan preparation implementation.
@@ -55,7 +58,8 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
   override def preparePlanning(spec: UserSpecification): (PlanningProblem, ExecutionContext) = {
 
-    val declaredActions = DefaultPlanningPreparator.retrieveDeclaredActions()
+    val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
+    val declaredActions = allDeclaredActions.flatMap(_._2)
 
     val publicLiterals = declaredActions.flatMap(s => s.effect.publicLiterals ++ s.preCondition.publicLiterals)
     publicLiterals.foreach(addVariable)
@@ -108,10 +112,22 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
 object DefaultPlanningPreparator {
 
-  def retrieveDeclaredActions(): Seq[ActionDeclaration] = {
+  def retrieveDeclaredActions(spec: UserSpecification): AllDeclaredActions = {
+
     val actionSpecs = ActionRegistry.actionSpecifications
+
+    val declaredActions = scala.collection.mutable.Map[ActionSpecification, Seq[ActionDeclaration]]()
+    actionSpecs.foreach(declaredActions(_) = Seq())
     
-    Seq()
+    var newActionsDeclared = true
+    while (newActionsDeclared) {
+      val currentActions = declaredActions.toMap
+      val newActions = actionSpecs.map(x => (x, x.declareConcreteActions(spec, currentActions))).toMap       
+      val x = currentActions zip newActions
+      newActionsDeclared = newActions.values.exists(_.nonEmpty)
+    }
+
+    declaredActions.toMap
   }
 
 }

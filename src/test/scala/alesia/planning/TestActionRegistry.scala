@@ -49,7 +49,7 @@ class DummyAction extends Action[Any] {
 }
 
 /** Dummy action specification for testing. */
-object TestActionSpecification extends ActionSpecification[Any, DummyAction] {
+object TestActionSpecification extends ActionSpecification {
 
   override def preCondition: ActionFormula = TrueFormula
 

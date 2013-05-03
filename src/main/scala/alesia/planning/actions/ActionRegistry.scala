@@ -18,7 +18,7 @@ object ActionRegistry extends Logging {
 
   val propertyToAddCustomPath = "alesia.planning.actions.packages"
 
-  private[this] var actionSpecs: List[ActionSpecification[_, _]] = scanSpecifications()
+  private[this] var actionSpecs: Seq[ActionSpecification] = scanSpecifications()
 
   def actionSpecifications = actionSpecs
 
@@ -45,7 +45,7 @@ object ActionRegistry extends Logging {
   /**
    * Scans action specifications from the class path.
    */
-  private[this] def scanSpecifications(): List[ActionSpecification[_, _]] = {
+  private[this] def scanSpecifications(): Seq[ActionSpecification] = {
     val packageNames = packagesNamesForActionSpecs().reverse
     logger.info("Scanning action specifications in the following packages: " + packageNames.map("'" + _ + "'").mkString(","))
     val rv = loadSpecifications(packageNames)
@@ -58,12 +58,12 @@ object ActionRegistry extends Logging {
    * @param packages names of packages that may contain (also includes all of their sub-packages)
    * @return list of available action specifications
    */
-  private[this] def loadSpecifications(packages: Seq[String]): List[ActionSpecification[_, _]] = {
-    val actionSpecs = ListBuffer[ActionSpecification[_, _]]()
+  private[this] def loadSpecifications(packages: Seq[String]): Seq[ActionSpecification] = {
+    val actionSpecs = ListBuffer[ActionSpecification]()
     packages foreach { p =>
       logger.debug("Scanning for package '" + p + "'")
       val reflections = new Reflections(p)
-      val subTypes = reflections.getSubTypesOf(classOf[ActionSpecification[_, _]])
+      val subTypes = reflections.getSubTypesOf(classOf[ActionSpecification])
       val it = subTypes.iterator()
       while (it.hasNext()) {
         val objectName = it.next().getCanonicalName()

@@ -1,7 +1,6 @@
 package alesia.planning.actions.housekeeping
 
 import java.io.File
-
 import alesia.bindings.ResourceProvider
 import alesia.planning.actions.ActionDeclaration
 import alesia.planning.actions.ActionFormula
@@ -11,6 +10,8 @@ import alesia.planning.actions.PrivateLiteral
 import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
 import alesia.query.UserSpecification
+import alesia.planning.actions.SimpleActionDeclaration
+import alesia.query.SingleModel
 
 /**
  * Action to introduce a single model.
@@ -20,6 +21,9 @@ case class SingleModelIntroduction(val url: String) extends ModelIntroduction {
 
   private[this] var result: Option[File] = None
 
+  //TODO: Use this for reflection?
+  //[ResourceProvider, SingleModelIntroduction]
+
   override def execute(implicit provider: ResourceProvider): Unit = {
     result = provider.getResourceAsFile(url)
   }
@@ -28,7 +32,7 @@ case class SingleModelIntroduction(val url: String) extends ModelIntroduction {
 
 }
 
-object SingleModelIntroductionSpecification extends ActionSpecification[ResourceProvider, SingleModelIntroduction] {
+object SingleModelIntroductionSpecification extends ActionSpecification {
 
   override def preCondition: ActionFormula = !PrivateLiteral("done")
 
@@ -40,8 +44,11 @@ object SingleModelIntroductionSpecification extends ActionSpecification[Resource
 
   override def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
     //TODO: Extend as described
-    //    if(u._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).i)
-    Seq()
+
+    if (spec._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).isEmpty) {
+      Seq(SimpleActionDeclaration("a", Seq())) //TODO
+    } else
+      Seq()
   }
 
   override def createAction(logicalName: String, c: ExecutionContext) = new SingleModelIntroduction("dfsdfdsf")

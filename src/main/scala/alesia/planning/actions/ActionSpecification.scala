@@ -15,7 +15,7 @@ import alesia.query.UserSpecification
  *
  * @author Roland Ewald
  */
-trait ActionSpecification[C, A <: Action[C]] {
+trait ActionSpecification {
 
   /** Precondition to create action. */
   def preCondition: ActionFormula
@@ -24,7 +24,7 @@ trait ActionSpecification[C, A <: Action[C]] {
   def effect: ActionFormula
 
   /** Factory method. */
-  def createAction(logicalName: String, c: ExecutionContext): A
+  def createAction(logicalName: String, c: ExecutionContext): Action[_]
 
   /** Short name of the action. */
   def shortName: String
@@ -50,4 +50,13 @@ trait ActionDeclaration {
   def variables: Seq[String]
   def preCondition: ActionFormula
   def effect: ActionFormula
+}
+
+case class SimpleActionDeclaration(name: String, variables: Seq[String]) extends ActionDeclaration {
+
+  //TODO: finish this
+  
+  override def preCondition = TrueFormula
+  
+  override def effect = TrueFormula
 }
