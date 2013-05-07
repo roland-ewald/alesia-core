@@ -16,9 +16,15 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TestDefaultPlanningPreparator extends FunSpec {
 
+  import alesia.query._
+
   val preparator = new DefaultPlanningPreparator()
 
-  import alesia.query._
+  val simpleUserSpecification = (Seq(
+    SingleModel("java://examples.sr.LinearChainSystem"),
+    SingleModel("java://examples.sr.TotallyIndependentSystem")),
+    Seq(WallClockTimeMaximum(seconds = 30)),
+    exists >> model | hasProperty("qss"))
 
   describe("Default Planning Preparator") {
 
@@ -38,16 +44,15 @@ class TestDefaultPlanningPreparator extends FunSpec {
       assertProperty("nested", multipleElems(2))
     }
 
-    //TODO: test action declaration loop!
-    
+    it("can extract action declarations from action specifications") {
+      val declaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(simpleUserSpecification)
+      assert(declaredActions.size > 0)
+      assert(declaredActions.head._2.size > 0) 
+    }
+
     it("works for a simple hypothesis") {
 
-      val (problem, context) = preparator.preparePlanning(
-        (Seq(
-          SingleModel("java://examples.sr.LinearChainSystem"),
-          SingleModel("java://examples.sr.TotallyIndependentSystem")),
-          Seq(WallClockTimeMaximum(seconds = 30)),
-          exists >> model | hasProperty("qss")))
+      val (problem, context) = preparator.preparePlanning(simpleUserSpecification)
 
       Assert.assertNotNull(context)
       Assert.assertNotNull(problem)
