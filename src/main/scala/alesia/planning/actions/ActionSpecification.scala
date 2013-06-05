@@ -54,8 +54,42 @@ trait ActionDeclaration {
   def variables: Seq[String] = (preCondition.literals ++ effect.literals).map(_.name)
   def preCondition: ActionFormula
   def effect: ActionFormula
+  def publicLiterals = (preCondition.publicLiterals ++ effect.publicLiterals).toSet
+  def privateLiterals = (preCondition.privateLiterals ++ effect.privateLiterals).toSet
+  def literals = publicLiterals ++ privateLiterals
 }
 
 /** Straight-forward action declaration. */
-case class SimpleActionDeclaration(name: String, 
-  preCondition: ActionFormula = TrueFormula, effect: ActionFormula = TrueFormula) extends ActionDeclaration
+case class SimpleActionDeclaration(name: String, simplePreCondition: ActionFormula = TrueFormula, simpleEffect: ActionFormula = TrueFormula) extends ActionDeclaration {
+
+  val myId = ActionDeclarationUtils.newId
+
+  val uniquePrivateLiterals: Map[String, String] = {
+    val privateLiterals = (simplePreCondition.privateLiterals ++ simpleEffect.privateLiterals).toSet
+    privateLiterals.map { literal =>
+      (literal.name, literal.name + "_private_" + myId)
+    }.toMap
+  }
+
+  val preCondition = rewrite(simplePreCondition)
+
+  val effect = rewrite(simpleEffect)
+
+  /** Creates new formula by replacing generic private literals with literals that have unique names.*/
+  def rewrite(original: ActionFormula): ActionFormula = original match {
+    case pr: PrivateLiteral => PrivateLiteral(uniquePrivateLiterals(pr.name))
+    case p: PublicLiteral => p
+    case c @ Conjunction(l, r) => Conjunction(rewrite(l), rewrite(r))
+    case d @ Disjunction(l, r) => Disjunction(rewrite(l), rewrite(r))
+    case n @ Negation(f) => Negation(rewrite(f))
+    case x => x
+  }
+
+}
+
+object ActionDeclarationUtils {
+
+  private[this] var counter = 0
+
+  def newId = synchronized { counter += 1; counter }
+}

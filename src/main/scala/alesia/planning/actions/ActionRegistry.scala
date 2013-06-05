@@ -6,8 +6,8 @@ import sessl.util.ReflectionHelper
 import sessl.util.Logging
 
 /**
- * Registry for all specified actions. Loads these by scanning the classpath once it is called for the first time, via reflection.
- * Can be configured to scan various (super-) packages via the Jave property <code>alesia.planning.actions.packages</code>,
+ * Registry for all specified actions. Loads these by scanning the class path once it is called for the first time, via reflection.
+ * Can be configured to scan various (super-) packages via the Java property <code>alesia.planning.actions.packages</code>,
  * which expects a comma-separated list of package names.
  *
  * @author Roland Ewald
@@ -54,7 +54,7 @@ object ActionRegistry extends Logging {
   }
 
   /**
-   * Load all action specifications to be found in the current classpath.
+   * Load all action specifications to be found in the current class path.
    * @param packages names of packages that may contain (also includes all of their sub-packages)
    * @return list of available action specifications
    */

@@ -61,20 +61,18 @@ class DefaultPlanningPreparator extends PlanningPreparator {
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
     val declaredActions = allDeclaredActions.flatMap(_._2)
 
-    val publicLiterals = declaredActions.flatMap(s => s.effect.publicLiterals ++ s.preCondition.publicLiterals)
-    publicLiterals.foreach(addVariable)
-
-    //TODO: Define variables
-    val domainEntities = spec._1
-
-    println(domainEntities)
+    //Define variables
+    declaredActions.flatMap(_.literals).foreach(addVariable)
 
     //TODO: Define actions on variables, and new instances of action-specific variables
-
     println(declaredActions)
 
     //TODO: Define goal state 
     val hypothesis = spec._3
+
+    //TODO: set up context
+    val domainEntities = spec._1
+    println(domainEntities)
 
     val hypothesisElements = extractHypothesisElements(spec._3)
 

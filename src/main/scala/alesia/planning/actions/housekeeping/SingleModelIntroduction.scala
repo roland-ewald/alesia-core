@@ -45,8 +45,8 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
 
   override def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
     if (spec._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).isEmpty) {
-      Seq(SimpleActionDeclaration(shortActionName, preCondition = !PrivateLiteral("depleted"),
-        effect = PrivateLiteral("depleted") or PublicLiteral("loadedModel")))
+      Seq(SimpleActionDeclaration(shortActionName, !PrivateLiteral("depleted"),
+        PrivateLiteral("depleted") or PublicLiteral("loadedModel")))
     } else
       Seq()
   }
