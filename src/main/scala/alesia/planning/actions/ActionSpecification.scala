@@ -29,6 +29,9 @@ trait ActionSpecification {
   /** Short name of the action. */
   def shortName: String
 
+  /** Default part of action names is short name without whitespace. */
+  def shortActionName = shortName.replaceAll("\\s", "")
+
   /** Description of the action. */
   def description: String
 
@@ -45,18 +48,14 @@ trait ActionSpecification {
 
 }
 
+/** Declares an action. */
 trait ActionDeclaration {
   def name: String
-  def variables: Seq[String]
+  def variables: Seq[String] = (preCondition.literals ++ effect.literals).map(_.name)
   def preCondition: ActionFormula
   def effect: ActionFormula
 }
 
-case class SimpleActionDeclaration(name: String, variables: Seq[String]) extends ActionDeclaration {
-
-  //TODO: finish this
-  
-  override def preCondition = TrueFormula
-  
-  override def effect = TrueFormula
-}
+/** Straight-forward action declaration. */
+case class SimpleActionDeclaration(name: String, 
+  preCondition: ActionFormula = TrueFormula, effect: ActionFormula = TrueFormula) extends ActionDeclaration

@@ -1,5 +1,9 @@
 package alesia.query
 
+/**
+ * Types for a small DSL to formulate hypotheses.
+ */
+
 /** Representations of quantities, e.g. '30%' or '5'. */
 trait QuantitySpecification
 

@@ -23,6 +23,9 @@ sealed trait ActionFormula {
 
   /** Declared private literals. */
   def privateLiterals = ActionFormula.literals[PrivateLiteral](this)
+  
+  /**  All declared literals. */
+  def literals = publicLiterals ++ privateLiterals
 }
 
 object ActionFormula {

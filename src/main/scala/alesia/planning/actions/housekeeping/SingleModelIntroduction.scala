@@ -15,6 +15,7 @@ import alesia.query.SingleModel
 
 /**
  * Action to introduce a single model.
+ *
  * @author Roland Ewald
  */
 case class SingleModelIntroduction(val url: String) extends ModelIntroduction {
@@ -43,14 +44,13 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
   override def description = "Loads a single model"
 
   override def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
-    //TODO: Extend as described
-
     if (spec._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).isEmpty) {
-      Seq(SimpleActionDeclaration("a", Seq())) //TODO
+      Seq(SimpleActionDeclaration(shortActionName, preCondition = !PrivateLiteral("depleted"),
+        effect = PrivateLiteral("depleted") or PublicLiteral("loadedModel")))
     } else
       Seq()
   }
 
-  override def createAction(logicalName: String, c: ExecutionContext) = new SingleModelIntroduction("dfsdfdsf")
+  override def createAction(logicalName: String, c: ExecutionContext) = new SingleModelIntroduction("todo") //TODO
 
 }

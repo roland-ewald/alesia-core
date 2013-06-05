@@ -112,9 +112,14 @@ class DefaultPlanningPreparator extends PlanningPreparator {
 
 object DefaultPlanningPreparator extends Logging {
 
+  /** The maximal number of rounds before action creation is aborted. */
   val maxRounds = 100
 
   /**
+   * Creates a set of actions by repeatedly querying all action specification with the current number of
+   * available actions and asking them to create additional ones. If no new actions are created (a fixed point),
+   * the algorithm stops.
+   *
    * @param spec the user specification
    */
   def retrieveDeclaredActions(spec: UserSpecification): AllDeclaredActions = {

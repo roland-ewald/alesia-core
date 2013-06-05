@@ -56,8 +56,6 @@ class TestDefaultPlanningPreparator extends FunSpec {
 
       Assert.assertNotNull(context)
       Assert.assertNotNull(problem)
-      //TODO: finish this
-      pending
     }
   }
 }
