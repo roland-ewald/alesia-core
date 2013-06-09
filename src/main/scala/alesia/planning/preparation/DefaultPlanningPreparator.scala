@@ -25,7 +25,7 @@ import sessl.util.Logging
  *
  * @author Roland Ewald
  */
-class DefaultPlanningPreparator extends PlanningPreparator {
+class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
   /** Refers to a single 'atomic' predicate relation (and to which subject and quantifier it relates). */
   type HypothesisElement = (Quantifier, PredicateSubject, PredicateRelation)
@@ -64,11 +64,7 @@ class DefaultPlanningPreparator extends PlanningPreparator {
     //Define variables
     declaredActions.flatMap(_.literals).foreach(addVariable)
 
-    //TODO: Define actions on variables, and new instances of action-specific variables
-    println(declaredActions)
-
-    //TODO: Define goal state 
-    val hypothesis = spec._3
+    logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActions.mkString("\n")}")
 
     //TODO: set up context
     val domainEntities = spec._1
@@ -79,26 +75,32 @@ class DefaultPlanningPreparator extends PlanningPreparator {
     // TODO: Make custom class out of this
     val problem = new PlanningProblem() {
 
+      //Declare all variables
       val functionByName = varNames.map { varName =>
         (varName, v(varName))
       }.toMap
 
-      val initialState = FalseVariable
-      val goalState = FalseVariable
+      //TODO: Define actions on variables, and new instances of action-specific variables
 
+      val initialState = FalseVariable //TODO
+
+      val hypothesis = spec._3
+      val goalState = FalseVariable //TODO
+
+      /** For debugging and logging. */
       lazy val detailedDescription: String = {
         val rv = new StringBuilder
         rv.append("Variables:\n")
         for (varNum <- nextStateVarNums.keySet.toList.sorted)
-          rv.append(variableNames.get(varNum).getOrElse("Error in variable numbering") + "\n")
+          rv.append(s"#$varNum: ${variableNames.get(varNum).getOrElse("Error in variable numbering")}\n")
+
+        rv.append("\nFunctions (by name):\n")
+        functionByName.foreach(entry => rv.append(s"${entry._1}: ${entry._2}\n"))
         rv.toString
       }
     }
 
-    //TODO: full description of planning problem should be logged 
-    println(problem.detailedDescription)
-    println(problem.functionByName)
-
+    logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
     (problem, new SimpleExecutionContext(spec._2))
   }
 
