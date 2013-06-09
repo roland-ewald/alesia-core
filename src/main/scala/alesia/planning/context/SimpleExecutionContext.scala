@@ -1,6 +1,7 @@
 package alesia.planning.context
 
 import alesia.query.UserPreference
+import alesia.query.UserDomainEntity
 
 /**
  * Simple implementation of the system's execution context.
@@ -9,6 +10,4 @@ import alesia.query.UserPreference
  *
  * @author Roland Ewald
  */
-class SimpleExecutionContext(val preferences: Seq[UserPreference]) extends ExecutionContext {
-
-}
+class SimpleExecutionContext(val entities: Seq[UserDomainEntity], val preferences: Seq[UserPreference]) extends ExecutionContext

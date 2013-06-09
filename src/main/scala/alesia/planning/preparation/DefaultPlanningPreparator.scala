@@ -66,26 +66,26 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
     logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActions.mkString("\n")}")
 
-    //TODO: set up context
-    val domainEntities = spec._1
-    println(domainEntities)
-
     val hypothesisElements = extractHypothesisElements(spec._3)
 
     // TODO: Make custom class out of this
     val problem = new PlanningProblem() {
 
-      //Declare all variables
+      // Declare all variables
       val functionByName = varNames.map { varName =>
         (varName, v(varName))
       }.toMap
 
-      //TODO: Define actions on variables, and new instances of action-specific variables
+      // Declare all actions TODO: Define actions on variables, and new instances of action-specific variables
 
-      val initialState = FalseVariable //TODO
+      val initialState = { //TODO
+        FalseVariable
+      }
 
-      val hypothesis = spec._3
-      val goalState = FalseVariable //TODO
+      val goalState = { //TODO
+        val hypothesis = spec._3
+        FalseVariable
+      }
 
       /** For debugging and logging. */
       lazy val detailedDescription: String = {
@@ -101,7 +101,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     }
 
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
-    (problem, new SimpleExecutionContext(spec._2))
+    (problem, new SimpleExecutionContext(spec._1, spec._2))
   }
 
   /** Extracts single hypothesis elements. */

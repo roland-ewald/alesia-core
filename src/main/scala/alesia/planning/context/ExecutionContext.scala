@@ -1,5 +1,6 @@
 package alesia.planning.context
 
+import alesia.query.UserDomainEntity
 import alesia.query.UserPreference
 
 /**
@@ -17,10 +18,17 @@ trait ExecutionContext {
    * @return user preferences
    */
   def preferences: Seq[UserPreference]
+  
+  /**
+   * The available domain entities.
+   * @return domain entities
+   */
+  def entities: Seq[UserDomainEntity]
 
 }
 
 /** Empty execution context (for testing purposes). */
 case object EmptyExecutionContext extends ExecutionContext {
    override def preferences = Seq()
+   override def entities = Seq()
 }
