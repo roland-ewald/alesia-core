@@ -56,27 +56,33 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     variableNames += l.name
   }
 
+  /** Adds an action to the planning domain. */
+  private[this] def addAction(a: ActionDeclaration) = {
+    associateEntityWithName(a, a.name)
+    actionNames += a.name
+  }
+
   override def preparePlanning(spec: UserSpecification): (PlanningProblem, ExecutionContext) = {
 
+    //Retrieve suitable actions
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
     val declaredActions = allDeclaredActions.flatMap(_._2)
-
-    //Define variables
-    declaredActions.flatMap(_.literals).foreach(addVariable)
-
     logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActions.mkString("\n")}")
-
-    val hypothesisElements = extractHypothesisElements(spec._3)
 
     // TODO: Make custom class out of this
     val problem = new PlanningProblem() {
 
-      // Declare all variables
-      val functionByName = varNames.map { varName =>
-        (varName, v(varName))
-      }.toMap
+      // Declare variables
+      val functionByName = declaredActions.flatMap(_.literals).map { lit =>
+        addVariable(lit)
+        (lit.name, v(lit.name))
+      }
 
-      // Declare all actions TODO: Define actions on variables, and new instances of action-specific variables
+      // Declare actions 
+      val actionByName = declaredActions.map { a => //TODO
+        addAction(a)
+        println(a)
+      }
 
       val initialState = { //TODO
         FalseVariable
@@ -84,6 +90,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
       val goalState = { //TODO
         val hypothesis = spec._3
+        val hypothesisElements = extractHypothesisElements(hypothesis)
         FalseVariable
       }
 
