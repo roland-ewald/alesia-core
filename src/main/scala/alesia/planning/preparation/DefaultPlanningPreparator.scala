@@ -107,6 +107,8 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       }
     }
 
+    import scala.language.reflectiveCalls
+    
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
     (problem, new SimpleExecutionContext(spec._1, spec._2))
   }
