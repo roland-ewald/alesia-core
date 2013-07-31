@@ -10,7 +10,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<scala.version>2.10.1</scala.version>
+		<scala.version>2.10.2</scala.version>
 	</properties>
 
 	<repositories>
@@ -67,11 +67,6 @@
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
 			<version>0.9.9-RC1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.sessl</groupId>
-			<artifactId>sessl-james</artifactId>
-			<version>0.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>alesia</groupId>
