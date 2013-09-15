@@ -9,7 +9,7 @@ import alesia.planning.actions.AllDeclaredActions
 import alesia.planning.actions.PrivateLiteral
 import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
-import alesia.query.UserSpecification
+import alesia.query.ProblemSpecification
 import alesia.planning.actions.SimpleActionDeclaration
 import alesia.query.SingleModel
 
@@ -43,7 +43,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
 
   override def description = "Loads a single model"
 
-  override def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
+  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
     if (spec._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).isEmpty) {
       Seq(SimpleActionDeclaration(shortActionName, !PrivateLiteral("depleted"),
         PrivateLiteral("depleted") or PublicLiteral("loadedModel")))

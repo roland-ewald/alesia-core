@@ -9,7 +9,7 @@ import alesia.planning.actions.Action
 import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
-import alesia.query.UserSpecification
+import alesia.query.ProblemSpecification
 import alesia.planning.actions.TrueFormula
 import alesia.planning.actions.ActionDeclaration
 import alesia.planning.actions.AllDeclaredActions
@@ -61,5 +61,5 @@ object TestActionSpecification extends ActionSpecification {
 
   override def description = "If you see this in production, remove the test-jars from the classpath."
 
-  override def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = Seq()
+  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = Seq()
 }

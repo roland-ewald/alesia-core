@@ -13,15 +13,13 @@ import alesia.query.PredicateRelation
 import alesia.query.PredicateSubject
 import alesia.query.Quantifier
 import alesia.query.UserHypothesis
-import alesia.query.UserSpecification
+import alesia.query.ProblemSpecification
 import sessl.util.Logging
 
 /**
- * Default plan preparation implementation.
+ * Default [[PlanPreparator]] implementation.
  *
- * TODO: Variable names should be mapped to elements of the context, actions should be mapped to their specifications (so that executable actions can be created easily)
- *
- * @see PlanPreparator
+ * TODO: Variable names should be mapped to elements of the context.
  *
  * @author Roland Ewald
  */
@@ -39,6 +37,9 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
   private[this] var variableNames = ListBuffer[String]()
 
   private[this] var actionNames = ListBuffer[String]()
+
+  /** Maps actions to their specifications. so that executable actions can be created easily. */
+  private[this] val actionSpecifications = scala.collection.mutable.Map[ActionDeclaration, ActionSpecification]()
 
   lazy val varNames = variableNames.toList
 
@@ -62,12 +63,15 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     actionNames += a.name
   }
 
-  override def preparePlanning(spec: UserSpecification): (PlanningProblem, ExecutionContext) = {
+  override def preparePlanning(spec: ProblemSpecification): (PlanningProblem, ExecutionContext) = {
 
     //Retrieve suitable actions
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
+
     val declaredActions = allDeclaredActions.flatMap(_._2)
-    logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActions.mkString("\n")}")
+    for (actionSpec <- allDeclaredActions; declaredAction <- actionSpec._2)
+      actionSpecifications(declaredAction) = actionSpec._1
+    logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActions.mkString("\n")}, for ${allDeclaredActions.size} specifications.")
 
     // TODO: Make custom class out of this
     val problem = new PlanningProblem() {
@@ -81,7 +85,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       // Declare actions 
       val actionByName = declaredActions.map { a => //TODO
         addAction(a)
-        println(a)
+        logger.info(s"Added action to planning problem: ${a}")
       }
 
       val initialState = { //TODO
@@ -108,7 +112,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     }
 
     import scala.language.reflectiveCalls
-    
+
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
     (problem, new SimpleExecutionContext(spec._1, spec._2))
   }
@@ -129,9 +133,9 @@ object DefaultPlanningPreparator extends Logging {
    * available actions and asking them to create additional ones. If no new actions are created (a fixed point),
    * the algorithm stops.
    *
-   * @param spec the user specification
+   * @param spec the problem specification
    */
-  def retrieveDeclaredActions(spec: UserSpecification): AllDeclaredActions = {
+  def retrieveDeclaredActions(spec: ProblemSpecification): AllDeclaredActions = {
 
     val actionSpecs = ActionRegistry.actionSpecifications
     val declaredActions = scala.collection.mutable.Map[ActionSpecification, Seq[ActionDeclaration]]()

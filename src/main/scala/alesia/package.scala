@@ -2,7 +2,7 @@ import alesia.planning.execution.PlanExecutor
 import alesia.planning.planners.Planner
 import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.preparation.PlanningPreparator
-import alesia.query.UserSpecification
+import alesia.query.ProblemSpecification
 
 /**
  * General type definitions and methods.
@@ -12,7 +12,7 @@ import alesia.query.UserSpecification
 package object alesia {
 
   /** Major execution sequence. */
-  def run(prep: PlanningPreparator, planner: Planner, executor: PlanExecutor, spec: UserSpecification): PlanExecutionResult = {
+  def run(prep: PlanningPreparator, planner: Planner, executor: PlanExecutor, spec: ProblemSpecification): PlanExecutionResult = {
     val (problem, context) = prep.preparePlanning(spec)
     val plan = planner.plan(problem)
     executor.execute(plan, context)

@@ -13,6 +13,6 @@ import alesia.planning.plans.PlanExecutionResult
  */
 class DefaultPlanExecutor extends PlanExecutor {
 
-  def execute(plan: Plan, context: ExecutionContext): PlanExecutionResult = { null }
+  def execute(plan: Plan, context: ExecutionContext): PlanExecutionResult = ???
 
 }

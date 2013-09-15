@@ -1,7 +1,7 @@
 package alesia.planning.actions
 
 import alesia.planning.context.ExecutionContext
-import alesia.query.UserSpecification
+import alesia.query.ProblemSpecification
 
 /**
  * An action in the planning domain can be executed multiple times, while an action
@@ -40,11 +40,11 @@ trait ActionSpecification {
    * Since some action specifications may need to 'react' on the declaration of other actions by declaring additional actions, this method is called
    * repeatedly and only *newly* declared actions should be returned.
    *
-   * @param spec user specification
+   * @param spec problem specification
    * @param declaredActions holds action declarations that
    * @return *newly* declared actions
    */
-  def declareConcreteActions(spec: UserSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration]
+  def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration]
 
 }
 

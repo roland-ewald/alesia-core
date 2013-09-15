@@ -1,12 +1,12 @@
 package alesia.planning.preparation
 
-import alesia.query.UserSpecification
+import alesia.query.ProblemSpecification
 import alesia.planning.PlanningProblem
 import alesia.planning.context.ExecutionContext
 
 /**
- * Creates a suitable planning problem (and a context with which to start) from a user-defined hypothesis.
- * While the context is created to contain all implementation-specific data, the logical structure of the
+ * Creates a suitable [[PlanningProblem]] (and an [[ExecutionContext]] with which to start it) from a user-defined [[ProblemSpecification]].
+ * While the [[ExecutionContext]] is created to contain all implementation-specific data, the logical structure of the
  * planning problem is defined by the available actions.
  *
  * @see alesia.query
@@ -15,6 +15,10 @@ import alesia.planning.context.ExecutionContext
  */
 trait PlanningPreparator {
 
-  def preparePlanning(h: UserSpecification): (PlanningProblem, ExecutionContext)
+  /**
+   * Prepare the planning step by creating [[PlanningProblem]] and [[ExecutionContext]] instances for the problem specification
+   * @param spec the problem specification
+   */
+  def preparePlanning(spec: ProblemSpecification): (PlanningProblem, ExecutionContext)
 
 }
