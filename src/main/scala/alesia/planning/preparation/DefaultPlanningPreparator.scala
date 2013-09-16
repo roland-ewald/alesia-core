@@ -1,21 +1,21 @@
 package alesia.planning.preparation
 
-import scala.collection.mutable.ListBuffer
 import alesia.planning.PlanningProblem
 import alesia.planning.actions.ActionDeclaration
-import alesia.planning.actions.AllDeclaredActions
 import alesia.planning.actions.ActionRegistry
 import alesia.planning.actions.ActionSpecification
 import alesia.planning.actions.Literal
+import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
 import alesia.planning.context.SimpleExecutionContext
 import alesia.query.PredicateRelation
 import alesia.query.PredicateSubject
 import alesia.query.Quantifier
 import alesia.query.UserHypothesis
-import alesia.query.ProblemSpecification
+import alesia.query.exists
 import sessl.util.Logging
-import alesia.planning.actions.PublicLiteral
+import alesia.planning.actions.AllDeclaredActions
+import alesia.query.ProblemSpecification
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -69,11 +69,11 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     val problem = new PlanningProblem() {
 
       private[this] var variablesByName = scala.collection.mutable.Map[String, PlanningDomainFunction]()
-      
+
       // Declare variables
       val functionByName = declaredActions.flatMap(_.literals).map { lit =>
         (lit.name, addVariable(lit))
-      }
+      }.toMap
 
       // Declare actions 
       val actionByName = declaredActions.map { a =>
@@ -89,7 +89,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
         val newVarDomainFunctions =
           for (newV <- newVariables) yield {
-            val newVar = addVariable(PublicLiteral(newV._1))            
+            val newVar = addVariable(newV._1)
             if (newV._2) newVar else !newVar
           }
 
@@ -100,11 +100,10 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       }
 
       //Set up goal state
-      val goalState = { //TODO
+      val goalState = {
         val hypothesis = spec._3
         val hypothesisElements = extractHypothesisElements(hypothesis)
-        println(hypothesisElements)
-        FalseVariable
+        hypothesisElements.map(interpretHypothesisElement).foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
       }
 
       /** For debugging and logging. */
@@ -116,8 +115,32 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
         rv.append("\nFunctions (by name):\n")
         functionByName.foreach(entry => rv.append(s"${entry._1}: ${entry._2}\n"))
+        rv.append("\n Goal: " + table.structureOf(goalState, variableNames))
         rv.toString
       }
+
+      //TODO: Generalize this
+      private[this] def interpretHypothesisElement(h: HypothesisElement): PlanningDomainFunction = h._1 match {
+        case alesia.query.exists => h._2 match {
+          case alesia.query.model => convertModelRelation("loadedModel", h._3)
+          case alesia.query.model(pattern) => restrictModelToPattern(pattern) and convertModelRelation("loadedModel", h._3)
+          case _ => ???
+        }
+        case _ => ???
+      }
+
+      //TODO: Move to dedicated converter, resolve fixation on 'loadedModel'
+      private[this] def convertModelRelation(model: String, p: PredicateRelation): PlanningDomainFunction = p match {
+        case alesia.query.Conjunction(l, r) => convertModelRelation(model, l) and convertModelRelation(model, r)
+        case alesia.query.Disjunction(l, r) => convertModelRelation(model, l) or convertModelRelation(model, r)
+        case alesia.query.Negation(r) => !convertModelRelation(model, r)
+        case alesia.query.hasProperty(prop) => addVariable(s"${prop}(loadedModel)")
+        case alesia.query.hasAttributeValue(a, v) => addVariable("${a}(loadedModel, ${v})")
+      }
+
+      private[this] def restrictModelToPattern(pattern: String): PlanningDomainFunction = ???
+
+      private[this] def addVariable(s: String): PlanningDomainFunction = addVariable(PublicLiteral(s))
 
       /**
        * Adds a variable to the planning domain.
