@@ -46,7 +46,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   private val qss = PublicLiteral("qss(loadedModel)")
 
-  override def preCondition: ActionFormula = PublicLiteral("loadedModel") and PublicLiteral("loadedSimulator")
+  override def preCondition: ActionFormula = PublicLiteral("loadedModel") //TODO: and PublicLiteral("loadedSimulator")
 
   override def effect: ActionFormula = qss or !qss
 

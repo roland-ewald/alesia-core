@@ -33,37 +33,24 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
   private[this] var nameForEntity = scala.collection.mutable.Map[Any, String]()
 
   /** For each name in the planning domain, corresponding variable/action.*/
-  private[this] var entityForName = scala.collection.mutable.Map[String, Seq[Any]]()
+  private[this] var entityForName = scala.collection.mutable.Map[String, Any]()
 
-  private[this] var variableNames = ListBuffer[String]()
+  private[this] var addedVariableNames = scala.collection.mutable.Set[String]()
 
-  private[this] var actionNames = ListBuffer[String]()
+  private[this] var addedActionNames = scala.collection.mutable.Set[String]()
 
   /** Maps actions to their specifications. so that executable actions can be created easily. */
   private[this] val actionSpecifications = scala.collection.mutable.Map[ActionDeclaration, ActionSpecification]()
 
-  lazy val varNames = variableNames.toList
+  lazy val varNames = addedVariableNames.toList
 
-  lazy val actNames = actionNames.toList
+  lazy val actNames = addedActionNames.toList
 
   /** Associate a name in the planning domain with an entity (holding meta-data etc).*/
-  private[this] def associateEntityWithName(a: Any, n: String) = {
-    require(!nameForEntity.isDefinedAt(a) || (n == nameForEntity(a)),
-      s"Entity names must be unique, but ${a} is associated with both ${n} and ${nameForEntity(a)}")
+  private[this] def associateEntityWithName(a: Any, n: String): Unit = {
+    require(!nameForEntity.isDefinedAt(a), s"Entity names must be unique, but ${a} is associated with both ${n} and ${nameForEntity(a)}")
     nameForEntity(a) = n
-    entityForName(n) = entityForName.getOrElse(n, Seq()) :+ a
-  }
-
-  /** Adds a variable to the planning domain. */
-  private[this] def addVariable(l: Literal) = {
-    associateEntityWithName(l, l.name)
-    variableNames += l.name
-  }
-
-  /** Adds an action to the planning domain. */
-  private[this] def addAction(a: ActionDeclaration) = {
-    associateEntityWithName(a, a.name)
-    actionNames += a.name
+    entityForName(n) = a
   }
 
   override def preparePlanning(spec: ProblemSpecification): (PlanningProblem, ExecutionContext) = {
@@ -76,13 +63,16 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       actionSpecifications(declaredAction) = actionSpec._1
     logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActions.mkString("\n")}, for ${allDeclaredActions.size} specifications.")
 
+    val preparator = this
+
     // TODO: Make custom class out of this
     val problem = new PlanningProblem() {
 
+      private[this] var variablesByName = scala.collection.mutable.Map[String, PlanningDomainFunction]()
+      
       // Declare variables
       val functionByName = declaredActions.flatMap(_.literals).map { lit =>
-        addVariable(lit)
-        (lit.name, v(lit.name))
+        (lit.name, addVariable(lit))
       }
 
       // Declare actions 
@@ -99,8 +89,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
         val newVarDomainFunctions =
           for (newV <- newVariables) yield {
-            addVariable(PublicLiteral(newV._1))
-            val newVar = v(newV._1)
+            val newVar = addVariable(PublicLiteral(newV._1))            
             if (newV._2) newVar else !newVar
           }
 
@@ -129,6 +118,26 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         functionByName.foreach(entry => rv.append(s"${entry._1}: ${entry._2}\n"))
         rv.toString
       }
+
+      /**
+       * Adds a variable to the planning domain.
+       *  @return true whether this is a new variable, otherwise false
+       */
+      private[this] def addVariable(l: Literal): PlanningDomainFunction = {
+        variablesByName.getOrElseUpdate(l.name, {
+          addedVariableNames += l.name
+          val variable = v(l.name)
+          associateEntityWithName(variable, l.name)
+          variable
+        })
+      }
+
+      /** Adds an action to the planning domain. */
+      private[this] def addAction(a: ActionDeclaration) = {
+        addedActionNames += a.name
+        associateEntityWithName(a, a.name)
+      }
+
     }
 
     import scala.language.reflectiveCalls
