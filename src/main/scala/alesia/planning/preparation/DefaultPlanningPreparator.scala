@@ -33,7 +33,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
   private[this] var nameForEntity = scala.collection.mutable.Map[Any, String]()
 
   /** For each name in the planning domain, corresponding variable/action.*/
-  private[this] var entityForName = scala.collection.mutable.Map[String, Any]()
+  private[this] var entityForName = scala.collection.mutable.Map[String, Seq[Any]]()
 
   private[this] var variableNames = ListBuffer[String]()
 
@@ -48,9 +48,10 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
   /** Associate a name in the planning domain with an entity (holding meta-data etc).*/
   private[this] def associateEntityWithName(a: Any, n: String) = {
-    require(!entityForName.isDefinedAt(n), s"Entity names must be unique, but ${n} is associated with both ${a} and ${entityForName(n)}")
+    require(!nameForEntity.isDefinedAt(a) || (n == nameForEntity(a)),
+      s"Entity names must be unique, but ${a} is associated with both ${n} and ${nameForEntity(a)}")
     nameForEntity(a) = n
-    entityForName(n) = a
+    entityForName(n) = entityForName.getOrElse(n, Seq()) :+ a
   }
 
   /** Adds a variable to the planning domain. */
@@ -90,6 +91,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         logger.info(s"Added action to planning problem: ${a}")
       }
 
+      // Set up initial state
       val initialState = {
         val newVariables =
           (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
@@ -98,18 +100,21 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         val newVarDomainFunctions =
           for (newV <- newVariables) yield {
             addVariable(PublicLiteral(newV._1))
-            val f = v(newV._1)
-            if (newV._2) f else !f
+            val newVar = v(newV._1)
+            if (newV._2) newVar else !newVar
           }
 
         if (newVarDomainFunctions.isEmpty)
           FalseVariable
-        else newVarDomainFunctions.foldLeft(TrueVariable:PlanningDomainFunction)(_ and _)
+        else
+          newVarDomainFunctions.foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
       }
 
+      //Set up goal state
       val goalState = { //TODO
         val hypothesis = spec._3
         val hypothesisElements = extractHypothesisElements(hypothesis)
+        println(hypothesisElements)
         FalseVariable
       }
 
