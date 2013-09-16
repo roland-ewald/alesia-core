@@ -21,6 +21,7 @@ import alesia.query.ProblemSpecification
  * Default [[PlanPreparator]] implementation.
  *
  * TODO: Variable names should be mapped to elements of the context.
+ * TODO: Clean up, refactor, and document the preparation.
  *
  * @author Roland Ewald
  */
@@ -71,9 +72,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       private[this] var variablesByName = scala.collection.mutable.Map[String, PlanningDomainFunction]()
 
       // Declare variables
-      val functionByName = declaredActions.flatMap(_.literals).map { lit =>
-        (lit.name, addVariable(lit))
-      }.toMap
+      val functionByName = declaredActions.flatMap(_.literals).map(x => (x.name, addVariable(x))).toMap
 
       // Declare actions 
       val actionByName = declaredActions.map { a =>
@@ -149,16 +148,18 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       private[this] def addVariable(l: Literal): PlanningDomainFunction = {
         variablesByName.getOrElseUpdate(l.name, {
           addedVariableNames += l.name
-          val variable = v(l.name)
-          associateEntityWithName(variable, l.name)
-          variable
+          val newVariable = v(l.name)
+          associateEntityWithName(newVariable, l.name)
+          newVariable
         })
       }
 
       /** Adds an action to the planning domain. */
-      private[this] def addAction(a: ActionDeclaration) = {
+      private[this] def addAction(a: ActionDeclaration): DomainAction= {
         addedActionNames += a.name
-        associateEntityWithName(a, a.name)
+        val newAction = action(a.name, null, null) //FIXME: a.preCondition, a.effect need to be converted 
+        associateEntityWithName(newAction, a.name)
+        newAction
       }
 
     }

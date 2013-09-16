@@ -43,7 +43,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       case Strong => planWeakOrStrong(problem, strongPreImage)
       case StrongCyclic => planStrongCyclic(problem)
       case Weak => planWeakOrStrong(problem, weakPreImage)
-      case _ => throw new UnsupportedOperationException
+      case _ => ???
     }
   }
 

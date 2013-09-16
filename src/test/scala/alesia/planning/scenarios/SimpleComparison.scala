@@ -20,7 +20,7 @@ class SimpleComparison extends FunSpec {
 
       import alesia.query._
 
-//      pending
+      pending
 
       val execResults = submit {
         SingleModel("java://examples.sr.LinearChainSystem")
