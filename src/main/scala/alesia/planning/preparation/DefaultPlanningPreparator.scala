@@ -15,6 +15,7 @@ import alesia.query.Quantifier
 import alesia.query.UserHypothesis
 import alesia.query.ProblemSpecification
 import sessl.util.Logging
+import alesia.planning.actions.PublicLiteral
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -47,6 +48,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
   /** Associate a name in the planning domain with an entity (holding meta-data etc).*/
   private[this] def associateEntityWithName(a: Any, n: String) = {
+    require(!entityForName.isDefinedAt(n), s"Entity names must be unique, but ${n} is associated with both ${a} and ${entityForName(n)}")
     nameForEntity(a) = n
     entityForName(n) = a
   }
@@ -83,13 +85,26 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       }
 
       // Declare actions 
-      val actionByName = declaredActions.map { a => //TODO
+      val actionByName = declaredActions.map { a =>
         addAction(a)
         logger.info(s"Added action to planning problem: ${a}")
       }
 
-      val initialState = { //TODO
-        FalseVariable
+      val initialState = {
+        val newVariables =
+          (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
+            yield userDomainEntity.planningDomainRepresentation(this)).flatten
+
+        val newVarDomainFunctions =
+          for (newV <- newVariables) yield {
+            addVariable(PublicLiteral(newV._1))
+            val f = v(newV._1)
+            if (newV._2) f else !f
+          }
+
+        if (newVarDomainFunctions.isEmpty)
+          FalseVariable
+        else newVarDomainFunctions.foldLeft(TrueVariable:PlanningDomainFunction)(_ and _)
       }
 
       val goalState = { //TODO
