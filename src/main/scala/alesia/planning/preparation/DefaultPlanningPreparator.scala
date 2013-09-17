@@ -164,19 +164,16 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
           case Conjunction(l, r) => convertFormula(l) and convertFormula(r)
           case Disjunction(l, r) => convertFormula(l) or convertFormula(r)
           case Negation(r) => !convertFormula(r)
-          case PublicLiteral(l) => addVariable(l)
-          case PrivateLiteral(l) => addVariable(l)
+          case l:Literal => addVariable(l)
           case FalseFormula => FalseVariable
           case TrueFormula => TrueVariable
         }
-
-        def convertEffect(a: Seq[ActionEffect]): Effect = {
-          
-          ???
-        }
+        
+        def convertEffect(as: Seq[ActionEffect]): Seq[Effect] = 
+          as.map(a => Effect(convertFormula(a.condition), a.add.map(addVariable), a.del.map(addVariable), a.nondeterministic))
 
         addedActionNames += a.name
-        val newAction = action(a.name, convertFormula(a.preCondition), convertEffect(a.effect))
+        val newAction = action(a.name, convertFormula(a.preCondition), convertEffect(a.effect):_*)
         associateEntityWithName(newAction, a.name)
         newAction
       }

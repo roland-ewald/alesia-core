@@ -139,11 +139,11 @@ class PlanningDomain extends Logging {
   object TrueVariable extends PlanningDomainFunction(1, "true")
 
   /** Represents an effect of an action. */
-  case class Effect(condition: PlanningDomainFunction = TrueVariable, add: List[PlanningDomainFunction] = List(), del: List[PlanningDomainFunction] = List(), nondeterministic: Boolean = false)(implicit t: UniqueTable) {
+  case class Effect(condition: PlanningDomainFunction = TrueVariable, add: Seq[PlanningDomainFunction] = Seq(), del: Seq[PlanningDomainFunction] = Seq(), nondeterministic: Boolean = false)(implicit t: UniqueTable) {
     import t._
     lazy val addNextState = add.map(t.substitute(_, nextStateVarNums))
     lazy val delNextState = del.map(t.substitute(_, nextStateVarNums))
-    lazy val effectConjunction = add.map(_.id) ::: del.map(f => not(f.id))
+    lazy val effectConjunction = add.map(_.id) ++ del.map(f => not(f.id))
     lazy val currentStateEffectVariables = variablesOf(effectConjunction: _*).filter(currentStateVarNums.contains)
     lazy val addVars = variablesOf(add.map(_.id): _*).toSet
     lazy val delVars = variablesOf(del.map(_.id): _*).toSet
@@ -206,7 +206,7 @@ class PlanningDomain extends Logging {
     lazy val strongPreImageStateTransition: Int = {
 
       def preImgEffect(e: Effect): Int = {
-        implies(e.condition.id, (e.addNextState ::: e.delNextState.map(not)).foldLeft(1)(and))
+        implies(e.condition.id, (e.addNextState ++ e.delNextState.map(not)).foldLeft(1)(and))
       }
 
       val detEffect = effects.filter(!_.nondeterministic).map(preImgEffect).foldLeft(precondition.id)(and)
