@@ -12,6 +12,7 @@ import alesia.planning.context.ExecutionContext
 import alesia.query.ProblemSpecification
 import alesia.planning.actions.SimpleActionDeclaration
 import alesia.query.SingleModel
+import alesia.planning.actions.ActionEffect
 
 /**
  * Action to introduce a single model.
@@ -45,8 +46,11 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
 
   override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
     if (spec._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).isEmpty) {
-      Seq(SimpleActionDeclaration(shortActionName, !PrivateLiteral("depleted"),
-        PrivateLiteral("depleted") or PublicLiteral("loadedModel")))
+      Seq(SimpleActionDeclaration(shortActionName,
+        !PrivateLiteral("depleted"),
+        Seq(
+          ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),
+          ActionEffect(del = Seq(PublicLiteral("loadedModel")), nondeterministic = true))))
     } else
       Seq()
   }

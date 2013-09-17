@@ -16,6 +16,7 @@ import alesia.query.exists
 import sessl.util.Logging
 import alesia.planning.actions.AllDeclaredActions
 import alesia.query.ProblemSpecification
+import alesia.planning.actions.ActionFormula
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -155,9 +156,27 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       }
 
       /** Adds an action to the planning domain. */
-      private[this] def addAction(a: ActionDeclaration): DomainAction= {
+      private[this] def addAction(a: ActionDeclaration): DomainAction = {
+
+        import alesia.planning.actions._
+
+        def convertFormula(a: ActionFormula): PlanningDomainFunction = a match {
+          case Conjunction(l, r) => convertFormula(l) and convertFormula(r)
+          case Disjunction(l, r) => convertFormula(l) or convertFormula(r)
+          case Negation(r) => !convertFormula(r)
+          case PublicLiteral(l) => addVariable(l)
+          case PrivateLiteral(l) => addVariable(l)
+          case FalseFormula => FalseVariable
+          case TrueFormula => TrueVariable
+        }
+
+        def convertEffect(a: Seq[ActionEffect]): Effect = {
+          
+          ???
+        }
+
         addedActionNames += a.name
-        val newAction = action(a.name, null, null) //FIXME: a.preCondition, a.effect need to be converted 
+        val newAction = action(a.name, convertFormula(a.preCondition), convertEffect(a.effect))
         associateEntityWithName(newAction, a.name)
         newAction
       }

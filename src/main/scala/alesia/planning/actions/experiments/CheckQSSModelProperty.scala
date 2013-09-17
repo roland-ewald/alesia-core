@@ -1,23 +1,20 @@
 package alesia.planning.actions.experiments
 
 import scala.language.existentials
-import sessl.util.Logging
 import alesia.bindings.ExperimentProvider
-import alesia.bindings.Simulator
-import sessl.AfterWallClockTime
-import sessl.AfterSimSteps
-import alesia.planning.domain.ParameterizedModel
 import alesia.planning.actions.ActionDeclaration
-import alesia.query.ProblemSpecification
-import alesia.planning.actions.housekeeping.SingleModelIntroduction
-import alesia.planning.actions.SimpleActionDeclaration
+import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionSpecification
 import alesia.planning.actions.PublicLiteral
-import alesia.planning.actions.AllDeclaredActions
-import alesia.planning.actions.PrivateLiteral
-import alesia.planning.actions.ActionFormula
 import alesia.planning.context.ExecutionContext
-import alesia.query.SingleModel
+import alesia.planning.domain.ParameterizedModel
+import sessl.AfterWallClockTime
+import sessl.util.Logging
+import alesia.planning.actions.AllDeclaredActions
+import alesia.query.ProblemSpecification
+import alesia.planning.actions.SimpleActionDeclaration
+import alesia.bindings.Simulator
+import alesia.planning.actions.ActionEffect
 
 /**
  * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
@@ -56,7 +53,9 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
     if (declaredActions(this).isEmpty) {
-      Seq(SimpleActionDeclaration(shortActionName, preCondition, effect))
+      Seq(SimpleActionDeclaration(shortActionName, preCondition, Seq(
+        ActionEffect(add = Seq(qss), nondeterministic = true),
+        ActionEffect(del = Seq(qss), nondeterministic = true))))
     } else
       Seq()
   }

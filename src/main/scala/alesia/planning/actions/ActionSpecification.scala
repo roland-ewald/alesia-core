@@ -48,24 +48,33 @@ trait ActionSpecification {
 
 }
 
+/**
+ * Effect to specify the results of an experiment action.
+ */
+case class ActionEffect(condition: ActionFormula = TrueFormula, add: Seq[Literal] = Seq(), del: Seq[Literal] = Seq(), nondeterministic: Boolean) {
+  lazy val publicLiterals = (add ++ del).flatMap(ActionFormula.literals[PublicLiteral](_))
+  lazy val privateLiterals = (add ++ del).flatMap(ActionFormula.literals[PrivateLiteral](_))
+  lazy val literals = publicLiterals ++ privateLiterals
+}
+
 /** Declares an action. */
 trait ActionDeclaration {
   def name: String
-  def variables: Seq[String] = (preCondition.literals ++ effect.literals).map(_.name)
+  def variables: Seq[String] = (preCondition.literals ++ effect.flatMap(_.literals)).map(_.name)
   def preCondition: ActionFormula
-  def effect: ActionFormula
-  def publicLiterals = (preCondition.publicLiterals ++ effect.publicLiterals).toSet
-  def privateLiterals = (preCondition.privateLiterals ++ effect.privateLiterals).toSet
+  def effect: Seq[ActionEffect]
+  def publicLiterals = (preCondition.publicLiterals ++ effect.flatMap(_.publicLiterals)).toSet
+  def privateLiterals = (preCondition.privateLiterals ++ effect.flatMap(_.privateLiterals)).toSet
   def literals = publicLiterals ++ privateLiterals
 }
 
 /** Straight-forward action declaration. */
-case class SimpleActionDeclaration(name: String, simplePreCondition: ActionFormula = TrueFormula, simpleEffect: ActionFormula = TrueFormula) extends ActionDeclaration {
+case class SimpleActionDeclaration(name: String, simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
 
   val myId = ActionDeclarationUtils.newId
 
   val uniquePrivateLiterals: Map[String, String] = {
-    val privateLiterals = (simplePreCondition.privateLiterals ++ simpleEffect.privateLiterals).toSet
+    val privateLiterals = (simplePreCondition.privateLiterals ++ effects.flatMap(_.privateLiterals)).toSet
     privateLiterals.map { literal =>
       (literal.name, literal.name + "_private_" + myId)
     }.toMap
@@ -73,16 +82,22 @@ case class SimpleActionDeclaration(name: String, simplePreCondition: ActionFormu
 
   val preCondition = rewrite(simplePreCondition)
 
-  val effect = rewrite(simpleEffect)
+  val effect = effects.map { e =>
+    ActionEffect(rewrite(e.condition), e.add.map(rewriteLiteral), e.del.map(rewriteLiteral), e.nondeterministic)
+  }
 
   /** Creates new formula by replacing generic private literals with literals that have unique names.*/
   def rewrite(original: ActionFormula): ActionFormula = original match {
-    case pr: PrivateLiteral => PrivateLiteral(uniquePrivateLiterals(pr.name))
-    case p: PublicLiteral => p
+    case l: Literal => rewriteLiteral(l)
     case c @ Conjunction(l, r) => Conjunction(rewrite(l), rewrite(r))
     case d @ Disjunction(l, r) => Disjunction(rewrite(l), rewrite(r))
     case n @ Negation(f) => Negation(rewrite(f))
     case x => x
+  }
+
+  def rewriteLiteral(l: Literal): Literal = l match {
+    case pr: PrivateLiteral => PrivateLiteral(uniquePrivateLiterals(pr.name))
+    case p: PublicLiteral => p
   }
 
 }
