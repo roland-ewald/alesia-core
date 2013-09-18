@@ -11,23 +11,18 @@ import alesia.planning.context.ExecutionContext
  */
 trait Plan {
 
-  /** Given the current context, decide for a sequence of actions, which might be carried out in parallel. */
-  def decide(c: ExecutionContext): Seq[ExperimentAction]
-
   /**
-   * Decide upon action(s) based on the current state. TODO: merge with above method.
-   * @return list of action indices of actions that should be tried
+   * Decide upon action(s) based on the current state.
+   * @return indices of actions that could be tried
    */
   def decide(state: Int): Iterable[Int] = throw new UnsupportedOperationException 
 }
 
 /** Trivial plan. */
-trait EmptyPlan extends Plan {
-  override def decide(c: ExecutionContext) = Seq()
-}
+trait EmptyPlan extends Plan
 
 /** Plan for a single action. */
-case class SingleActionPlan(action: ExperimentAction) extends Plan {
-  override def decide(c: ExecutionContext) = Seq(action)
+case class SingleActionPlan(action: Int) extends Plan {  
+  override def decide(state: Int) = Seq(action)
 }
 

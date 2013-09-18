@@ -13,9 +13,6 @@ import scala.annotation.tailrec
 case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends Plan {
   require(policy.stateActionTable.nonEmpty)
 
-  //TODO: Merge this with the other decision method
-  override def decide(c: ExecutionContext): Seq[ExperimentAction] = Seq()
-
   /**
    * Decides upon an action, chooses the first one of which the preconditions are fulfilled.
    * TODO: This strategy needs to be refined, otherwise one may end up within an infinite loop

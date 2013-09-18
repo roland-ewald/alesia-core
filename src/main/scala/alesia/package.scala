@@ -18,7 +18,7 @@ package object alesia {
     val plan = planner.plan(problem)
     require(!plan.isInstanceOf[EmptyPlan],
       s"Plan must not be empty. ${planner.getClass.getName} could not find a solution, please check your problem definition.")
-    executor.execute(plan, context)
+    executor.execute(problem, plan, context)
   }
 
 }

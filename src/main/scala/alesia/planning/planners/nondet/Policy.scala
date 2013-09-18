@@ -41,8 +41,6 @@ case class NonDeterministicPolicy(val problem: PlanningProblem, val stateActionT
     }
   }
 
-  override def decide(c: ExecutionContext): Seq[ExperimentAction] = throw new UnsupportedOperationException
-
   /**
    * Constructs a symbolic representation of the preconditions (as nested if statements) and the action they trigger if true.
    */

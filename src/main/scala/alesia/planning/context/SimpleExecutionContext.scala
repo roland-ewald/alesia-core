@@ -10,4 +10,7 @@ import alesia.query.UserDomainEntity
  *
  * @author Roland Ewald
  */
-class SimpleExecutionContext(val entities: Seq[UserDomainEntity], val preferences: Seq[UserPreference]) extends ExecutionContext
+class SimpleExecutionContext(val entities: Seq[UserDomainEntity], val preferences: Seq[UserPreference]) extends ExecutionContext {
+  
+  
+}
