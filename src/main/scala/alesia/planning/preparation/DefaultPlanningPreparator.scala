@@ -108,6 +108,13 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
       /** For debugging and logging. */
       lazy val detailedDescription: String = {
+
+        def describe(x: Int) = table.structureOf(x, variableNames)
+
+        def printEffectsDescription(es: Seq[Effect]): String = {
+          for (e <- es) yield s"\tif(${describe(e.condition)}): add ${e.add.map(variableNames(_)).mkString} || del ${e.del.map(variableNames(_)).mkString} || ${if (e.nondeterministic) "?"}"
+        }.mkString("\n")
+
         val rv = new StringBuilder
         rv.append("Variables:\n")
         for (varNum <- nextStateVarNums.keySet.toList.sorted)
@@ -115,7 +122,17 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
         rv.append("\nFunctions (by name):\n")
         functionByName.foreach(entry => rv.append(s"${entry._1}: ${entry._2}\n"))
-        rv.append("\n Goal: " + table.structureOf(goalState, variableNames))
+
+        rv.append(s"\nInitial state: ${describe(initialState)}\n")
+
+        rv.append("\nActions:\n")
+        for (a <- actions)
+          rv.append(s"""
+        		  		|Action '${a.name}':
+        		  	   	|- Precondition: ${table.structureOf(a.precondition, variableNames)}
+          			  	|- Effects: \n${printEffectsDescription(a.effects)}""".stripMargin)
+
+        rv.append("\n Goal: " + table.structureOf(goalState, variableNames) + "\n")
         rv.toString
       }
 
@@ -164,16 +181,16 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
           case Conjunction(l, r) => convertFormula(l) and convertFormula(r)
           case Disjunction(l, r) => convertFormula(l) or convertFormula(r)
           case Negation(r) => !convertFormula(r)
-          case l:Literal => addVariable(l)
+          case l: Literal => addVariable(l)
           case FalseFormula => FalseVariable
           case TrueFormula => TrueVariable
         }
-        
-        def convertEffect(as: Seq[ActionEffect]): Seq[Effect] = 
+
+        def convertEffect(as: Seq[ActionEffect]): Seq[Effect] =
           as.map(a => Effect(convertFormula(a.condition), a.add.map(addVariable), a.del.map(addVariable), a.nondeterministic))
 
         addedActionNames += a.name
-        val newAction = action(a.name, convertFormula(a.preCondition), convertEffect(a.effect):_*)
+        val newAction = action(a.name, convertFormula(a.preCondition), convertEffect(a.effect): _*)
         associateEntityWithName(newAction, a.name)
         newAction
       }

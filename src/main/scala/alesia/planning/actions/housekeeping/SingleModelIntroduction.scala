@@ -50,7 +50,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
         !PrivateLiteral("depleted"),
         Seq(
           ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),
-          ActionEffect(del = Seq(PublicLiteral("loadedModel")), nondeterministic = true))))
+          ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true))))
     } else
       Seq()
   }
