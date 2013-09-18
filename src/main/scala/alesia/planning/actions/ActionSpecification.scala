@@ -42,9 +42,9 @@ trait ActionSpecification {
    *
    * @param spec problem specification
    * @param declaredActions holds action declarations that
-   * @return *newly* declared actions
+   * @return *newly* declared actions, if any
    */
-  def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration]
+  def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]]
 
 }
 

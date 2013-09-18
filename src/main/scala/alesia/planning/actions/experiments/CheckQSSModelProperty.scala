@@ -51,13 +51,13 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   override def description = "Checks whether a model has a quasi-steady state (useful for performance comparisons)."
 
-  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
-    if (declaredActions(this).isEmpty) {
+  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] = {
+    if (declaredActions(this).nonEmpty)
+      None
+    else Some(
       Seq(SimpleActionDeclaration(shortActionName, preCondition, Seq(
         ActionEffect(add = Seq(qss), nondeterministic = true),
-        ActionEffect(del = Seq(qss), nondeterministic = true))))
-    } else
-      Seq()
+        ActionEffect(del = Seq(qss), nondeterministic = true)))))
   }
 
   override def createAction(logicalName: String, c: ExecutionContext) = ??? //new CheckQSSModelProperty("todo") //TODO

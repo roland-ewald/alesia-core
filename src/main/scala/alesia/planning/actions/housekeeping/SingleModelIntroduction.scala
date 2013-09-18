@@ -44,15 +44,15 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
 
   override def description = "Loads a single model"
 
-  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = {
-    if (spec._1.exists(_.isInstanceOf[SingleModel]) && declaredActions(this).isEmpty) {
-      Seq(SimpleActionDeclaration(shortActionName,
+  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] = {
+    if (!spec._1.exists(_.isInstanceOf[SingleModel]) || !declaredActions(this).isEmpty)
+      None
+    else
+      Some(Seq(SimpleActionDeclaration(shortActionName,
         !PrivateLiteral("depleted"),
         Seq(
           ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),
-          ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true))))
-    } else
-      Seq()
+          ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true)))))
   }
 
   override def createAction(logicalName: String, c: ExecutionContext) = ??? //new SingleModelIntroduction("todo")

@@ -94,7 +94,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
           }
 
         if (newVarDomainFunctions.isEmpty)
-          !addVariable("depleted_private_1") //FIXME: FalseVariable
+          FalseVariable
         else
           newVarDomainFunctions.foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
       }
@@ -234,8 +234,8 @@ object DefaultPlanningPreparator extends Logging {
       logger.debug(s"Round $counter of declared action retrieval")
       val currentActions = declaredActions.toMap
       val newActions = actionSpecs.map(x => (x, x.declareConcreteActions(spec, currentActions))).toMap
-      for (a <- newActions if a._2 != null && a._2.nonEmpty) {
-        declaredActions(a._1) = declaredActions(a._1) ++ a._2
+      for (a <- newActions; newDeclarations <- a._2) {
+        declaredActions(a._1) = declaredActions(a._1) ++ newDeclarations
         logger.debug(s"Adding action declaration $a._2 for specification $a._1")
       }
       newActionsDeclared = newActions.values.exists(_.nonEmpty)

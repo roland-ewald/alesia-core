@@ -61,5 +61,5 @@ object TestActionSpecification extends ActionSpecification {
 
   override def description = "If you see this in production, remove the test-jars from the classpath."
 
-  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Seq[ActionDeclaration] = Seq()
+  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] = None
 }
