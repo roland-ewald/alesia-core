@@ -49,12 +49,13 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
       None
     else
       Some(Seq(SimpleActionDeclaration(shortActionName,
+        Some(!PrivateLiteral("depleted")),
         !PrivateLiteral("depleted"),
         Seq(
           ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),
           ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true)))))
   }
-
+  
   override def createAction(logicalName: String, c: ExecutionContext) = ??? //new SingleModelIntroduction("todo")
 
 }

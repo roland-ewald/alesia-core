@@ -17,6 +17,7 @@ import sessl.util.Logging
 import alesia.planning.actions.AllDeclaredActions
 import alesia.query.ProblemSpecification
 import alesia.planning.actions.ActionFormula
+import alesia.planning.actions.ActionEffect
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -68,6 +69,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     val preparator = this
 
     // TODO: Make custom class out of this
+    // TODO: Check problems with duplicate creations of literals etc. 
     val problem = new PlanningProblem() {
 
       private[this] var variablesByName = scala.collection.mutable.Map[String, PlanningDomainFunction]()
@@ -93,10 +95,13 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
             if (newV._2) newVar else !newVar
           }
 
-        if (newVarDomainFunctions.isEmpty)
+        val initialStateOfActions = declaredActions.flatMap(_.initialState).map(convertFormula)        
+        val initialStateFragments = newVarDomainFunctions ++ initialStateOfActions  
+
+        if (initialStateFragments.isEmpty)
           FalseVariable
         else
-          newVarDomainFunctions.foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
+          initialStateFragments.foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
       }
 
       //Set up goal state
@@ -172,12 +177,9 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         })
       }
 
-      /** Adds an action to the planning domain. */
-      private[this] def addAction(a: ActionDeclaration): DomainAction = {
-
+      private[this] def convertFormula(a: ActionFormula): PlanningDomainFunction = {
         import alesia.planning.actions._
-
-        def convertFormula(a: ActionFormula): PlanningDomainFunction = a match {
+        a match {
           case Conjunction(l, r) => convertFormula(l) and convertFormula(r)
           case Disjunction(l, r) => convertFormula(l) or convertFormula(r)
           case Negation(r) => !convertFormula(r)
@@ -185,6 +187,10 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
           case FalseFormula => FalseVariable
           case TrueFormula => TrueVariable
         }
+      }
+
+      /** Adds an action to the planning domain. */
+      private[this] def addAction(a: ActionDeclaration): DomainAction = {
 
         def convertEffect(as: Seq[ActionEffect]): Seq[Effect] =
           as.map(a => Effect(convertFormula(a.condition), a.add.map(addVariable), a.del.map(addVariable), a.nondeterministic))
