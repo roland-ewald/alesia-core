@@ -94,7 +94,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
           }
 
         if (newVarDomainFunctions.isEmpty)
-          FalseVariable
+          !addVariable("depleted_private_1") //FIXME: FalseVariable
         else
           newVarDomainFunctions.foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
       }
