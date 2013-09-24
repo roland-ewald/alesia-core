@@ -48,7 +48,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
     if (!spec._1.exists(_.isInstanceOf[SingleModel]) || !declaredActions(this).isEmpty)
       None
     else
-      Some(Seq(SimpleActionDeclaration(shortActionName,
+      Some(Seq(SimpleActionDeclaration(this, shortActionName,
         Some(!PrivateLiteral("depleted")),
         !PrivateLiteral("depleted"),
         Seq(

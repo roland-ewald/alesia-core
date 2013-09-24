@@ -58,6 +58,8 @@ case class ActionEffect(condition: ActionFormula = TrueFormula, add: Seq[Literal
 
 /** Declares an action. */
 trait ActionDeclaration {
+
+  // Properties:
   def name: String
   def variables: Seq[String] = (preCondition.literals ++ effect.flatMap(_.literals)).map(_.name)
   def preCondition: ActionFormula
@@ -66,10 +68,15 @@ trait ActionDeclaration {
   def privateLiterals = (preCondition.privateLiterals ++ effect.flatMap(_.privateLiterals)).toSet
   def literals = publicLiterals ++ privateLiterals
   def initialState: Option[ActionFormula]
+
+  // Handling at runtime:
+  val specification: ActionSpecification
+  def toExecutableAction(c: ExecutionContext) = specification.createAction(this, c)
+
 }
 
 /** Straight-forward action declaration. */
-case class SimpleActionDeclaration(name: String, initState: Option[ActionFormula] = None, simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
+case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initState: Option[ActionFormula] = None, simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
 
   val myId = ActionDeclarationUtils.newId
 
@@ -80,12 +87,12 @@ case class SimpleActionDeclaration(name: String, initState: Option[ActionFormula
     }.toMap
   }
 
-  val preCondition = rewrite(simplePreCondition)   
+  val preCondition = rewrite(simplePreCondition)
 
   val effect = effects.map { e =>
     ActionEffect(rewrite(e.condition), e.add.map(rewriteLiteral), e.del.map(rewriteLiteral), e.nondeterministic)
   }
-  
+
   val initialState = initState.map(rewrite)
 
   /** Creates new formula by replacing generic private literals with literals that have unique names.*/

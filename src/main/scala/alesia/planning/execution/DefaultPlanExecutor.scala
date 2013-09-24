@@ -32,18 +32,23 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     var currentState = data._1.initialState
 
     //start while (execControl.notConforms(data._1.goalState))
-    
+
     val possibleActions: Iterable[Int] = data._2.decide(currentState.id)
 
     // Select action
     logger.info(s"Potential actions: ${possibleActions.mkString}")
-    require(possibleActions.nonEmpty, "Plan has no actions for state.")    //TODO: attempt repair & check its success?
-    val actionIndex = tieBreaker(possibleActions) 
-    val action = data._1.declaredActions(actionIndex)
-    
-    // Execute action
-    logger.info(s"Executing action #${actionIndex}: ${action}")
+    require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
 
+    val actionIndex = tieBreaker(possibleActions)
+    val declaredAction = data._1.declaredActions(actionIndex)
+    val planningAction = data._1.planningActions(actionIndex)
+    val executableAction = declaredAction.toExecutableAction(data._3)
+
+    // Execute action
+    logger.info(s"""Executing action #${actionIndex}:
+    				|	Declared action: ${declaredAction}
+    				|	Planning action: ${planningAction}
+    				|	Executable action: ${executableAction}""".stripMargin)
 
     ???
   }
