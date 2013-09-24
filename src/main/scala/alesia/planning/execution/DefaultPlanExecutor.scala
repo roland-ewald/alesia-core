@@ -35,19 +35,17 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     
     val possibleActions: Iterable[Int] = data._2.decide(currentState.id)
 
-    if (possibleActions.isEmpty) {
-      logger.warn(s"Plan has no actions for state")
-      throw new IllegalStateException
-      //TODO: attempt repair & check its success
-    }
+    // Select action
+    logger.info(s"Potential actions: ${possibleActions.mkString}")
+    require(possibleActions.nonEmpty, "Plan has no actions for state.")    //TODO: attempt repair & check its success?
+    val actionIndex = tieBreaker(possibleActions)
+    val action = data._1.actions(actionIndex)
+    
+    // Execute action
+    logger.info(s"Executing action #${actionIndex}: ${action}")
 
-    val pick = tieBreaker(possibleActions)
 
-    val planActions = data._1.actions(pick)
 
-    println("Planning on executing:" + planActions)
-
-    println(possibleActions.mkString)
 
     ???
   }

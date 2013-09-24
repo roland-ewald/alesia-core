@@ -56,6 +56,6 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
           ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true)))))
   }
   
-  override def createAction(logicalName: String, c: ExecutionContext) = ??? //new SingleModelIntroduction("todo")
+  override def createAction(a: ActionDeclaration, c: ExecutionContext) = ??? //new SingleModelIntroduction("todo")
 
 }

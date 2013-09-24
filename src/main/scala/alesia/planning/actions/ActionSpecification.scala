@@ -24,7 +24,7 @@ trait ActionSpecification {
   def effect: ActionFormula
 
   /** Factory method. */
-  def createAction(logicalName: String, c: ExecutionContext): Action[_]
+  def createAction(a: ActionDeclaration, c: ExecutionContext): Action[_]
 
   /** Short name of the action. */
   def shortName: String
