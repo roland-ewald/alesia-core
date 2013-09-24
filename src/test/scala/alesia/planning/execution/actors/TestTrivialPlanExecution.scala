@@ -12,6 +12,7 @@ import alesia.planning.PlanningProblem
 import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.actions.ActionDeclaration
 import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.execution.ExecutionData
 
 
 /**
@@ -34,7 +35,7 @@ class TestTrivialPlanExecution extends ExperimentationTest {
     //FIXME
     
     val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
-    val result = executor.execute((dummyProblem, SingleActionPlan(0), new LocalJamesExecutionContext(Seq(),Seq())))
+    val result = executor.execute(ExecutionData(dummyProblem, SingleActionPlan(0), new LocalJamesExecutionContext(Seq(),Seq())))
     assertNotNull(result)
   }
 

@@ -14,23 +14,36 @@ import alesia.planning.actions.SimpleActionDeclaration
 import alesia.query.SingleModel
 import alesia.planning.actions.ActionEffect
 import alesia.planning.actions.Action
+import sessl.util.Logging
 
 /**
  * Action to introduce a single model.
  *
  * @author Roland Ewald
  */
-case class SingleModelIntroduction(val url: String) extends Action {
-
-  private[this] var result: Option[File] = None
-
-  //TODO: Use this for reflection?
-  //[ResourceProvider, SingleModelIntroduction]
+class SingleModelIntroduction extends Action with Logging {
 
   override def execute(e: ExecutionContext): ExecutionContext = {
-    result = e.resources.getResourceAsFile(url)    
-    e
+
+    val singleModels = e.entities.collect { case s: SingleModel => s }
+    if (singleModels.isEmpty) {
+      //depleted!
+      return e
+    }
+
+    val selectedModel = selectModel(singleModels)
+    val file = e.resources.getResourceAsFile(selectedModel.uri)
+    if (file.isEmpty) {
+      logger.error(s"Could not load single model from ${selectedModel.uri}")
+      e //Nothing happens
+    } else {
+      e
+    }
+
   }
+
+  // TODO: Support different user preferences regarding randomization?
+  def selectModel(ms: Seq[SingleModel]): SingleModel = ms.head
 
 }
 
@@ -55,10 +68,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
           ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),
           ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true)))))
   }
-  
-  override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
-    val selectedModel = c.entities.find(_.isInstanceOf[SingleModel])
-    new SingleModelIntroduction("todo")
-  }
+
+  override def createAction(a: ActionDeclaration, c: ExecutionContext) = new SingleModelIntroduction
 
 }
