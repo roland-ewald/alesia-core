@@ -38,13 +38,11 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     // Select action
     logger.info(s"Potential actions: ${possibleActions.mkString}")
     require(possibleActions.nonEmpty, "Plan has no actions for state.")    //TODO: attempt repair & check its success?
-    val actionIndex = tieBreaker(possibleActions)
-    val action = data._1.actions(actionIndex)
+    val actionIndex = tieBreaker(possibleActions) 
+    val action = data._1.declaredActions(actionIndex)
     
     // Execute action
     logger.info(s"Executing action #${actionIndex}: ${action}")
-
-
 
 
     ???

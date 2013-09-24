@@ -10,6 +10,9 @@ import alesia.planning.plans.SingleActionPlan
 import alesia.planning.context.EmptyExecutionContext
 import alesia.planning.plans.EmptyPlan
 import alesia.planning.PlanningProblem
+import alesia.planning.DomainSpecificPlanningProblem
+import alesia.planning.actions.ActionDeclaration
+
 
 /**
  * Test execution of a trivial plan.
@@ -18,9 +21,11 @@ import alesia.planning.PlanningProblem
 @RunWith(classOf[JUnitRunner])
 class TestTrivialPlanExecution extends ExperimentationTest {
 
-  val dummyProblem = new PlanningProblem() {
+  val dummyProblem = new DomainSpecificPlanningProblem() {
     val initialState = FalseVariable
     val goalState = TrueVariable
+    val declaredActions = Map[Int, ActionDeclaration]()
+    val planningActions = Map[Int, DomainAction]()
   }
 
   test("executing a single calibration action") {

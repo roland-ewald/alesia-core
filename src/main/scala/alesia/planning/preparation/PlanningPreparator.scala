@@ -3,6 +3,7 @@ package alesia.planning.preparation
 import alesia.query.ProblemSpecification
 import alesia.planning.PlanningProblem
 import alesia.planning.context.ExecutionContext
+import alesia.planning.DomainSpecificPlanningProblem
 
 /**
  * Creates a suitable [[PlanningProblem]] (and an [[ExecutionContext]] with which to start it) from a user-defined [[ProblemSpecification]].
@@ -16,9 +17,9 @@ import alesia.planning.context.ExecutionContext
 trait PlanningPreparator {
 
   /**
-   * Prepare the planning step by creating [[PlanningProblem]] and [[ExecutionContext]] instances for the problem specification
+   * Prepare the planning step by creating [[DomainSpecificPlanningProblem]] and [[ExecutionContext]] instances for the problem specification
    * @param spec the problem specification
    */
-  def preparePlanning(spec: ProblemSpecification): (PlanningProblem, ExecutionContext)
+  def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext)
 
 }

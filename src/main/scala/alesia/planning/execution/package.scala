@@ -11,9 +11,9 @@ import alesia.planning.context.ExecutionContext
 package object execution {
 
   /**
-   * Triplet containing the data required for execution. Contains the planning problem,
+   * Triplet containing the data required for execution. Contains the domain-specific planning problem,
    * the plan to be executed, and the current execution context (may contain references to intermediate results etc.).
    */
-  type ExecutionData = (PlanningProblem, Plan, ExecutionContext)
+  type ExecutionData = (DomainSpecificPlanningProblem, Plan, ExecutionContext)
 
 }

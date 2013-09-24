@@ -7,7 +7,7 @@ import sessl.util.Logging
  *
  * @author Roland Ewald
  */
-abstract case class PlanningProblem() extends PlanningDomain {
+abstract class PlanningProblem extends PlanningDomain {
 
   /** Function to characterize set of initial states. */
   val initialState: PlanningDomainFunction
