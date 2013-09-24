@@ -2,17 +2,17 @@ package alesia.planning
 
 import org.junit.runner.RunWith
 import org.scalatest.FunSpec
-import org.scalatest.junit.JUnitRunner
+import alesia.planning.actions.Action
+import alesia.planning.actions.ActionDeclaration
+import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionRegistry
 import alesia.planning.actions.ActionSpecification
-import alesia.planning.actions.Action
-import alesia.planning.actions.ActionFormula
+import alesia.planning.actions.AllDeclaredActions
 import alesia.planning.actions.PublicLiteral
+import alesia.planning.actions.TrueFormula
 import alesia.planning.context.ExecutionContext
 import alesia.query.ProblemSpecification
-import alesia.planning.actions.TrueFormula
-import alesia.planning.actions.ActionDeclaration
-import alesia.planning.actions.AllDeclaredActions
+import org.scalatest.junit.JUnitRunner
 
 /**
  * Tests for ActionRegistry. The test is not situated in <code>alessia.planning.actions</code> because it should
@@ -41,11 +41,10 @@ class TestActionRegistry extends FunSpec {
 }
 
 /** Dummy action for testing. */
-class DummyAction extends Action[Any] {
+class DummyAction extends Action {
 
-  override def execute(implicit provider: Any) = {}
+  override def execute(e: ExecutionContext) = e
 
-  override def resultFor(key: String): Option[AnyRef] = None
 }
 
 /** Dummy action specification for testing. */

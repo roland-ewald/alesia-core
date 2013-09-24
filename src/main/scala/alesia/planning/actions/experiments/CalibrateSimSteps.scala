@@ -1,13 +1,13 @@
 package alesia.planning.actions.experiments
 
 import scala.language.existentials
-
 import alesia.bindings.ExperimentProvider
 import sessl.util.Logging
 import sessl.AfterSimSteps
 import alesia.bindings.Simulator
 import scala.math._
 import alesia.planning.domain.ParameterizedModel
+import alesia.planning.context.ExecutionContext
 
 /**
  * Find out how much simulation steps need to be executed before a suitable execution time is approximated.
@@ -33,30 +33,30 @@ case class CalibrateSimSteps(problem: ParameterizedModel, sim: Simulator,
   execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
 
   val result = "calibrated-model-for-sim"
-  
+
   /**
    * Execute the action.
-   *  @param provider
-   *          the experiment provider
+   *  @param e the execution context
    *  @return the tuple (#steps, achieved runtime)
    */
-  override def execute(implicit pr: ExperimentProvider): Unit = {
+  override def execute(e: ExecutionContext) = {
     require(execTime > 0, "Desired execution time has to be positive.")
     require(eps > 0 && eps < 1, "Epsilon should be in (0,1).")
     require(maxIt > 1, "The maximal number of iterations should be > 1.")
     require(maxFactor > 1, "The maximal multiplication factor should be > 1.")
 
     var steps: Long = 1
-    var runtime = pr.executeForNSteps(problem, sim, steps)
+    var runtime = e.experiments.executeForNSteps(problem, sim, steps)
     var counter = 1
 
     while (counter < maxIt && (runtime <= (1 - eps) * execTime || runtime >= (1 + eps) * execTime)) {
       steps = round(steps * min(maxFactor, execTime / runtime))
-      runtime = pr.executeForNSteps(problem, sim, steps)
+      runtime = e.experiments.executeForNSteps(problem, sim, steps)
       counter += 1
     }
 
     addResult(result, (problem, sim, steps, runtime))
+    e
   }
 
 }

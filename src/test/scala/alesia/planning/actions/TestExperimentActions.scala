@@ -7,6 +7,7 @@ import alesia.ExperimentationTest
 import alesia.planning.domain.Algorithm
 import alesia.planning.actions.experiments.CalibrateSimSteps
 import alesia.planning.actions.experiments.CheckQSSModelProperty
+import alesia.planning.context.LocalJamesExecutionContext
 
 /**
  * Tests for experiment actions.
@@ -17,13 +18,13 @@ class TestExperimentActions extends ExperimentationTest {
 
   test("calibration") {
     val action = TestCalibrationSimSteps.action
-//    action.execute
+    //    action.execute
     TestCalibrationSimSteps.checkResult(action)
   }
 
   test("qss-check") {
     val action = TestCheckQSSModelProperty.action
-    action.execute
+    action.execute(new LocalJamesExecutionContext(Seq(), Seq()))
   }
 
 }
@@ -37,7 +38,7 @@ object TestCalibrationSimSteps extends ExperimentationTest {
   def action = CalibrateSimSteps(problem, nrm, desiredRuntime, eps = permEpsilon)
 
   def checkResult(action: CalibrateSimSteps) = for (result <- action.resultFor(action.result)) result match {
-    case (prob,sim, s, r) => {
+    case (prob, sim, s, r) => {
       require(s.isInstanceOf[Long] && r.isInstanceOf[Double], "Wrong result type: " + s.getClass + " & " + r.getClass + " instead of Long & Double.")
       val steps = s.asInstanceOf[Long]
       val runtime = r.asInstanceOf[Double]

@@ -12,7 +12,7 @@ import alesia.planning.actions.Action
  *
  * @author Roland Ewald
  */
-trait HousekeepingAction extends Action[Any] {
+trait HousekeepingAction extends Action {
 
   //TODO
 

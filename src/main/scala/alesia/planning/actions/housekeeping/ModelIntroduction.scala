@@ -9,7 +9,7 @@ import alesia.bindings.ResourceProvider
  *
  * @author Roland Ewald
  */
-trait ModelIntroduction extends Action[ResourceProvider] {
+trait ModelIntroduction {
 
   //TODO: implement: single, set, distribution, ask-user  
   

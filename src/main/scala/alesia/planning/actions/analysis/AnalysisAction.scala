@@ -8,7 +8,7 @@ import alesia.planning.actions.Action
  *
  * @author Roland Ewald
  */
-trait AnalysisAction extends Action[Any] {
+trait AnalysisAction extends Action {
 
   //TODO
 

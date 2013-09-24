@@ -1,5 +1,7 @@
 package alesia.planning.context
 
+import alesia.bindings.ExperimentProvider
+import alesia.bindings.ResourceProvider
 import alesia.query.UserDomainEntity
 import alesia.query.UserPreference
 
@@ -24,11 +26,10 @@ trait ExecutionContext {
    * @return domain entities
    */
   def entities: Seq[UserDomainEntity]
+  
+  
+  def resources: ResourceProvider
+  
+  def experiments: ExperimentProvider
 
-}
-
-/** Empty execution context (for testing purposes). */
-case object EmptyExecutionContext extends ExecutionContext {
-   override def preferences = Seq()
-   override def entities = Seq()
 }

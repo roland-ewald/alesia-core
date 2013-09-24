@@ -13,9 +13,6 @@ import alesia.planning.domain.Model
  */
 abstract class ExperimentationTest extends FunSuite with Logging {
 
-  /** The experiment provider. */
-  implicit val expProvider = JamesExperimentProvider
-
   /** The test problem. */
   val problem = ParameterizedModel(new Model("java://" + classOf[LinearChainSystem].getName))
   

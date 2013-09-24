@@ -13,24 +13,24 @@ import alesia.query.ProblemSpecification
 import alesia.planning.actions.SimpleActionDeclaration
 import alesia.query.SingleModel
 import alesia.planning.actions.ActionEffect
+import alesia.planning.actions.Action
 
 /**
  * Action to introduce a single model.
  *
  * @author Roland Ewald
  */
-case class SingleModelIntroduction(val url: String) extends ModelIntroduction {
+case class SingleModelIntroduction(val url: String) extends Action {
 
   private[this] var result: Option[File] = None
 
   //TODO: Use this for reflection?
   //[ResourceProvider, SingleModelIntroduction]
 
-  override def execute(implicit provider: ResourceProvider): Unit = {
-    result = provider.getResourceAsFile(url)
+  override def execute(e: ExecutionContext): ExecutionContext = {
+    result = e.resources.getResourceAsFile(url)    
+    e
   }
-
-  override def resultFor(key: String): Option[AnyRef] = None
 
 }
 
@@ -57,7 +57,8 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
   }
   
   override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
-    ??? //new SingleModelIntroduction("todo")
+    val selectedModel = c.entities.find(_.isInstanceOf[SingleModel])
+    new SingleModelIntroduction("todo")
   }
 
 }

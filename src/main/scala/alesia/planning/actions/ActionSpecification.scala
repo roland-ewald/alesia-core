@@ -23,8 +23,8 @@ trait ActionSpecification {
   /** Effect of the formula. */
   def effect: ActionFormula
 
-  /** Factory method. */
-  def createAction(a: ActionDeclaration, c: ExecutionContext): Action[_]
+  /** Factory method that may adapt the execution context. */
+  def createAction(a: ActionDeclaration, c: ExecutionContext): Action
 
   /** Short name of the action. */
   def shortName: String
