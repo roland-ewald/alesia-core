@@ -16,6 +16,7 @@ import alesia.planning.actions.Action
  */
 class DefaultPlanExecutor extends PlanExecutor with Logging {
 
+  /** How to break ties in case multiple actions, represented by their indices, can be chosen. */
   type TieBreaker = Iterable[Int] => Int
 
   val first: TieBreaker = _.head
@@ -30,18 +31,33 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   def execute(d: ExecutionData): PlanExecutionResult = {
 
-    var currentState = d.problem.initialState
 
-    val actionIndex = selectAction(currentState.id, d.plan)
+    val actionIndex = selectAction(d.problem.initialState.id, d.plan)
+    val stateUpdate = executeAction(actionIndex, d)
+    val newExecutionData = updateState(d, stateUpdate, d.context)
+    
+    println(newExecutionData)
+
+    ???
+  }
+
+  /** Select action to be executed in current state. */
+  def selectAction(currentState: Int, plan: Plan): Int = {
+    val possibleActions = plan.decide(currentState)
+    require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
+    val action = tieBreaker(possibleActions)
+    logger.info(s"Possible actions: ${possibleActions.mkString} --- choosing action ${action}")
+    action
+  }
+
+  /** Execute selected action. */
+  def executeAction(actionIndex: Int, d: ExecutionData): StateUpdate = {
     val action = d.problem.declaredActions(actionIndex).toExecutableAction(d.context)
-
-    // Execute action
     logger.info(s"""Executing action #${actionIndex}:
     				|	Declared action: ${d.problem.declaredActions(actionIndex)}
     				|	Planning action: ${d.problem.planningActions(actionIndex)}
     				|	Executable action: ${action}""".stripMargin)
-
-    val stateUpdate = try {
+    try {
       action.execute(d.context)
     } catch {
       case t: Throwable => {
@@ -49,16 +65,10 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
         NoStateUpdate
       }
     }
-
-    ???
   }
 
-  def selectAction(currentState: Int, plan: Plan): Int = {
-    val possibleActions = plan.decide(currentState)
-    require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
-    val action = tieBreaker(possibleActions)
-    logger.info(s"Possible actions: ${possibleActions.mkString} --- choosing action ${action}")
-    action
+  def updateState(d: ExecutionData, update: StateUpdate, context: ExecutionContext): ExecutionData = {
+    ???
   }
 
 }
