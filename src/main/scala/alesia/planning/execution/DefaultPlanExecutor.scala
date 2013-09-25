@@ -4,7 +4,9 @@ import alesia.planning.PlanningProblem
 import alesia.planning.actions.Action
 import alesia.planning.context.ExecutionContext
 import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.plans.FullPlanResults
 import alesia.planning.plans.Plan
+import alesia.planning.plans.PlanExecutionFailureResult
 import alesia.planning.plans.PlanExecutionResult
 import sessl.util.Logging
 
@@ -17,7 +19,7 @@ import sessl.util.Logging
  */
 class DefaultPlanExecutor extends PlanExecutor with Logging {
 
-  //TODO: Generalize via UserPreferences
+  //TODO: This is to prevent invinite loops; generalize via UserPreferences
   val maxTries = 100
 
   /** How to break ties in case multiple actions, represented by their indices, can be chosen. */
@@ -33,14 +35,25 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   val tieBreaker = first
 
-  /** */
-  def execute(d: ExecutionState): PlanExecutionResult = {
-    val states = executionStream(d).iterator
-    states.zipWithIndex.takeWhile { currentIteration =>
-    	false/*currentIteration._1.isUnfinished*/ && currentIteration._2 < maxTries 
+  /** Execute planning. */
+  def execute(s: ExecutionState): PlanExecutionResult = {
+    val stateStream = executionStream(s)
+    val states = stateStream.iterator
+    try {
+      states.zipWithIndex.takeWhile { state =>
+        !stopDueToPreferences(state._1) && state._2 < maxTries
+      }
+    } catch {
+      case t: Throwable => {
+        logger.error("Plan execution failed", t)
+        PlanExecutionFailureResult(stateStream, t)
+      }
     }
-    ???
+    logger.info(s"Plan execution finished  --- ${stateStream.size} actions executed.")
+    FullPlanResults(stateStream)
   }
+
+  def stopDueToPreferences(s: ExecutionState): Boolean = false //TODO: finish this
 
   /** Creates a stream of execution states. */
   def executionStream(state: ExecutionState): Stream[ExecutionState] =
@@ -49,7 +62,10 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
       val actionIndex = selectAction(currentState.id, state)
       val stateUpdate = executeAction(actionIndex, state)
       val newState = updateState(state, stateUpdate, state.context)
-      executionStream(newState)
+      if (newState.isFinished)
+        Stream.empty
+      else
+        executionStream(newState)
     }
 
   /** Select action to be executed in current state. */

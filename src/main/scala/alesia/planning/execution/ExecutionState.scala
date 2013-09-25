@@ -10,4 +10,7 @@ import alesia.planning.context.ExecutionContext
  */
 case class ExecutionState(problem: DomainSpecificPlanningProblem, plan: Plan, context: ExecutionContext) {
 
+  /** Checks whether the execution can be finished. */
+  def isFinished: Boolean = problem.table.isContained(problem.goalState.id, problem.constructState(context.planState).id)
+
 }

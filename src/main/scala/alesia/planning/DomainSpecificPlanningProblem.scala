@@ -28,7 +28,6 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
       FalseVariable
     else
       xs.foldLeft(TrueVariable: PlanningDomainFunction)((state, x) => {
-        println(functionByName.mkString)
         val elemFunction = functionByName(x._1)
         state and (if (x._2) elemFunction else !elemFunction)
       })

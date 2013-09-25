@@ -1,6 +1,7 @@
 package alesia.planning.plans
 
 import alesia.planning.actions.ActionResults
+import alesia.planning.execution.ExecutionState
 
 /**
  * Super type of all plan results.
@@ -17,3 +18,12 @@ trait PlanExecutionResult {
 case object EmptyPlanExecutionResult extends PlanExecutionResult {
   override def trace = Seq()
 }
+
+case class PlanExecutionFailureResult(val states: Iterable[ExecutionState], cause: Throwable) extends PlanExecutionResult {
+  override def trace = ???
+}
+
+case class FullPlanResults(val states: Iterable[ExecutionState]) extends PlanExecutionResult {
+  override def trace = ???
+}
+
