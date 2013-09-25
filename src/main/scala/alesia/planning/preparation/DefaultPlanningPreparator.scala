@@ -66,7 +66,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     val preparator = this
 
     // TODO: new class?
-    val inititalPlanState = mutable.ListBuffer[(Literal, Boolean)]()
+    val inititalPlanState = mutable.ListBuffer[(String, Boolean)]()
 
     // TODO: Make custom class out of this
     // TODO: Check problems with duplicate creations of literals etc. 
@@ -87,9 +87,8 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       val initialDomainVariables =
         (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
           yield userDomainEntity.planningDomainRepresentation(this)).flatten.map { v =>
-          val l = PublicLiteral(v._1)
-          addVariable(l)
-          (l, v._2)
+          addVariable(v._1)
+          (v._1, v._2)
         }
 
       inititalPlanState ++= (initialDomainVariables ++ declaredActionsList.flatMap(_.initialState))

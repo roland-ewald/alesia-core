@@ -11,7 +11,7 @@ import alesia.planning.actions.Literal
  */
 package object execution {
 
-  type PlanState = Iterable[(Literal, Boolean)]
+  type PlanState = Iterable[(String, Boolean)]
 
   /**
    * Triplet containing the data required for execution. Contains the domain-specific planning problem,

@@ -2,6 +2,7 @@ package alesia.planning.actions
 
 import alesia.planning.context.ExecutionContext
 import alesia.query.ProblemSpecification
+import alesia.planning.execution.PlanState
 
 /**
  * An action in the planning domain can be executed multiple times, while an action
@@ -68,7 +69,7 @@ trait ActionDeclaration {
   def privateLiterals = (preCondition.privateLiterals ++ effect.flatMap(_.privateLiterals)).toSet
   def literals = publicLiterals ++ privateLiterals
   
-  def initialState: Seq[(Literal, Boolean)]
+  def initialState: PlanState
 
   // Handling at runtime:
   
@@ -77,11 +78,16 @@ trait ActionDeclaration {
     
   /** Call the corresponding [[ActionSpecification]] to create an executable action for this [[ActionDeclaration]].*/
   final def toExecutableAction(c: ExecutionContext) = specification.createAction(this, c)
+  
+  /** Resolves unique name of literal. This is necessary to access literals later on. */
+  def uniqueLiteralName(n:String): String
 }
 
 /** Straight-forward action declaration. */
-case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initialState: Seq[(Literal, Boolean)] = Seq(), simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
+case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initialState: PlanState = Seq(), simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
 
+  def uniqueLiteralName(n:String) = uniquePrivateLiterals(n)
+  
   val myId = ActionDeclarationUtils.newId
 
   val uniquePrivateLiterals: Map[String, String] = {

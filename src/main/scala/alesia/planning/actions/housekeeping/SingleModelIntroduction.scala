@@ -31,11 +31,11 @@ class SingleModelIntroduction extends Action with Logging {
     val singleModels = e.entities.collect { case s: SingleModel => s }
     if (singleModels.isEmpty) {
       SimpleStateUpdate(
-        Change(Seq(PrivateLiteral("depleted"))))
+        Change(Seq("depleted")))
     } else {
       val selectedModel = selectModel(singleModels)
       SimpleStateUpdate(
-        Change(Seq(PublicLiteral("loadedModel")), Seq(selectedModel)))
+        Change(Seq("loadedModel"), Seq(selectedModel)))
     }
   }
 
@@ -59,7 +59,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
       None
     else
       Some(Seq(SimpleActionDeclaration(this, shortActionName,
-        Seq((PrivateLiteral("depleted"), false)),
+        Seq(("depleted", false)),
         !PrivateLiteral("depleted"),
         Seq(
           ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),
