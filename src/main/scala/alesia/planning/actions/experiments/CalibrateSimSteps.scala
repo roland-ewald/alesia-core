@@ -8,6 +8,7 @@ import alesia.bindings.Simulator
 import scala.math._
 import alesia.planning.domain.ParameterizedModel
 import alesia.planning.context.ExecutionContext
+import alesia.planning.execution.NoStateUpdate
 
 /**
  * Find out how much simulation steps need to be executed before a suitable execution time is approximated.
@@ -56,7 +57,7 @@ case class CalibrateSimSteps(problem: ParameterizedModel, sim: Simulator,
     }
 
     addResult(result, (problem, sim, steps, runtime))
-    e
+    NoStateUpdate //FIXME
   }
 
 }

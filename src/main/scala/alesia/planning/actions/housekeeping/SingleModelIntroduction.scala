@@ -1,6 +1,7 @@
 package alesia.planning.actions.housekeeping
 
 import java.io.File
+import sessl.util.Logging
 import alesia.bindings.ResourceProvider
 import alesia.planning.actions.ActionDeclaration
 import alesia.planning.actions.ActionFormula
@@ -14,7 +15,10 @@ import alesia.planning.actions.SimpleActionDeclaration
 import alesia.query.SingleModel
 import alesia.planning.actions.ActionEffect
 import alesia.planning.actions.Action
-import sessl.util.Logging
+import alesia.planning.execution.StateUpdate
+import alesia.planning.execution.SimpleStateUpdate
+import alesia.planning.execution.Change
+import alesia.planning.execution.NoStateUpdate
 
 /**
  * Action to introduce a single model.
@@ -23,23 +27,16 @@ import sessl.util.Logging
  */
 class SingleModelIntroduction extends Action with Logging {
 
-  override def execute(e: ExecutionContext): ExecutionContext = {
-
+  override def execute(e: ExecutionContext): StateUpdate = {
     val singleModels = e.entities.collect { case s: SingleModel => s }
     if (singleModels.isEmpty) {
-      //depleted!
-      return e
-    }
-
-    val selectedModel = selectModel(singleModels)
-    val file = e.resources.getResourceAsFile(selectedModel.uri)
-    if (file.isEmpty) {
-      logger.error(s"Could not load single model from ${selectedModel.uri}")
-      e //Nothing happens
+      SimpleStateUpdate(
+        Change(Seq(PrivateLiteral("depleted"))))
     } else {
-      e
+      val selectedModel = selectModel(singleModels)
+      SimpleStateUpdate(
+        Change(Seq(PublicLiteral("loadedModel")), Seq(selectedModel)))
     }
-
   }
 
   // TODO: Support different user preferences regarding randomization?
@@ -58,7 +55,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
   override def description = "Loads a single model"
 
   override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] = {
-    if (!spec._1.exists(_.isInstanceOf[SingleModel]) || !declaredActions(this).isEmpty)
+    if (!declaredActions(this).isEmpty || !spec._1.exists(_.isInstanceOf[SingleModel]))
       None
     else
       Some(Seq(SimpleActionDeclaration(this, shortActionName,
@@ -70,5 +67,4 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
   }
 
   override def createAction(a: ActionDeclaration, c: ExecutionContext) = new SingleModelIntroduction
-
 }

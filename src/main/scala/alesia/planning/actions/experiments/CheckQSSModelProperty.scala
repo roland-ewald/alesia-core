@@ -15,6 +15,7 @@ import alesia.query.ProblemSpecification
 import alesia.planning.actions.SimpleActionDeclaration
 import alesia.bindings.Simulator
 import alesia.planning.actions.ActionEffect
+import alesia.planning.execution.NoStateUpdate
 
 /**
  * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
@@ -34,7 +35,7 @@ case class CheckQSSModelProperty(problem: ParameterizedModel, sim: Simulator,
       exp.stopCondition = AfterWallClockTime(seconds = maxExecTimeSeconds.toInt, milliseconds = ms.toInt)
     }
 
-    e
+    NoStateUpdate
     //TODO: check if last three--five points form a line???
   }
 

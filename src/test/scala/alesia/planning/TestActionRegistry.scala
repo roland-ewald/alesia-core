@@ -13,6 +13,7 @@ import alesia.planning.actions.TrueFormula
 import alesia.planning.context.ExecutionContext
 import alesia.query.ProblemSpecification
 import org.scalatest.junit.JUnitRunner
+import alesia.planning.execution.NoStateUpdate
 
 /**
  * Tests for ActionRegistry. The test is not situated in <code>alessia.planning.actions</code> because it should
@@ -43,7 +44,7 @@ class TestActionRegistry extends FunSpec {
 /** Dummy action for testing. */
 class DummyAction extends Action {
 
-  override def execute(e: ExecutionContext) = e
+  override def execute(e: ExecutionContext) = NoStateUpdate
 
 }
 

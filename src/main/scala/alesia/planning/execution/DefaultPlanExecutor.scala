@@ -41,12 +41,12 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     				|	Planning action: ${d.problem.planningActions(actionIndex)}
     				|	Executable action: ${action}""".stripMargin)
 
-    val newContext = try {
+    val stateUpdate = try {
       action.execute(d.context)
     } catch {
       case t: Throwable => {
         logger.error(s"Action ${action} could not be executed, ignoring it.", t)
-        d.context
+        NoStateUpdate
       }
     }
 
