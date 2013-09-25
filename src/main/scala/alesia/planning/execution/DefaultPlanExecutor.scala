@@ -6,6 +6,7 @@ import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.PlanningProblem
 import sessl.util.Logging
 import alesia.planning.actions.Action
+import alesia.planning.context.LocalJamesExecutionContext
 
 /**
  * Implements simple step-by-step execution of a plan.
@@ -31,10 +32,11 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   def execute(d: ExecutionData): PlanExecutionResult = {
 
-    val actionIndex = selectAction(d.problem.initialState.id, d.plan)
+    val currentState = d.problem.constructState(d.context.planState)
+    val actionIndex = selectAction(currentState.id, d.plan)
     val stateUpdate = executeAction(actionIndex, d)
     val newExecutionData = updateState(d, stateUpdate, d.context)
-    
+
     println(newExecutionData)
 
     ???
@@ -67,11 +69,18 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   }
 
   def updateState(d: ExecutionData, update: StateUpdate, context: ExecutionContext): ExecutionData = {
-    println(d.problem.table.structureOf(d.problem.initialState.id, d.problem.variableNames, "\t"))
-    
-    val myProblem = d.problem
-    
-    ???
+    logger.info(s"State update: ${update}")
+
+    // Update planning state
+    val literalsToUpdate = update.changes.flatMap(c => c.literals.map((_, c.add)))
+    val newPlanState = (d.context.planState.toMap ++ literalsToUpdate.toMap).toSeq
+
+    //Update execution context
+    val entitiesToChange = update.changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
+    val newEntities = d.context.entities.toSet -- entitiesToChange(false) ++ entitiesToChange(true)
+
+    //TODO: generalize this
+    ExecutionData(d.problem, d.plan, new LocalJamesExecutionContext(newEntities.toSeq, d.context.preferences, newPlanState))
   }
 
 }

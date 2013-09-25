@@ -66,7 +66,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     val preparator = this
 
     // TODO: new class?
-    val planState = mutable.ListBuffer[(Literal, Boolean)]()
+    val inititalPlanState = mutable.ListBuffer[(Literal, Boolean)]()
 
     // TODO: Make custom class out of this
     // TODO: Check problems with duplicate creations of literals etc. 
@@ -84,49 +84,23 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       }.toMap
 
       // Set up initial state
-      val userDomainVariables =
+      val initialDomainVariables =
         (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
-          yield userDomainEntity.planningDomainRepresentation(this)).flatten.map(x => (PublicLiteral(x._1), x._2))
-      userDomainVariables.map(x => addVariable(x._1))
-      planState ++= (userDomainVariables ++ declaredActionsList.flatMap(_.initialState))
+          yield userDomainEntity.planningDomainRepresentation(this)).flatten.map { v =>
+          val l = PublicLiteral(v._1)
+          addVariable(l)
+          (l, v._2)
+        }
 
-      val initialState = constructState(planState)
+      inititalPlanState ++= (initialDomainVariables ++ declaredActionsList.flatMap(_.initialState))
+
+      val initialState = constructState(inititalPlanState)
 
       //Set up goal state
       val goalState = {
         val hypothesis = spec._3
         val hypothesisElements = extractHypothesisElements(hypothesis)
         hypothesisElements.map(interpretHypothesisElement).foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
-      }
-
-      /** For debugging and logging. */
-      lazy val detailedDescription: String = {
-
-        def describe(x: Int) = table.structureOf(x, variableNames)
-
-        def printEffectsDescription(es: Seq[Effect]): String = {
-          for (e <- es) yield s"\tif(${describe(e.condition)}): add ${e.add.map(variableNames(_)).mkString} || del ${e.del.map(variableNames(_)).mkString} || ${if (e.nondeterministic) "?"}"
-        }.mkString("\n")
-
-        val rv = new StringBuilder
-        rv.append("Variables:\n")
-        for (varNum <- nextStateVarNums.keySet.toList.sorted)
-          rv.append(s"#$varNum: ${variableNames.get(varNum).getOrElse("Error in variable numbering")}\n")
-
-        rv.append("\nFunctions (by name):\n")
-        functionByName.foreach(entry => rv.append(s"${entry._1}: ${entry._2}\n"))
-
-        rv.append(s"\nInitial state: ${describe(initialState)}\n")
-
-        rv.append("\nActions:\n")
-        for (a <- actions)
-          rv.append(s"""
-        		  		|Action '${a.name}':
-        		  	   	|- Precondition: ${table.structureOf(a.precondition, variableNames)}
-          			  	|- Effects: \n${printEffectsDescription(a.effects)}""".stripMargin)
-
-        rv.append("\n Goal: " + table.structureOf(goalState, variableNames) + "\n")
-        rv.toString
       }
 
       /** Maps literal names and so on to functions in the planning domain. */
@@ -197,7 +171,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     import scala.language.reflectiveCalls
 
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
-    (problem, new LocalJamesExecutionContext(spec._1, spec._2, planState.toList))
+    (problem, new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList))
   }
 
   /** Extracts single hypothesis elements. */

@@ -28,9 +28,39 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
       FalseVariable
     else
       xs.foldLeft(TrueVariable: PlanningDomainFunction)((state, x) => {
+        println(functionByName.mkString)
         val elemFunction = functionByName(x._1.name)
         state and (if (x._2) elemFunction else !elemFunction)
       })
   }
 
+  /** For debugging and logging. */
+  lazy val detailedDescription: String = {
+
+    def describe(x: Int) = table.structureOf(x, variableNames)
+
+    def printEffectsDescription(es: Seq[Effect]): String = {
+      for (e <- es) yield s"\tif(${describe(e.condition)}): add ${e.add.map(variableNames(_)).mkString} || del ${e.del.map(variableNames(_)).mkString} || ${if (e.nondeterministic) "?"}"
+    }.mkString("\n")
+
+    val rv = new StringBuilder
+    rv.append("Variables:\n")
+    for (varNum <- nextStateVarNums.keySet.toList.sorted)
+      rv.append(s"#$varNum: ${variableNames.get(varNum).getOrElse("Error in variable numbering")}\n")
+
+    rv.append("\nFunctions (by name):\n")
+    functionByName.foreach(entry => rv.append(s"${entry._1}: ${entry._2}\n"))
+
+    rv.append(s"\nInitial state: ${describe(initialState)}\n")
+
+    rv.append("\nActions:\n")
+    for (a <- actions)
+      rv.append(s"""
+        		  		|Action '${a.name}':
+        		  	   	|- Precondition: ${table.structureOf(a.precondition, variableNames)}
+          			  	|- Effects: \n${printEffectsDescription(a.effects)}""".stripMargin)
+
+    rv.append("\n Goal: " + table.structureOf(goalState, variableNames) + "\n")
+    rv.toString
+  }
 }

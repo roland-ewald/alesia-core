@@ -26,8 +26,7 @@ trait ExecutionContext {
    * The available domain entities.
    * @return domain entities
    */
-  def entities: Seq[UserDomainEntity]
-    
+  def entities: Seq[UserDomainEntity]    
   
   def planState: PlanState
   

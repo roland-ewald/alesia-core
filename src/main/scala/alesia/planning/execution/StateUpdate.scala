@@ -9,6 +9,9 @@ import alesia.query.UserDomainEntity
  * @author Roland Ewald
  */
 trait StateUpdate {
+
+  //TODO: Add consistency checks: is a literal changed both to true and to false?
+
   def changes: Seq[Change]
 }
 
