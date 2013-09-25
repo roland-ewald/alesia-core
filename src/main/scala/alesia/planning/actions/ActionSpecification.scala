@@ -68,34 +68,37 @@ trait ActionDeclaration {
   def publicLiterals = (preCondition.publicLiterals ++ effect.flatMap(_.publicLiterals)).toSet
   def privateLiterals = (preCondition.privateLiterals ++ effect.flatMap(_.privateLiterals)).toSet
   def literals = publicLiterals ++ privateLiterals
-  
+
   def initialState: PlanState
 
   // Handling at runtime:
-  
+
   /** The [[ActionSpecification]] that created this [[ActionDeclaration]]. */
   val specification: ActionSpecification
-    
+
   /** Call the corresponding [[ActionSpecification]] to create an executable action for this [[ActionDeclaration]].*/
   final def toExecutableAction(c: ExecutionContext) = specification.createAction(this, c)
-  
+
   /** Resolves unique name of literal. This is necessary to access literals later on. */
-  def uniqueLiteralName(n:String): String
+  def uniqueLiteralName(n: String): String
 }
 
 /** Straight-forward action declaration. */
-case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initialState: PlanState = Seq(), simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
+case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initState: PlanState = Seq(), simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
 
-  def uniqueLiteralName(n:String) = uniquePrivateLiterals(n)
-  
+  def uniqueLiteralName(n: String) = uniquePrivateLiterals(n)
+
   val myId = ActionDeclarationUtils.newId
 
   val uniquePrivateLiterals: Map[String, String] = {
+    val publicLiterals = simplePreCondition.publicLiterals.toSet ++ effects.flatMap(_.publicLiterals) 
     val privateLiterals = (simplePreCondition.privateLiterals ++ effects.flatMap(_.privateLiterals)).toSet
     privateLiterals.map { literal =>
       (literal.name, literal.name + "_private_" + myId)
-    }.toMap
+    }.toMap ++ publicLiterals.map(l => (l.name,l.name)).toMap
   }
+
+  val initialState: PlanState = initState.map(s => (uniquePrivateLiterals(s._1), s._2))
 
   val preCondition = rewrite(simplePreCondition)
 

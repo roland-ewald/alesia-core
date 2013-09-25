@@ -40,7 +40,8 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
     def describe(x: Int) = table.structureOf(x, variableNames)
 
     def printEffectsDescription(es: Seq[Effect]): String = {
-      for (e <- es) yield s"\tif(${describe(e.condition)}): add ${e.add.map(variableNames(_)).mkString} || del ${e.del.map(variableNames(_)).mkString} || ${if (e.nondeterministic) "?"}"
+      for (e <- es)
+        yield s"\tif(${describe(e.condition)}): add ${e.add.map(variableNames.getOrElse(_, "UNDEFINED")).mkString} || del ${e.del.map(variableNames.getOrElse(_, "UNDEFINED")).mkString} || ${if (e.nondeterministic) "?"}"
     }.mkString("\n")
 
     val rv = new StringBuilder

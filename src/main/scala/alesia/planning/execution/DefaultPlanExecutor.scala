@@ -7,6 +7,7 @@ import alesia.planning.PlanningProblem
 import sessl.util.Logging
 import alesia.planning.actions.Action
 import alesia.planning.context.LocalJamesExecutionContext
+import java.util.Collections.EmptySet
 
 /**
  * Implements simple step-by-step execution of a plan.
@@ -77,7 +78,7 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
     //Update execution context
     val entitiesToChange = update.changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
-    val newEntities = d.context.entities.toSet -- entitiesToChange(false) ++ entitiesToChange(true)
+    val newEntities = d.context.entities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
 
     //TODO: generalize this
     ExecutionData(d.problem, d.plan, new LocalJamesExecutionContext(newEntities.toSeq, d.context.preferences, newPlanState))
