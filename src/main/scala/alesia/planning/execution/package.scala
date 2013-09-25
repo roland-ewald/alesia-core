@@ -2,6 +2,7 @@ package alesia.planning
 
 import alesia.planning.plans.Plan
 import alesia.planning.context.ExecutionContext
+import alesia.planning.actions.Literal
 
 /**
  * Some utilities for plan execution.
@@ -9,6 +10,8 @@ import alesia.planning.context.ExecutionContext
  * @author: Roland Ewald
  */
 package object execution {
+
+  type PlanState = Iterable[(Literal, Boolean)]
 
   /**
    * Triplet containing the data required for execution. Contains the domain-specific planning problem,

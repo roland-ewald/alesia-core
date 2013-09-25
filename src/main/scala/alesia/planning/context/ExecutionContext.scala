@@ -4,6 +4,7 @@ import alesia.bindings.ExperimentProvider
 import alesia.bindings.ResourceProvider
 import alesia.query.UserDomainEntity
 import alesia.query.UserPreference
+import alesia.planning.execution.PlanState
 
 /**
  * The current execution context of a plan. On this basis, a plan decides upon the next action(s). 
@@ -26,10 +27,12 @@ trait ExecutionContext {
    * @return domain entities
    */
   def entities: Seq[UserDomainEntity]
+    
   
+  def planState: PlanState
   
   def resources: ResourceProvider
   
-  def experiments: ExperimentProvider
+  def experiments: ExperimentProvider    
 
 }

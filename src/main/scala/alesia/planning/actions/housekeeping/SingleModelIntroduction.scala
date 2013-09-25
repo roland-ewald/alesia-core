@@ -59,7 +59,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
       None
     else
       Some(Seq(SimpleActionDeclaration(this, shortActionName,
-        Some(!PrivateLiteral("depleted")),
+        Seq((PrivateLiteral("depleted"), false)),
         !PrivateLiteral("depleted"),
         Seq(
           ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),

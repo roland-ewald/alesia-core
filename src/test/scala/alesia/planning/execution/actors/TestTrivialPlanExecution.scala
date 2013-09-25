@@ -27,6 +27,7 @@ class TestTrivialPlanExecution extends ExperimentationTest {
     val goalState = TrueVariable
     val declaredActions = Map[Int, ActionDeclaration]()
     val planningActions = Map[Int, DomainAction]()
+    val functionByName = Map[String, PlanningDomainFunction]()
   }
 
   test("executing a single calibration action") {
@@ -35,7 +36,7 @@ class TestTrivialPlanExecution extends ExperimentationTest {
     //FIXME
     
     val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
-    val result = executor.execute(ExecutionData(dummyProblem, SingleActionPlan(0), new LocalJamesExecutionContext(Seq(),Seq())))
+    val result = executor.execute(ExecutionData(dummyProblem, SingleActionPlan(0), new LocalJamesExecutionContext(Seq(),Seq(), Seq())))
     assertNotNull(result)
   }
 

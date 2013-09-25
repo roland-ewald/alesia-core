@@ -19,6 +19,7 @@ import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionEffect
 import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.context.LocalJamesExecutionContext
+import scala.collection.{ mutable => mutable }
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -34,17 +35,14 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
   type HypothesisElement = (Quantifier, PredicateSubject, PredicateRelation)
 
   /** For each variable/action, corresponding name in the planning domain. */
-  private[this] var nameForEntity = scala.collection.mutable.Map[Any, String]()
+  private[this] var nameForEntity = mutable.Map[Any, String]()
 
   /** For each name in the planning domain, corresponding variable/action.*/
-  private[this] var entityForName = scala.collection.mutable.Map[String, Any]()
+  private[this] var entityForName = mutable.Map[String, Any]()
 
-  private[this] var addedVariableNames = scala.collection.mutable.Set[String]()
+  private[this] var addedVariableNames = mutable.Set[String]()
 
-  private[this] var addedActionNames = scala.collection.mutable.Set[String]()
-
-  /** Maps actions to their specifications. so that executable actions can be created easily. */
-  private[this] val actionSpecifications = scala.collection.mutable.Map[ActionDeclaration, ActionSpecification]()
+  private[this] var addedActionNames = mutable.Set[String]()
 
   lazy val varNames = addedVariableNames.toList
 
@@ -63,50 +61,36 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
 
     val declaredActionsList = allDeclaredActions.flatMap(_._2)
-    for (actionSpec <- allDeclaredActions; declaredAction <- actionSpec._2)
-      actionSpecifications(declaredAction) = actionSpec._1
     logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActionsList.mkString("\n")}, for ${allDeclaredActions.size} specifications.")
 
     val preparator = this
+
+    // TODO: new class?
+    val planState = mutable.ListBuffer[(Literal, Boolean)]()
 
     // TODO: Make custom class out of this
     // TODO: Check problems with duplicate creations of literals etc. 
     val problem = new DomainSpecificPlanningProblem() {
 
-      private[this] var variablesByName = scala.collection.mutable.Map[String, PlanningDomainFunction]()
-
-      // Declare variables
-      val functionByName = declaredActionsList.flatMap(_.literals).map(x => (x.name, addVariable(x))).toMap
+      private[this] var variablesByName = mutable.Map[String, PlanningDomainFunction]()
 
       // Declare actions
-      val declaredActions = declaredActionsList.zipWithIndex.map(x => (x._2,x._1)).toMap       
+      val declaredActions = declaredActionsList.zipWithIndex.map(x => (x._2, x._1)).toMap
       val planningActions = {
         declaredActionsList.zipWithIndex map { (a: (ActionDeclaration, Int)) =>
           logger.info(s"Adding action to planning problem: ${a._1}")
           (a._2, addAction(a._1))
         }
       }.toMap
-      
+
       // Set up initial state
-      val initialState = {
-        val newVariables =
-          (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
-            yield userDomainEntity.planningDomainRepresentation(this)).flatten
+      val userDomainVariables =
+        (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
+          yield userDomainEntity.planningDomainRepresentation(this)).flatten.map(x => (PublicLiteral(x._1), x._2))
+      userDomainVariables.map(x => addVariable(x._1))
+      planState ++= (userDomainVariables ++ declaredActionsList.flatMap(_.initialState))
 
-        val newVarDomainFunctions =
-          for (newV <- newVariables) yield {
-            val newVar = addVariable(newV._1)
-            if (newV._2) newVar else !newVar
-          }
-
-        val initialStateOfActions = declaredActionsList.flatMap(_.initialState).map(convertFormula)
-        val initialStateFragments = newVarDomainFunctions ++ initialStateOfActions
-
-        if (initialStateFragments.isEmpty)
-          FalseVariable
-        else
-          initialStateFragments.foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
-      }
+      val initialState = constructState(planState)
 
       //Set up goal state
       val goalState = {
@@ -144,6 +128,9 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         rv.append("\n Goal: " + table.structureOf(goalState, variableNames) + "\n")
         rv.toString
       }
+
+      /** Maps literal names and so on to functions in the planning domain. */
+      lazy val functionByName = variablesByName.toMap
 
       //TODO: Generalize this
       private[this] def interpretHypothesisElement(h: HypothesisElement): PlanningDomainFunction = h._1 match {
@@ -210,7 +197,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     import scala.language.reflectiveCalls
 
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
-    (problem, new LocalJamesExecutionContext(spec._1, spec._2))
+    (problem, new LocalJamesExecutionContext(spec._1, spec._2, planState.toList))
   }
 
   /** Extracts single hypothesis elements. */
@@ -234,7 +221,7 @@ object DefaultPlanningPreparator extends Logging {
   def retrieveDeclaredActions(spec: ProblemSpecification): AllDeclaredActions = {
 
     val actionSpecs = ActionRegistry.actionSpecifications
-    val declaredActions = scala.collection.mutable.Map[ActionSpecification, Seq[ActionDeclaration]]()
+    val declaredActions = mutable.Map[ActionSpecification, Seq[ActionDeclaration]]()
 
     var newActionsDeclared = true
     var counter = 0

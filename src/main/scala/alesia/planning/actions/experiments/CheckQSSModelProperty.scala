@@ -57,7 +57,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
     if (declaredActions(this).nonEmpty)
       None
     else Some(
-      Seq(SimpleActionDeclaration(this, shortActionName, None, preCondition, Seq(
+      Seq(SimpleActionDeclaration(this, shortActionName, Seq(), preCondition, Seq(
         ActionEffect(add = Seq(qss), nondeterministic = true),
         ActionEffect(del = Seq(qss), nondeterministic = true)))))
   }

@@ -24,7 +24,7 @@ class TestExperimentActions extends ExperimentationTest {
 
   test("qss-check") {
     val action = TestCheckQSSModelProperty.action
-    action.execute(new LocalJamesExecutionContext(Seq(), Seq()))
+    action.execute(new LocalJamesExecutionContext(Seq(), Seq(), Seq()))
   }
 
 }

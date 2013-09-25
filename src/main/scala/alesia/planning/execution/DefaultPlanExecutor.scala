@@ -31,7 +31,6 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   def execute(d: ExecutionData): PlanExecutionResult = {
 
-
     val actionIndex = selectAction(d.problem.initialState.id, d.plan)
     val stateUpdate = executeAction(actionIndex, d)
     val newExecutionData = updateState(d, stateUpdate, d.context)
@@ -68,6 +67,10 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   }
 
   def updateState(d: ExecutionData, update: StateUpdate, context: ExecutionContext): ExecutionData = {
+    println(d.problem.table.structureOf(d.problem.initialState.id, d.problem.variableNames, "\t"))
+    
+    val myProblem = d.problem
+    
     ???
   }
 

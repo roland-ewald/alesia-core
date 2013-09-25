@@ -67,16 +67,20 @@ trait ActionDeclaration {
   def publicLiterals = (preCondition.publicLiterals ++ effect.flatMap(_.publicLiterals)).toSet
   def privateLiterals = (preCondition.privateLiterals ++ effect.flatMap(_.privateLiterals)).toSet
   def literals = publicLiterals ++ privateLiterals
-  def initialState: Option[ActionFormula]
+  
+  def initialState: Seq[(Literal, Boolean)]
 
   // Handling at runtime:
+  
+  /** The [[ActionSpecification]] that created this [[ActionDeclaration]]. */
   val specification: ActionSpecification
-  def toExecutableAction(c: ExecutionContext) = specification.createAction(this, c)
-
+    
+  /** Call the corresponding [[ActionSpecification]] to create an executable action for this [[ActionDeclaration]].*/
+  final def toExecutableAction(c: ExecutionContext) = specification.createAction(this, c)
 }
 
 /** Straight-forward action declaration. */
-case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initState: Option[ActionFormula] = None, simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
+case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initialState: Seq[(Literal, Boolean)] = Seq(), simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
 
   val myId = ActionDeclarationUtils.newId
 
@@ -92,8 +96,6 @@ case class SimpleActionDeclaration(specification: ActionSpecification, name: Str
   val effect = effects.map { e =>
     ActionEffect(rewrite(e.condition), e.add.map(rewriteLiteral), e.del.map(rewriteLiteral), e.nondeterministic)
   }
-
-  val initialState = initState.map(rewrite)
 
   /** Creates new formula by replacing generic private literals with literals that have unique names.*/
   def rewrite(original: ActionFormula): ActionFormula = original match {
