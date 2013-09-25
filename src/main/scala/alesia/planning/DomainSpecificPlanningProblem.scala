@@ -23,15 +23,13 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
   /** Maps a variable name to its corresponding function. */
   val functionByName: Map[String, PlanningDomainFunction]
 
-  def constructState(xs: PlanState): PlanningDomainFunction = {
-    if (xs.isEmpty)
-      FalseVariable
-    else
-      xs.foldLeft(TrueVariable: PlanningDomainFunction)((state, x) => {
+  def constructState(xs: PlanState): PlanningDomainFunction =
+    conjunction {
+      xs.map { x =>
         val elemFunction = functionByName(x._1)
-        state and (if (x._2) elemFunction else !elemFunction)
-      })
-  }
+        (if (x._2) elemFunction else !elemFunction)
+      }
+    }
 
   /** For debugging and logging. */
   lazy val detailedDescription: String = {
@@ -51,7 +49,7 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
     rv.append("\nFunctions (by name):\n")
     functionByName.foreach(entry => rv.append(s"${entry._1}: ${entry._2}\n"))
 
-    rv.append(s"\nInitial state: ${describe(initialState)}\n")
+    rv.append(s"\nInitial state: ${describe(initialState)}\n(raw: ${initialState})\n")
 
     rv.append("\nActions:\n")
     for (a <- actions)
@@ -60,7 +58,7 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
         		  	   	|- Precondition: ${table.structureOf(a.precondition, variableNames)}
           			  	|- Effects: \n${printEffectsDescription(a.effects)}""".stripMargin)
 
-    rv.append("\n Goal: " + table.structureOf(goalState, variableNames) + "\n")
+    rv.append(s"\n\nGoal: ${table.structureOf(goalState, variableNames)}\n(raw: ${goalState})\n\n")
     rv.toString
   }
 }

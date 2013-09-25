@@ -21,7 +21,7 @@ import scala.collection.mutable.ListBuffer
 class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   //TODO: This is to prevent invinite loops; generalize via UserPreferences
-  val maxTries = 100
+  val maxTries = 2
 
   /** How to break ties in case multiple actions, represented by their indices, can be chosen. */
   type TieBreaker = Iterable[Int] => Int

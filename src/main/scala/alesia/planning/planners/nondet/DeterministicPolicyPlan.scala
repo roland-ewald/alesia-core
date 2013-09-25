@@ -4,16 +4,17 @@ import alesia.planning.plans.Plan
 import alesia.planning.actions.experiments.ExperimentAction
 import alesia.planning.context.ExecutionContext
 import scala.annotation.tailrec
+import sessl.util.Logging
 
 /**
  * Represents a deterministic policy, in which for each state there is a single action to be executed.
  *
  * @author Roland Ewald
  */
-case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends Plan {
+case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends Plan with Logging {
   require(policy.stateActionTable.nonEmpty)
   
-  println(symbolicRepresentation)
+  logger.info(s"Plan:\n\n${symbolicRepresentation}")
 
   /**
    * Decides upon an action, chooses the first one of which the preconditions are fulfilled.

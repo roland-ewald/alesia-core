@@ -109,6 +109,12 @@ class PlanningDomain extends Logging {
   /** Replaces all references to 'next state'-variables with their corresponding 'current state'-variables. f[x'/x].  */
   def backwardShift(f: Int) = table.substitute(f, currentStateVarNums)
 
+  /** Returns a conjunction of all given functions, and false (empty set) when empty.*/
+  def conjunction(fs: Iterable[PlanningDomainFunction]): PlanningDomainFunction = fs.headOption match {
+    case None => FalseVariable
+    case Some(x) => fs.reduce(_ and _)
+  }
+
   /**
    * Generates a list of 'frame problem' axioms given the number of next-state variable that are unaffected.
    * @param the list of affected next-state variables V'_a

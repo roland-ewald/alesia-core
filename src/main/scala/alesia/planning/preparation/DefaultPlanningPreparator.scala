@@ -92,16 +92,14 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         }
 
       inititalPlanState ++= (initialDomainVariables ++ declaredActionsList.flatMap(_.initialState))
-      
-      println(constructState(inititalPlanState))
-      
+
       val initialState = constructState(inititalPlanState)
 
       //Set up goal state
       val goalState = {
         val hypothesis = spec._3
         val hypothesisElements = extractHypothesisElements(hypothesis)
-        hypothesisElements.map(interpretHypothesisElement).foldLeft(TrueVariable: PlanningDomainFunction)(_ and _)
+        conjunction(hypothesisElements.map(interpretHypothesisElement))
       }
 
       /** Maps literal names and so on to functions in the planning domain. */
