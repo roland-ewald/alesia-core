@@ -12,6 +12,8 @@ import scala.annotation.tailrec
  */
 case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends Plan {
   require(policy.stateActionTable.nonEmpty)
+  
+  println(symbolicRepresentation)
 
   /**
    * Decides upon an action, chooses the first one of which the preconditions are fulfilled.
@@ -20,10 +22,10 @@ case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends P
   override def decide(state: Int): Iterable[Int] = {
     @tailrec
     def decideFor(currentState: Int, stateActionPair: (Int, Int), stateActionPairs: Iterator[(Int, Int)]): Int = {
-      if (policy.problem.table.isContained(stateActionPair._1, currentState))
+      if (policy.problem.table.isContained(currentState, stateActionPair._1))
         stateActionPair._2
       else if (stateActionPairs.isEmpty)
-        -1
+        throw new IllegalStateException(s"No match for state ${state}")
       else
         decideFor(currentState, stateActionPairs.next, stateActionPairs)
     }

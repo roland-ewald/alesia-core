@@ -41,7 +41,10 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     val states = stateStream.iterator
     try {
       states.zipWithIndex.takeWhile { state =>
-        !stopDueToPreferences(state._1) && state._2 < maxTries
+        {
+          println("Iteration #" + state._2)
+          !stopDueToPreferences(state._1) && state._2 < maxTries
+        }
       }
     } catch {
       case t: Throwable => {
@@ -59,9 +62,10 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   def executionStream(state: ExecutionState): Stream[ExecutionState] =
     state #:: {
       val currentState = state.problem.constructState(state.context.planState)
-      val actionIndex = selectAction(currentState.id, state)
-      val stateUpdate = executeAction(actionIndex, state)
-      val newState = updateState(state, stateUpdate, state.context)
+      // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], correctly construct initial state instead
+      val actionIndex = selectAction(state, (!state.problem.goalState and currentState).id)
+      val stateUpdate = executeAction(state, actionIndex)
+      val newState = updateState(state, stateUpdate)
       if (newState.isFinished)
         Stream.empty
       else
@@ -69,7 +73,7 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     }
 
   /** Select action to be executed in current state. */
-  def selectAction(currentState: Int, state: ExecutionState): Int = {
+  def selectAction(state: ExecutionState, currentState: Int): Int = {
     logger.info(s"Current state: ${state.problem.table.structureOf(currentState, state.problem.variableNames, "\t")}")
     val possibleActions = state.plan.decide(currentState)
     require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
@@ -79,14 +83,14 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   }
 
   /** Execute selected action. */
-  def executeAction(actionIndex: Int, d: ExecutionState): StateUpdate = {
-    val action = d.problem.declaredActions(actionIndex).toExecutableAction(d.context)
+  def executeAction(state: ExecutionState, actionIndex: Int): StateUpdate = {
+    val action = state.problem.declaredActions(actionIndex).toExecutableAction(state.context)
     logger.info(s"""Executing action #${actionIndex}:
-    				|	Declared action: ${d.problem.declaredActions(actionIndex)}
-    				|	Planning action: ${d.problem.planningActions(actionIndex)}
+    				|	Declared action: ${state.problem.declaredActions(actionIndex)}
+    				|	Planning action: ${state.problem.planningActions(actionIndex)}
     				|	Executable action: ${action}""".stripMargin)
     try {
-      action.execute(d.context)
+      action.execute(state.context)
     } catch {
       case t: Throwable => {
         logger.error(s"Action ${action} could not be executed, ignoring it.", t)
@@ -96,19 +100,23 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   }
 
   /** Update execution context and plan state after an action has been executed. */
-  def updateState(d: ExecutionState, update: StateUpdate, context: ExecutionContext): ExecutionState = {
+  def updateState(state: ExecutionState, update: StateUpdate): ExecutionState = {
     logger.info(s"State update: ${update}")
+
+    println("Current state: " + state.problem.constructState(state.context.planState))
 
     // Update planning state
     val literalsToUpdate = update.changes.flatMap(c => c.literals.map((_, c.add)))
-    val newPlanState = (d.context.planState.toMap ++ literalsToUpdate.toMap).toSeq
+    val newPlanState = (state.context.planState.toMap ++ literalsToUpdate.toMap).toSeq
 
     //Update execution context
     val entitiesToChange = update.changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
-    val newEntities = d.context.entities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
+    val newEntities = state.context.entities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
+
+    println("New state: " + state.problem.constructState(newPlanState))
 
     //TODO: generalize this
-    ExecutionState(d.problem, d.plan, new LocalJamesExecutionContext(newEntities.toSeq, d.context.preferences, newPlanState))
+    ExecutionState(state.problem, state.plan, new LocalJamesExecutionContext(newEntities.toSeq, state.context.preferences, newPlanState))
   }
 
 }

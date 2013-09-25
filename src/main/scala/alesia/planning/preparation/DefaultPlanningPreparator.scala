@@ -93,6 +93,8 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
       inititalPlanState ++= (initialDomainVariables ++ declaredActionsList.flatMap(_.initialState))
       
+      println(constructState(inititalPlanState))
+      
       val initialState = constructState(inititalPlanState)
 
       //Set up goal state
