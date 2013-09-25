@@ -5,9 +5,10 @@ import alesia.planning.plans.Plan
 import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.PlanningProblem
 import sessl.util.Logging
+import alesia.planning.actions.Action
 
 /**
- * Implements simple step-by-step execution of a plan execution.
+ * Implements simple step-by-step execution of a plan.
  *
  * TODO: finish this
  *
@@ -31,34 +32,33 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
     var currentState = d.problem.initialState
 
-    //start while (execControl.notConforms(data._1.goalState))
-
-    val possibleActions: Iterable[Int] = d.plan.decide(currentState.id)
-
-    // Select action
-    logger.info(s"Potential actions: ${possibleActions.mkString}")
-    require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
-
-    val actionIndex = tieBreaker(possibleActions)
-    val declaredAction = d.problem.declaredActions(actionIndex)
-    val planningAction = d.problem.planningActions(actionIndex)
-    val executableAction = declaredAction.toExecutableAction(d.context)
+    val actionIndex = selectAction(currentState.id, d.plan)
+    val action = d.problem.declaredActions(actionIndex).toExecutableAction(d.context)
 
     // Execute action
     logger.info(s"""Executing action #${actionIndex}:
-    				|	Declared action: ${declaredAction}
-    				|	Planning action: ${planningAction}
-    				|	Executable action: ${executableAction}""".stripMargin)
+    				|	Declared action: ${d.problem.declaredActions(actionIndex)}
+    				|	Planning action: ${d.problem.planningActions(actionIndex)}
+    				|	Executable action: ${action}""".stripMargin)
+
     val newContext = try {
-      executableAction.execute(d.context)
+      action.execute(d.context)
     } catch {
       case t: Throwable => {
-        logger.error(s"Action ${executableAction} could not be executed, ignoring it.", t)
+        logger.error(s"Action ${action} could not be executed, ignoring it.", t)
         d.context
       }
     }
 
     ???
+  }
+
+  def selectAction(currentState: Int, plan: Plan): Int = {
+    val possibleActions = plan.decide(currentState)
+    require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
+    val action = tieBreaker(possibleActions)
+    logger.info(s"Possible actions: ${possibleActions.mkString} --- choosing action ${action}")
+    action
   }
 
 }
