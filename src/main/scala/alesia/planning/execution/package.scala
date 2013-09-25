@@ -13,10 +13,5 @@ package object execution {
 
   type PlanState = Iterable[(String, Boolean)]
 
-  /**
-   * Triplet containing the data required for execution. Contains the domain-specific planning problem,
-   * the plan to be executed, and the current execution context (may contain references to intermediate results etc.).
-   */
-  case class ExecutionData(problem: DomainSpecificPlanningProblem, plan: Plan, context: ExecutionContext)
 
 }

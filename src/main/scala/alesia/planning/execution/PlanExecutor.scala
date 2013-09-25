@@ -16,6 +16,6 @@ trait PlanExecutor {
    *
    *  @param data the data required for execution
    */
-  def execute(data: ExecutionData): PlanExecutionResult
+  def execute(data: ExecutionState): PlanExecutionResult
 
 }

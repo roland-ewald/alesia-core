@@ -3,7 +3,7 @@ package alesia.planning.execution.actors
 import scala.actors.Actor
 
 import alesia.planning.execution.PlanExecutor
-import alesia.planning.execution.ExecutionData
+import alesia.planning.execution.ExecutionState
 import alesia.planning.plans.EmptyPlanExecutionResult
 import alesia.planning.plans.Plan
 import alesia.planning.plans.PlanExecutionResult
@@ -21,20 +21,20 @@ case class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends Exec
   slaves.foreach(_.start)
   start
 
-  override def execute(data: ExecutionData): PlanExecutionResult = {
+  override def execute(data: ExecutionState): PlanExecutionResult = {
     val result = (this !! data).apply()
     result.asInstanceOf[PlanExecutionResult]
   }
 
   override def act = Actor.loop {
     react {
-      case data: ExecutionData => reply { distributePlanOverSlaves(data) }
+      case data: ExecutionState => reply { distributePlanOverSlaves(data) }
       case msg => reportUnsupported(msg)
     }
   }
 
   /** Executes a plan by letting the actions be executed by execution slaves. */
-  private[this] def distributePlanOverSlaves(data: ExecutionData): PlanExecutionResult = data match {
+  private[this] def distributePlanOverSlaves(data: ExecutionState): PlanExecutionResult = data match {
     case _ => { (grabSlave() !! ???).apply(); EmptyPlanExecutionResult } //FIXME
   }
 
