@@ -62,6 +62,11 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
         ActionEffect(del = Seq(qss), nondeterministic = true)))))
   }
 
-  override def createAction(a: ActionDeclaration, c: ExecutionContext) = ??? //new CheckQSSModelProperty("todo") //TODO
+  override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
+    
+    ???
+    
+//    new CheckQSSModelProperty()
+  }
 
 }

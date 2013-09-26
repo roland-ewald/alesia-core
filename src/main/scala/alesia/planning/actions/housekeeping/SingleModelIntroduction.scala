@@ -30,7 +30,7 @@ import alesia.planning.execution.NoStateUpdate
 class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Logging {
 
   override def execute(e: ExecutionContext): StateUpdate = {
-    val singleModels = e.entities.collect { case s: SingleModel => s }
+    val singleModels = e.entitiesOf[SingleModel]
     if (singleModels.isEmpty) {
       SimpleStateUpdate(
         AddLiterals(a.uniqueLiteralName("depleted")))
@@ -42,7 +42,7 @@ class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Lo
   }
 
   // TODO: Support different user preferences regarding randomization?
-  def selectModel(ms: Seq[SingleModel]): SingleModel = ms.head
+  def selectModel(ms: Iterable[SingleModel]): SingleModel = ms.head
 
 }
 
