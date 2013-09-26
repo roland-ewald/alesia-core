@@ -3,7 +3,8 @@ package alesia.planning.scenarios
 import org.scalatest.FunSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.junit.Assert
+import alesia.planning.plans.FailurePlanExecutionResult
+import org.junit.Assert._
 
 /**
  * Tests for a simple scenario that aims to compare the performance of two
@@ -30,9 +31,12 @@ class SimpleComparison extends FunSpec {
         exists >> model | hasProperty("qss")
       }
 
-      Assert.assertNotNull(execResults)
-      Assert.assertTrue(execResults.trace.length > 0)
+      assertNotNull(execResults)
+      assertFalse(execResults.isInstanceOf[FailurePlanExecutionResult])
+      assertTrue(execResults.trace.length > 0)
     }
+
+    //TODO: Add plan execution that fails, check for FailurePlanExecutionResult
 
     it("fails whenever elements of the problem specification are missing") {
       pending
