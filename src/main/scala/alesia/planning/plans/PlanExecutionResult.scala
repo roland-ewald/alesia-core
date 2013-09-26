@@ -1,6 +1,5 @@
 package alesia.planning.plans
 
-import alesia.planning.actions.ActionResults
 import alesia.planning.execution.ExecutionState
 
 /**
@@ -9,16 +8,16 @@ import alesia.planning.execution.ExecutionState
  */
 trait PlanExecutionResult {
 
-  /** @return the execution trace for the given plan, as a sequence of action results */
-  def trace: Seq[ActionResults]
+  /** @return the execution trace for the given plan, as a sequence of [[ExecutionState]] instances */
+  def trace: Seq[ExecutionState]
 
 }
 
-case class FailurePlanExecutionResult(val states: Iterable[ExecutionState], cause: Throwable) extends PlanExecutionResult {
-  override def trace = ???
+case class FailurePlanExecutionResult(val states: Seq[ExecutionState], cause: Throwable) extends PlanExecutionResult {
+  override def trace = states
 }
 
-case class FullPlanExecutionResult(val states: Iterable[ExecutionState]) extends PlanExecutionResult {
-  override def trace = ???
+case class FullPlanExecutionResult(val states: Seq[ExecutionState]) extends PlanExecutionResult {
+  override def trace = states
 }
 

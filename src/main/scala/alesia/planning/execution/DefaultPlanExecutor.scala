@@ -44,11 +44,12 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     } catch {
       case t: Throwable => {
         logger.error("Plan execution failed", t)
-        FailurePlanExecutionResult(visitedStates.toVector, t)
+        return FailurePlanExecutionResult(visitedStates.toVector, t)
       }
     }
+    val trace = visitedStates.toVector
     logger.info(s"Plan execution finished  --- ${visitedStates.size} actions executed.")
-    FullPlanExecutionResult(visitedStates.toVector)
+    FullPlanExecutionResult(trace)     
   }
 
   def stopDueToPreferences(s: ExecutionState): Boolean = false //TODO: finish this
