@@ -14,16 +14,11 @@ trait PlanExecutionResult {
 
 }
 
-/** The trivial result. */
-case object EmptyPlanExecutionResult extends PlanExecutionResult {
-  override def trace = Seq()
-}
-
-case class PlanExecutionFailureResult(val states: Iterable[ExecutionState], cause: Throwable) extends PlanExecutionResult {
+case class FailurePlanExecutionResult(val states: Iterable[ExecutionState], cause: Throwable) extends PlanExecutionResult {
   override def trace = ???
 }
 
-case class FullPlanResults(val states: Iterable[ExecutionState]) extends PlanExecutionResult {
+case class FullPlanExecutionResult(val states: Iterable[ExecutionState]) extends PlanExecutionResult {
   override def trace = ???
 }
 

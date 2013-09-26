@@ -1,15 +1,14 @@
 package alesia.planning.execution.actors
 
 import scala.actors.Actor
-
 import alesia.planning.execution.PlanExecutor
 import alesia.planning.execution.ExecutionState
-import alesia.planning.plans.EmptyPlanExecutionResult
 import alesia.planning.plans.Plan
 import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.plans.SingleActionPlan
 import alesia.planning.context.ExecutionContext
 import alesia.planning.PlanningProblem
+import alesia.planning.plans.FailurePlanExecutionResult
 
 /**
  * Actor to execute a plan action-by-action.
@@ -35,7 +34,7 @@ case class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends Exec
 
   /** Executes a plan by letting the actions be executed by execution slaves. */
   private[this] def distributePlanOverSlaves(data: ExecutionState): PlanExecutionResult = data match {
-    case _ => { (grabSlave() !! ???).apply(); EmptyPlanExecutionResult } //FIXME
+    case _ => { (grabSlave() !! ???).apply(); FailurePlanExecutionResult(Seq(), new UnsupportedOperationException()) } //FIXME
   }
 
   /** Selects a slave for execution of an experiment action. */

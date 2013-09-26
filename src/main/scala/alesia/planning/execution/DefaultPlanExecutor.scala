@@ -4,9 +4,9 @@ import alesia.planning.PlanningProblem
 import alesia.planning.actions.Action
 import alesia.planning.context.ExecutionContext
 import alesia.planning.context.LocalJamesExecutionContext
-import alesia.planning.plans.FullPlanResults
+import alesia.planning.plans.FullPlanExecutionResult
 import alesia.planning.plans.Plan
-import alesia.planning.plans.PlanExecutionFailureResult
+import alesia.planning.plans.FailurePlanExecutionResult
 import alesia.planning.plans.PlanExecutionResult
 import sessl.util.Logging
 import scala.collection.mutable.ListBuffer
@@ -20,7 +20,7 @@ import scala.collection.mutable.ListBuffer
  */
 class DefaultPlanExecutor extends PlanExecutor with Logging {
 
-  //TODO: This is to prevent invinite loops; generalize via UserPreferences
+  //TODO: This is to prevent infinite loops; generalize via UserPreferences
   val maxTries = 100
 
   /** How to break ties in case multiple actions, represented by their indices, can be chosen. */
@@ -44,11 +44,11 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     } catch {
       case t: Throwable => {
         logger.error("Plan execution failed", t)
-        PlanExecutionFailureResult(visitedStates.toVector, t)
+        FailurePlanExecutionResult(visitedStates.toVector, t)
       }
     }
     logger.info(s"Plan execution finished  --- ${visitedStates.size} actions executed.")
-    FullPlanResults(visitedStates.toVector)
+    FullPlanExecutionResult(visitedStates.toVector)
   }
 
   def stopDueToPreferences(s: ExecutionState): Boolean = false //TODO: finish this
@@ -61,8 +61,10 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
       val actionIndex = selectAction(state, (!state.problem.goalState and currentState).id)
       val stateUpdate = executeAction(state, actionIndex)
       val newState = updateState(state, stateUpdate)
-      if (newState.isFinished || stopDueToPreferences(newState) || counter >= maxTries)
+      if (newState.isFinished)
         Stream.empty
+      else if (stopDueToPreferences(newState) || counter >= maxTries)
+        throw new IllegalStateException("Plan execution was stopped prematurely.")
       else
         executionStream(newState, counter + 1)
     }
@@ -79,16 +81,16 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   /** Execute selected action. */
   def executeAction(state: ExecutionState, actionIndex: Int): StateUpdate = {
-    val action = state.problem.declaredActions(actionIndex).toExecutableAction(state.context)
-    logger.info(s"""Executing action #${actionIndex}:
+    try {
+      val action = state.problem.declaredActions(actionIndex).toExecutableAction(state.context)
+      logger.info(s"""Executing action #${actionIndex}:
     				|	Declared action: ${state.problem.declaredActions(actionIndex)}
     				|	Planning action: ${state.problem.planningActions(actionIndex)}
     				|	Executable action: ${action}""".stripMargin)
-    try {
       action.execute(state.context)
     } catch {
       case t: Throwable => {
-        logger.error(s"Action ${action} could not be executed, ignoring it.", t)
+        logger.error(s"Action ${actionIndex} could not be executed, ignoring it.", t)
         NoStateUpdate
       }
     }
@@ -96,9 +98,8 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   /** Update execution context and plan state after an action has been executed. */
   def updateState(state: ExecutionState, update: StateUpdate): ExecutionState = {
-    logger.info(s"State update: ${update}")
 
-    logger.info("Current state: " + state.problem.constructState(state.context.planState))
+    logger.info(s"State update: ${update}\nCurrent state: ${state.problem.constructState(state.context.planState)}")
 
     // Update planning state
     val literalsToUpdate = update.changes.flatMap(c => c.literals.map((_, c.add)))
@@ -108,7 +109,7 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     val entitiesToChange = update.changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
     val newEntities = state.context.entities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
 
-    logger.info("New state: " + state.problem.constructState(newPlanState))
+    logger.info(s"New state: ${state.problem.constructState(newPlanState)}")
 
     //TODO: generalize this
     ExecutionState(state.problem, state.plan, new LocalJamesExecutionContext(newEntities.toSeq, state.context.preferences, newPlanState))
