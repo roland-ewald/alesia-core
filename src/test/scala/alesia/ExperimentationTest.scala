@@ -6,7 +6,6 @@ import examples.sr.LinearChainSystem
 import sessl.util.Logging
 import alesia.planning.domain.Algorithm
 import alesia.planning.domain.ParameterizedModel
-import alesia.planning.domain.Model
 
 /** Super class for all tests involved in experimentation.
  *  @author Roland Ewald
@@ -14,7 +13,7 @@ import alesia.planning.domain.Model
 abstract class ExperimentationTest extends FunSuite with Logging {
 
   /** The test problem. */
-  val problem = ParameterizedModel(new Model("java://" + classOf[LinearChainSystem].getName))
+  val problem = ParameterizedModel("java://" + classOf[LinearChainSystem].getName)
   
   val nrm = Algorithm(sessl.james.NextReactionMethod())
 }

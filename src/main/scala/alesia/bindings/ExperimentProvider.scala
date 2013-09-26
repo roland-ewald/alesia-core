@@ -18,7 +18,7 @@ trait ExperimentProvider extends Logging {
   def performanceExperiment(p: ParameterizedModel, sim: Simulator): PerformanceExperiment = {
     val exp = performanceExperiment
     exp.simulator = sim.entity
-    exp.model_=(p.model.asURI)
+    exp.model = p.modelURI
     p.parameters.foreach(p => exp.set(p._1 <~ p._2))
     exp
   }

@@ -25,7 +25,7 @@ import alesia.planning.execution.NoStateUpdate
 case class CheckQSSModelProperty(problem: ParameterizedModel, sim: Simulator,
   maxExecTimeSeconds: Double, linearSteps: Int = 3, errorAllowed: Double = 0.1) extends ExperimentAction with Logging {
 
-  override def execute(e:ExecutionContext) = {
+  override def execute(e: ExecutionContext) = {
     val pessimisticStepRuntime = e.experiments.executeForNSteps(problem, sim, 1)
     val pessimisticMaxSteps = math.round(maxExecTimeSeconds / pessimisticStepRuntime)
     require(pessimisticMaxSteps > 10, "Maximal execution time is too small, same magnitude as the minimal time of ${pessimisticStepRuntime} (executing a single step).")
@@ -63,10 +63,14 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
   }
 
   override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
-    
+
     ???
-    
-//    new CheckQSSModelProperty()
+
+    val problem: ParameterizedModel = c.entitiesOf[ParameterizedModel].head
+    val simulator: Simulator = ???
+    val maxExecTime: Double = ???
+
+    CheckQSSModelProperty(problem, simulator, maxExecTime)
   }
 
 }
