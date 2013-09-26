@@ -15,7 +15,13 @@ trait StateUpdate {
   def changes: Seq[Change]
 }
 
-case class Change(literals: Seq[String] = Seq(), entities: Seq[UserDomainEntity] = Seq(), add: Boolean = true)
+abstract class Change(val literals: Seq[String] = Seq(), val entities: Seq[UserDomainEntity] = Seq(), val add: Boolean = true)
+
+case class AddLiterals(addLiterals:String*) extends Change(addLiterals)
+case class RemoveLiterals(removeLiterals:String*) extends Change(removeLiterals, add = false)
+
+case class AddEntities(addEntities: UserDomainEntity*) extends Change(entities = addEntities)
+case class RemoveEntities(removeEntities: UserDomainEntity*) extends Change(entities = removeEntities, add = false)
 
 case class SimpleStateUpdate(val changes: Change*) extends StateUpdate
 

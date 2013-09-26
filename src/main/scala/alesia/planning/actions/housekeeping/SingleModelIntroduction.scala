@@ -18,6 +18,8 @@ import alesia.planning.actions.Action
 import alesia.planning.execution.StateUpdate
 import alesia.planning.execution.SimpleStateUpdate
 import alesia.planning.execution.Change
+import alesia.planning.execution.AddLiterals
+import alesia.planning.execution.RemoveEntities
 import alesia.planning.execution.NoStateUpdate
 
 /**
@@ -25,17 +27,17 @@ import alesia.planning.execution.NoStateUpdate
  *
  * @author Roland Ewald
  */
-class SingleModelIntroduction extends Action with Logging {
+class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Logging {
 
   override def execute(e: ExecutionContext): StateUpdate = {
     val singleModels = e.entities.collect { case s: SingleModel => s }
     if (singleModels.isEmpty) {
       SimpleStateUpdate(
-        Change(Seq("depleted")))
+        AddLiterals(a.uniqueLiteralName("depleted")))
     } else {
       val selectedModel = selectModel(singleModels)
       SimpleStateUpdate(
-        Change(Seq("loadedModel"), Seq(selectedModel)))
+        AddLiterals(a.uniqueLiteralName("loadedModel")), RemoveEntities(selectedModel))
     }
   }
 
@@ -66,5 +68,5 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
           ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true)))))
   }
 
-  override def createAction(a: ActionDeclaration, c: ExecutionContext) = new SingleModelIntroduction
+  override def createAction(a: ActionDeclaration, c: ExecutionContext) = new SingleModelIntroduction(a.asInstanceOf[SimpleActionDeclaration]) //FIME: generalize this
 }
