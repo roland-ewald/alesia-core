@@ -11,9 +11,8 @@ class TrivialPlanningProblem extends PlanningProblem {
   val solvable = v("solvable")
   val solved = v("solved")
 
-  val initialState = solvable
+  val initialState = solvable and !solved
   val goalState = solved
-
 }
 
 class TrivialPlanningProblemSolvableDeterministic extends TrivialPlanningProblem {
