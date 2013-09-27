@@ -16,14 +16,14 @@ sealed trait StateUpdate {
 
   def addLinks: LinkChanges
 
-  def removeLinks: LinkChanges //TODO: finish this
+  def removeLinks: LinkChanges
 }
 
 object StateUpdate {
 
   def apply(changes: Change*): SimpleStateUpdate = SimpleStateUpdate(Seq(), Seq(), changes)
 
-  def apply(changes: Seq[Change])(add: Map[String, UserDomainEntity] = Map())(del: Map[String, UserDomainEntity] = Map()): SimpleStateUpdate =
+  def specify(changes: Seq[Change] = Seq(), add: Map[String, UserDomainEntity] = Map(), del: Map[String, UserDomainEntity] = Map()): SimpleStateUpdate =
     SimpleStateUpdate(add.toSeq, del.toSeq, changes)
 }
 

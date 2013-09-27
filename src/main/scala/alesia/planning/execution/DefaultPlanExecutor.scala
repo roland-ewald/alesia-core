@@ -114,8 +114,10 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     var literalLinks = scala.collection.mutable.Map() ++ state.context.entitiesForLiterals
     for (link <- update.removeLinks)
       literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) diff Seq(link._2)
-    for (link <- update.addLinks)
+    for (link <- update.addLinks) {
       literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) :+ link._2
+      println(s"After inserting ${link}: ${literalLinks.mkString}")
+    }
 
     logger.info(s"New state: ${state.problem.constructState(newPlanState)}")
 
