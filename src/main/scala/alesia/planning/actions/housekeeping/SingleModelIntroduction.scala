@@ -32,12 +32,10 @@ class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Lo
   override def execute(e: ExecutionContext): StateUpdate = {
     val singleModels = e.entitiesOf[SingleModel]
     if (singleModels.isEmpty) {
-      StateUpdate.simple(
-        AddLiterals(a.uniqueLiteralName("depleted")))
+      StateUpdate(AddLiterals(a.uniqueLiteralName("depleted")))
     } else {
       val selectedModel = selectModel(singleModels)
-      StateUpdate.simple(
-        AddLiterals(a.uniqueLiteralName("loadedModel")), RemoveEntities(selectedModel))
+      StateUpdate(AddLiterals(a.uniqueLiteralName("loadedModel")), RemoveEntities(selectedModel))
     }
   }
 

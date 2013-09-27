@@ -49,7 +49,7 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     }
     val trace = visitedStates.toVector
     logger.info(s"Plan execution finished  --- ${visitedStates.size} actions executed.")
-    FullPlanExecutionResult(trace)     
+    FullPlanExecutionResult(trace)
   }
 
   def stopDueToPreferences(s: ExecutionState): Boolean = false //TODO: finish this
@@ -110,10 +110,17 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     val entitiesToChange = update.changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
     val newEntities = state.context.entities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
 
+    //Update linked entities -- TODO: Move to extra method?
+    var literalLinks = scala.collection.mutable.Map() ++ state.context.entitiesForLiterals
+    for (link <- update.removeLinks)
+      literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) diff Seq(link._2)
+    for (link <- update.addLinks)
+      literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) :+ link._2
+
     logger.info(s"New state: ${state.problem.constructState(newPlanState)}")
 
-    //TODO: generalize this
-    ExecutionState(state.problem, state.plan, new LocalJamesExecutionContext(newEntities.toSeq, state.context.preferences, newPlanState))
+    //TODO: generalize this away from Local + JAMES II
+    ExecutionState(state.problem, state.plan, new LocalJamesExecutionContext(newEntities.toSeq, state.context.preferences, newPlanState, literalLinks.mapValues(_.distinct).toMap))
   }
 
 }

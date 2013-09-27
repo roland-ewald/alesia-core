@@ -39,4 +39,6 @@ trait ExecutionContext {
 
   def entitiesOf[T <: UserDomainEntity](implicit m: Manifest[T]): Seq[T] = filterType[T](entities)
 
+  def entitiesForLiterals: Map[String, Seq[UserDomainEntity]]
+
 }

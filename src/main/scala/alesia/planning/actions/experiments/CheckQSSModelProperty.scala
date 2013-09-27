@@ -1,21 +1,23 @@
 package alesia.planning.actions.experiments
 
 import scala.language.existentials
-import alesia.bindings.ExperimentProvider
+
+import alesia.bindings.Simulator
 import alesia.planning.actions.ActionDeclaration
+import alesia.planning.actions.ActionEffect
 import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionSpecification
-import alesia.planning.actions.PublicLiteral
-import alesia.planning.context.ExecutionContext
-import alesia.planning.domain.ParameterizedModel
-import sessl.AfterWallClockTime
-import sessl.util.Logging
 import alesia.planning.actions.AllDeclaredActions
-import alesia.query.ProblemSpecification
+import alesia.planning.actions.PublicLiteral
 import alesia.planning.actions.SimpleActionDeclaration
-import alesia.bindings.Simulator
-import alesia.planning.actions.ActionEffect
+import alesia.planning.context.ExecutionContext
+import alesia.planning.domain.Algorithm
+import alesia.planning.domain.ParameterizedModel
 import alesia.planning.execution.NoStateUpdate
+import alesia.query.ProblemSpecification
+import sessl.AfterWallClockTime
+import sessl.james.NextReactionMethod
+import sessl.util.Logging
 
 /**
  * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
@@ -67,8 +69,8 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
     ???
 
     val problem: ParameterizedModel = c.entitiesOf[ParameterizedModel].head
-    val simulator: Simulator = ???
-    val maxExecTime: Double = ???
+    val simulator: Simulator = Algorithm(NextReactionMethod()) //FIXME: generalize this
+    val maxExecTime: Double = 30.0 //FIXME: generalize this
 
     CheckQSSModelProperty(problem, simulator, maxExecTime)
   }

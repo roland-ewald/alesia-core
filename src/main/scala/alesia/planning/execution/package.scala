@@ -13,7 +13,7 @@ import alesia.query.UserDomainEntity
 package object execution {
 
   type PlanState = Iterable[(String, Boolean)]
-
+  
   type LinkChanges = Seq[(String, UserDomainEntity)]
 
 }

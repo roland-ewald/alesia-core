@@ -9,13 +9,17 @@ import alesia.planning.execution.PlanState
 
 /**
  * Execution context for the local execution of JAMES II experiments.
- * 
+ *
  * @see [[LocalResourceProvider]]
  * @see [[JamesExperimentProvider]]
  *
  * @author Roland Ewald
  */
-class LocalJamesExecutionContext(val entities: Seq[UserDomainEntity], val preferences: Seq[UserPreference], val planState: PlanState) extends ExecutionContext {
+case class LocalJamesExecutionContext(
+  val entities: Seq[UserDomainEntity] = Seq(),
+  val preferences: Seq[UserPreference] = Seq(),
+  val planState: PlanState = Seq(),
+  val entitiesForLiterals: Map[String, Seq[UserDomainEntity]] = Map()) extends ExecutionContext {
 
   val resources = LocalResourceProvider
 

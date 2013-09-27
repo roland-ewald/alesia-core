@@ -8,7 +8,7 @@ import alesia.query.UserDomainEntity
  *
  * @author Roland Ewald
  */
-trait StateUpdate {
+sealed trait StateUpdate {
 
   //TODO: Add consistency checks: is a literal changed both to true and to false?
 
@@ -21,7 +21,10 @@ trait StateUpdate {
 
 object StateUpdate {
 
-  def simple(changes: Change*): SimpleStateUpdate = SimpleStateUpdate(Seq(), Seq(), changes)
+  def apply(changes: Change*): SimpleStateUpdate = SimpleStateUpdate(Seq(), Seq(), changes)
+
+  def apply(changes: Seq[Change])(add: Map[String, UserDomainEntity] = Map())(del: Map[String, UserDomainEntity] = Map()): SimpleStateUpdate =
+    SimpleStateUpdate(add.toSeq, del.toSeq, changes)
 }
 
 abstract class Change(val literals: Seq[String] = Seq(), val entities: Seq[UserDomainEntity] = Seq(), val add: Boolean = true)
