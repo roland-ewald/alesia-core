@@ -15,14 +15,14 @@ trait Plan {
    * Decide upon action(s) based on the current state.
    * @return indices of actions that could be tried
    */
-  def decide(state: Int): Iterable[Int] = throw new UnsupportedOperationException 
+  def decide(state: Int): Iterable[Int] = throw new UnsupportedOperationException
 }
 
 /** Trivial plan. */
 trait EmptyPlan extends Plan
 
 /** Plan for a single action. */
-case class SingleActionPlan(action: Int) extends Plan {  
+case class SingleActionPlan(action: Int) extends Plan {
   override def decide(state: Int) = Seq(action)
 }
 
