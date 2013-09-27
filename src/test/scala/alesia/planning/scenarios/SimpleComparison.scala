@@ -8,6 +8,8 @@ import org.junit.Assert._
 import org.jamesii.core.util.logging.ApplicationLogger
 import java.util.logging.Level
 import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.matchers.BePropertyMatchResult
+import org.scalatest.matchers.BePropertyMatcher
 
 /**
  * Tests for a simple scenario that aims to compare the performance of two
@@ -37,7 +39,7 @@ class SimpleComparison extends FunSpec with ShouldMatchers {
       execResults should not be (null)
       execResults.trace.size should be >= 2
       execResults.trace.size should be <= 3
-      assertFalse(execResults.isInstanceOf[FailurePlanExecutionResult])
+      execResults should not be(anInstanceOf[FailurePlanExecutionResult])
     }
 
     //TODO: Add plan execution that fails, check for FailurePlanExecutionResult
@@ -52,6 +54,15 @@ class SimpleComparison extends FunSpec with ShouldMatchers {
 
     it("can be executed remotely") {
       pending
+    }
+  }
+
+  /** Originally from Bill Venners: https://groups.google.com/d/msg/scalatest-users/UrdRM6XHB4Y/dpOzl3iSxqoJ . */
+  def anInstanceOf[T](implicit m: Manifest[T]) = {
+    val c = m.runtimeClass.asInstanceOf[Class[T]]
+    new BePropertyMatcher[AnyRef] {
+      def apply(left: AnyRef) =
+        BePropertyMatchResult(c.isAssignableFrom(left.getClass), s"an instance of ${c.getName}")
     }
   }
 }
