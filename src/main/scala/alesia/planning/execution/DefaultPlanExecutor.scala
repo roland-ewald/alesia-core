@@ -21,7 +21,7 @@ import scala.collection.mutable.ListBuffer
 class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   //TODO: This is to prevent infinite loops; generalize via UserPreferences
-  val maxTries = 100
+  val maxTries = 4
 
   /** How to break ties in case multiple actions, represented by their indices, can be chosen. */
   type TieBreaker = Iterable[Int] => Int
@@ -114,10 +114,8 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     var literalLinks = scala.collection.mutable.Map() ++ state.context.entitiesForLiterals
     for (link <- update.removeLinks)
       literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) diff Seq(link._2)
-    for (link <- update.addLinks) {
+    for (link <- update.addLinks)
       literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) :+ link._2
-      println(s"After inserting ${link}: ${literalLinks.mkString}")
-    }
 
     logger.info(s"New state: ${state.problem.constructState(newPlanState)}")
 

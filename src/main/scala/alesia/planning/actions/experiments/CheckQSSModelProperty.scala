@@ -1,9 +1,9 @@
 package alesia.planning.actions.experiments
 
 import scala.language.existentials
-
 import alesia.bindings.Simulator
 import alesia.planning.actions.ActionDeclaration
+import alesia.planning.actions.SharedLiterals._
 import alesia.planning.actions.ActionEffect
 import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionSpecification
@@ -18,6 +18,10 @@ import alesia.query.ProblemSpecification
 import sessl.AfterWallClockTime
 import sessl.james.NextReactionMethod
 import sessl.util.Logging
+import alesia.utils.misc.CollectionHelpers
+import alesia.planning.execution.StateUpdate
+import alesia.planning.execution.AddLiterals
+import alesia.planning.execution.RemoveLiterals
 
 /**
  * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
@@ -26,6 +30,8 @@ import sessl.util.Logging
  */
 case class CheckQSSModelProperty(problem: ParameterizedModel, sim: Simulator,
   maxExecTimeSeconds: Double, linearSteps: Int = 3, errorAllowed: Double = 0.1) extends ExperimentAction with Logging {
+
+  import QSSModelPropertyCheckSpecification._
 
   override def execute(e: ExecutionContext) = {
     val pessimisticStepRuntime = e.experiments.executeForNSteps(problem, sim, 1)
@@ -37,21 +43,26 @@ case class CheckQSSModelProperty(problem: ParameterizedModel, sim: Simulator,
       exp.stopCondition = AfterWallClockTime(seconds = maxExecTimeSeconds.toInt, milliseconds = ms.toInt)
     }
 
-    NoStateUpdate
-    //TODO: check if last three--five points form a line???
+    val hasQSS = true //FIXME: check if last three--five points form a line???
+
+    if (hasQSS)
+      StateUpdate.specify(Seq(AddLiterals(qss.name)), Map(qss.name -> problem))
+    else
+      StateUpdate.specify(Seq(RemoveLiterals(qss.name)), Map(), Map(loadedModel -> problem))
+
   }
 
 }
 
 object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
-  private val qss = PublicLiteral("qss(loadedModel)")
+  val qss = PublicLiteral("qss(loadedModel)")
 
-  override def preCondition: ActionFormula = PublicLiteral("loadedModel") //TODO: and PublicLiteral("loadedSimulator")
+  override def preCondition: ActionFormula = PublicLiteral(loadedModel) //TODO: and PublicLiteral("loadedSimulator")
 
   override def effect: ActionFormula = qss or !qss
 
-  override def shortName = "Check QSS for Model"
+  override def shortName = "Check	 QSS for Model"
 
   override def description = "Checks whether a model has a quasi-steady state (useful for performance comparisons)."
 
@@ -66,13 +77,13 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
 
-    ???
+    val models = CollectionHelpers.filterType[ParameterizedModel](c.entitiesForLiterals(loadedModel))
+    require(models.nonEmpty, s"No parameterized model linked to '${loadedModel}'")
 
-    val problem: ParameterizedModel = c.entitiesOf[ParameterizedModel].head
     val simulator: Simulator = Algorithm(NextReactionMethod()) //FIXME: generalize this
-    val maxExecTime: Double = 30.0 //FIXME: generalize this
+    val maxExecTime: Double = 5.0 //FIXME: generalize this
 
-    CheckQSSModelProperty(problem, simulator, maxExecTime)
+    CheckQSSModelProperty(models.head, simulator, maxExecTime)
   }
 
 }

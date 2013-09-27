@@ -3,6 +3,7 @@ package alesia.planning.actions.housekeeping
 import java.io.File
 import sessl.util.Logging
 import alesia.bindings.ResourceProvider
+import alesia.planning.domain.ParameterizedModel
 import alesia.planning.actions.ActionDeclaration
 import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionSpecification
@@ -22,6 +23,8 @@ import alesia.planning.execution.AddLiterals
 import alesia.planning.execution.RemoveEntities
 import alesia.planning.execution.NoStateUpdate
 
+import alesia.planning.actions.SharedLiterals._
+
 /**
  * Action to introduce a single model.
  *
@@ -35,7 +38,9 @@ class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Lo
       StateUpdate(AddLiterals(a.uniqueLiteralName("depleted")))
     } else {
       val selectedModel = selectModel(singleModels)
-      StateUpdate(AddLiterals(a.uniqueLiteralName("loadedModel")), RemoveEntities(selectedModel))
+      StateUpdate.specify(
+        Seq(AddLiterals(a.uniqueLiteralName(loadedModel)), RemoveEntities(selectedModel)),
+        Map(loadedModel -> ParameterizedModel(selectedModel.uri)))
     }
   }
 
@@ -63,7 +68,7 @@ object SingleModelIntroductionSpecification extends ActionSpecification {
         !PrivateLiteral("depleted"),
         Seq(
           ActionEffect(add = Seq(PrivateLiteral("depleted")), nondeterministic = true),
-          ActionEffect(add = Seq(PublicLiteral("loadedModel")), nondeterministic = true)))))
+          ActionEffect(add = Seq(PublicLiteral(loadedModel)), nondeterministic = true)))))
   }
 
   override def createAction(a: ActionDeclaration, c: ExecutionContext) = new SingleModelIntroduction(a.asInstanceOf[SimpleActionDeclaration]) //FIME: generalize this

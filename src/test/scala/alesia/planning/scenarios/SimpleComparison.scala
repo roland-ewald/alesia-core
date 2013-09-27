@@ -5,6 +5,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import alesia.planning.plans.FailurePlanExecutionResult
 import org.junit.Assert._
+import org.jamesii.core.util.logging.ApplicationLogger
+import java.util.logging.Level
+import org.scalatest.matchers.ShouldMatchers
 
 /**
  * Tests for a simple scenario that aims to compare the performance of two
@@ -13,15 +16,15 @@ import org.junit.Assert._
  * @author Roland Ewald
  */
 @RunWith(classOf[JUnitRunner])
-class SimpleComparison extends FunSpec {
+class SimpleComparison extends FunSpec with ShouldMatchers {
+
+  ApplicationLogger.setLogLevel(Level.SEVERE)
 
   describe("Simple Comparison Scenario") {
 
     it("works in principle :)") {
 
       import alesia.query._
-
-      pending
 
       val execResults = submit {
         SingleModel("java://examples.sr.LinearChainSystem")
@@ -31,9 +34,10 @@ class SimpleComparison extends FunSpec {
         exists >> model | hasProperty("qss")
       }
 
-      assertNotNull(execResults)
+      execResults should not be (null)
+      execResults.trace.size should be >= 2
+      execResults.trace.size should be <= 3
       assertFalse(execResults.isInstanceOf[FailurePlanExecutionResult])
-      assertTrue(execResults.trace.length > 0)
     }
 
     //TODO: Add plan execution that fails, check for FailurePlanExecutionResult
