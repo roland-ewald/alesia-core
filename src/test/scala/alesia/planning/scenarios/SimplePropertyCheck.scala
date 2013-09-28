@@ -12,25 +12,26 @@ import org.scalatest.matchers.BePropertyMatchResult
 import org.scalatest.matchers.BePropertyMatcher
 
 import alesia.TestUtils._
+import alesia.query._
 
 /**
- * Tests for a simple scenario that aims to compare the performance of two
- * simulation algorithms on some calibrated benchmark model.
+ * Tests a simple scenario where a benchmark model should be checked regarding a single property.
+ *
+ * It merely involves [[SingleModelIntroductionSpecification]] and [[QSSModelPropertyCheckSpecification]], i.e.,
+ * the plan can be successfully executed with two actions.
  *
  * @author Roland Ewald
  */
 @RunWith(classOf[JUnitRunner])
-class SimpleComparison extends FunSpec with ShouldMatchers {
+class SimplePropertyCheck extends FunSpec with ShouldMatchers {
 
   ApplicationLogger.setLogLevel(Level.SEVERE)
 
   describe("Simple Property Check Scenario") {
 
-    import alesia.query._
-
     it("works in principle :)") {
 
-      val results = submit {
+      val result = submit {
         SingleModel("java://examples.sr.LinearChainSystem")
       } {
         WallClockTimeMaximum(seconds = 30)
@@ -38,9 +39,22 @@ class SimpleComparison extends FunSpec with ShouldMatchers {
         exists >> model | hasProperty("qss")
       }
 
-      results.trace.size should be >= 2
-      results.trace.size should be <= 3
-      results should not be ofType[FailurePlanExecutionResult]
+      result.trace.size should be >= 2
+      result.trace.size should be <= 3
+      result should not be ofType[FailurePlanExecutionResult]
+    }
+
+    it("returns result of a failed attempt whenever plan goals cannot be reached") {
+      val result =
+        submit {
+          SingleModel("java://examples.sr.LinearChainSystem")
+        } {
+          WallClockTimeMaximum(seconds = 30)
+        } {
+          exists >> model | hasProperty("undefined")
+        }
+      //TODO: check user preferences regarding maximum tries
+      result should be(ofType[FailurePlanExecutionResult])
     }
 
     it("fails whenever elements of the problem specification are missing") {
@@ -63,17 +77,5 @@ class SimpleComparison extends FunSpec with ShouldMatchers {
       //TODO: hand over old state / user domain entities?
       pending
     }
-
   }
-}
-
-/**
- * Contains all user-defined elements for this scenario.
- */
-object SimpleComparison {
-
-  //TODO: Implement simple mechanism to transform hypothesis into goal
-  //TODO: Implement & test necessary actions
-  //TODO: Implement prototype of execution infrastructure / plan monitor
-
 }
