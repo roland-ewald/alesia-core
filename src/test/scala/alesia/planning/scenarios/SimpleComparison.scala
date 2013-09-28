@@ -24,13 +24,13 @@ class SimpleComparison extends FunSpec with ShouldMatchers {
 
   ApplicationLogger.setLogLevel(Level.SEVERE)
 
-  describe("Simple Comparison Scenario") {
+  describe("Simple Property Check Scenario") {
+
+    import alesia.query._
 
     it("works in principle :)") {
 
-      import alesia.query._
-
-      val execResults = submit {
+      val results = submit {
         SingleModel("java://examples.sr.LinearChainSystem")
       } {
         WallClockTimeMaximum(seconds = 30)
@@ -38,25 +38,32 @@ class SimpleComparison extends FunSpec with ShouldMatchers {
         exists >> model | hasProperty("qss")
       }
 
-      execResults should not be (null)
-      execResults.trace.size should be >= 2
-      execResults.trace.size should be <= 3
-      execResults should not be ofType[FailurePlanExecutionResult]
+      results.trace.size should be >= 2
+      results.trace.size should be <= 3
+      results should not be ofType[FailurePlanExecutionResult]
     }
-
-    //TODO: Add plan execution that fails, check for FailurePlanExecutionResult
 
     it("fails whenever elements of the problem specification are missing") {
-      pending
-    }
-
-    it("can benefit from previously achieved results") {
-      pending
+      evaluating {
+        submit {
+          new UserDomainEntity {}
+        } {
+          WallClockTimeMaximum(seconds = 30)
+        } {
+          exists >> model | hasProperty("qss")
+        }
+      } should produce[IllegalArgumentException]
     }
 
     it("can be executed remotely") {
       pending
     }
+
+    it("can benefit from previously achieved results") {
+      //TODO: hand over old state / user domain entities?
+      pending
+    }
+
   }
 }
 
