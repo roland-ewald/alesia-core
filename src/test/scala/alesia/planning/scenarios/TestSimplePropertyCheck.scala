@@ -23,7 +23,7 @@ import alesia.query._
  * @author Roland Ewald
  */
 @RunWith(classOf[JUnitRunner])
-class SimplePropertyCheck extends FunSpec with ShouldMatchers {
+class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
 
   ApplicationLogger.setLogLevel(Level.SEVERE)
 
