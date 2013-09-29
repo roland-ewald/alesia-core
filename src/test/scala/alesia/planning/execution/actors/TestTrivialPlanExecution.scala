@@ -36,7 +36,7 @@ class TestTrivialPlanExecution extends ExperimentationTest {
     //FIXME
     
     val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
-    val result = executor.execute(ExecutionState(dummyProblem, SingleActionPlan(0), new LocalJamesExecutionContext(Seq(),Seq(), Seq())))
+    val result = executor(ExecutionState(dummyProblem, SingleActionPlan(0), new LocalJamesExecutionContext(Seq(),Seq(), Seq())))
     assertNotNull(result)
   }
 

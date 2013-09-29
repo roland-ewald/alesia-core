@@ -20,7 +20,7 @@ case class PlanExecutionMaster(val slaves: Seq[PlanExecutionSlave]) extends Exec
   slaves.foreach(_.start)
   start
 
-  override def execute(data: ExecutionState): PlanExecutionResult = {
+  override def apply(data: ExecutionState): PlanExecutionResult = {
     val result = (this !! data).apply()
     result.asInstanceOf[PlanExecutionResult]
   }

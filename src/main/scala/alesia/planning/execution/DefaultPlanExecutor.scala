@@ -23,7 +23,7 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   val initialActionSelector: ActionSelector = FirstActionSelector //TODO: generalize via UserPreferences as well
 
   /** Execute planning. */
-  def execute(s: ExecutionState): PlanExecutionResult = {
+  override def apply(s: ExecutionState): PlanExecutionResult = {
     val visitedStates = ListBuffer[ExecutionState]()
     try {
       executionStream(s, 0, initialActionSelector).foreach(visitedStates += _._1)
@@ -43,11 +43,7 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   /** Creates a stream of execution states. */
   def executionStream(state: ExecutionState, counter: Int, selector: ActionSelector): Stream[(ExecutionState, Int, ActionSelector)] =
     (state, counter, selector) #:: {
-      val currentState = state.problem.constructState(state.context.planState)
-      // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], correctly construct initial state instead
-      val (actionIndex, newSelector) = selectAction(state, (!state.problem.goalState and currentState).id, selector)
-      val stateUpdate = executeAction(state, actionIndex)
-      val newState = DefaultPlanExecutor.updateState(state, stateUpdate)
+      val (newState, newSelector) = DefaultPlanExecutor.iteratePlanExecution(state, selector)
       if (newState.isFinished)
         Stream.empty
       else if (stopDueToPreferences(newState) || counter >= maxTries)
@@ -55,6 +51,21 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
       else
         executionStream(newState, counter + 1, newSelector)
     }
+
+}
+
+/**
+ * General methods to update the execution state.
+ */
+object DefaultPlanExecutor extends Logging {
+
+  def iteratePlanExecution(state: ExecutionState, selector: ActionSelector): (ExecutionState, ActionSelector) = {
+    val currentState = state.problem.constructState(state.context.planState)
+    // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], correctly construct initial state instead
+    val (actionIndex, newSelector) = DefaultPlanExecutor.selectAction(state, (!state.problem.goalState and currentState).id, selector)
+    val stateUpdate = DefaultPlanExecutor.executeAction(state, actionIndex)
+    (updateState(state, stateUpdate), newSelector)
+  }
 
   /** Select action to be executed in current state. */
   def selectAction(state: ExecutionState, currentState: Int, selector: ActionSelector): (Int, ActionSelector) = {
@@ -82,13 +93,6 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
       }
     }
   }
-
-}
-
-/**
- * General methods to update the execution state.
- */
-object DefaultPlanExecutor extends Logging {
 
   /** Update execution context and plan state after an action has been executed. */
   def updateState(state: ExecutionState, update: StateUpdate): ExecutionState = {
