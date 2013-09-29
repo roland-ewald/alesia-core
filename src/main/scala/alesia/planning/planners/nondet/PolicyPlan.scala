@@ -1,9 +1,8 @@
 package alesia.planning.planners.nondet
 
-import alesia.planning.plans.Plan
-import alesia.planning.actions.experiments.ExperimentAction
-import alesia.planning.context.ExecutionContext
 import scala.annotation.tailrec
+
+import alesia.planning.plans.Plan
 import sessl.util.Logging
 
 /**
@@ -11,7 +10,7 @@ import sessl.util.Logging
  *
  * @author Roland Ewald
  */
-case class DeterministicPolicyPlan(val policy: NonDeterministicPolicy) extends Plan with Logging {
+case class PolicyPlan(val policy: NonDeterministicPolicy) extends Plan with Logging {
   require(policy.stateActionTable.nonEmpty)
   
   logger.info(s"Plan:\n\n${symbolicRepresentation}")

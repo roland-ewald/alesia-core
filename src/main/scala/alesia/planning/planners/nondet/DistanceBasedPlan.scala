@@ -10,7 +10,7 @@ import alesia.planning.PlanningProblem
  *
  * @author Roland Ewald
  */
-class DeterministicDistanceBasedPlan(val problem: PlanningProblem, val distances: Array[Int]) extends Plan {
+class DistanceBasedPlan(val problem: PlanningProblem, val distances: Array[Int]) extends Plan {
   import problem.table._
 
   /** Check how far away from the goal the state is */

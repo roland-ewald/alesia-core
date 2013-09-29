@@ -43,7 +43,6 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       case Strong => planWeakOrStrong(problem, strongPreImage)
       case StrongCyclic => planStrongCyclic(problem)
       case Weak => planWeakOrStrong(problem, weakPreImage)
-      case _ => ???
     }
   }
 
@@ -120,7 +119,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       D_i += intersection(L, S_new)
     }
 
-    new DeterministicDistanceBasedPlan(p, D_i.toArray)
+    new DistanceBasedPlan(p, D_i.toArray)
   }
 
   /**
@@ -210,7 +209,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   def makeDeterministic(policy: Policy): Plan = policy match {
     case EmptyPolicy => EmptyPolicy
     case FailurePolicy => FailurePolicy
-    case pol: NonDeterministicPolicy => DeterministicPolicyPlan(pol)
+    case pol: NonDeterministicPolicy => PolicyPlan(pol)
   }
 
   /** Creates debugging output. */

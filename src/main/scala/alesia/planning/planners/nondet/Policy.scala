@@ -13,7 +13,7 @@ import alesia.utils.bdd.UniqueTable
  *
  * @author Roland Ewald
  */
-sealed trait Policy extends Plan {
+sealed trait Policy {
 
   /** The set of states covered by this policy (given as the instruction id of its characteristic function). */
   def states: Int = 0

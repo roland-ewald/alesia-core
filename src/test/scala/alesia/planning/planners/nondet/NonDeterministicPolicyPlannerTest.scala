@@ -25,7 +25,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
 
   /** Logs plan representation. */
   def logPlanRepresentation(desc: String, plan: Plan) =
-    logger.info(desc + ":\n" + plan.asInstanceOf[DeterministicPolicyPlan].symbolicRepresentation)
+    logger.info(desc + ":\n" + plan.asInstanceOf[PolicyPlan].symbolicRepresentation)
 
   /** Checks that actual plan exists and logs it with a description. */
   def checkPlan(plan: Plan, desc: String) = {
@@ -56,7 +56,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       assert(strongPlan.decide(problem.initialState.id).head === 0)
 
       val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(problem, NonDeterministicPlanTypes.StrongCyclic)
-      assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
+      assert(strongCyclicPlan.isInstanceOf[DistanceBasedPlan])
       assert(strongCyclicPlan.decide(problem.initialState.id).head === 0)
       assert(strongCyclicPlan.decide(problem.initialState.id).toList.length === 1)
     }
@@ -69,7 +69,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
       checkPlan(strongPlan, "Strong plan for non-deterministic trivial planning problem")
 
       val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(new TrivialPlanningProblemSolvableNonDeterministic, NonDeterministicPlanTypes.StrongCyclic)
-      assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
+      assert(strongCyclicPlan.isInstanceOf[DistanceBasedPlan])
     }
 
     it("is able to find weak plans") {
@@ -80,7 +80,7 @@ class NonDeterministicPolicyPlannerTest extends FunSpec with Logging {
     it("is able to find strong-cyclic plans") {
       val prob = new TrivialStrongCyclicPlanningProblem(numOfTrivialNonDetPlanActions)
       val strongCyclicPlan = new NonDeterministicPolicyPlanner().createPlan(prob, NonDeterministicPlanTypes.StrongCyclic)
-      assert(strongCyclicPlan.isInstanceOf[DeterministicDistanceBasedPlan])
+      assert(strongCyclicPlan.isInstanceOf[DistanceBasedPlan])
       assert(strongCyclicPlan.decide(prob.goalStates).isEmpty)
       for (i <- 0 until numOfTrivialNonDetPlanActions) {
         val decision = strongCyclicPlan.decide(prob.stepVariables(i).id).toList
