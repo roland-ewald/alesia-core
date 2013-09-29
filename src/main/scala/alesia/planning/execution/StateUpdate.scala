@@ -12,10 +12,13 @@ sealed trait StateUpdate {
 
   //TODO: Add consistency checks: is a literal changed both to true and to false?
 
+  /** List of changes regarding the planner's state and the available user domain entities. */
   def changes: Seq[Change]
 
+  /** Links to add between literals in the planning domain and user domain entities. */
   def addLinks: LinkChanges
 
+  /** Links to remove between literals in the planning domain and user domain entities. */
   def removeLinks: LinkChanges
 }
 

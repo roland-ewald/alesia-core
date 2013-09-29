@@ -1,15 +1,14 @@
 package alesia.planning.execution
 
+import scala.annotation.migration
+import scala.collection.immutable.Stream.consWrapper
 import scala.collection.mutable.ListBuffer
 
-import alesia.planning.PlanningProblem
-import alesia.planning.actions.Action
-import alesia.planning.context.ExecutionContext
 import alesia.planning.context.LocalJamesExecutionContext
 import alesia.planning.plans.FailurePlanExecutionResult
 import alesia.planning.plans.FullPlanExecutionResult
-import alesia.planning.plans.Plan
 import alesia.planning.plans.PlanExecutionResult
+import alesia.query.UserDomainEntity
 import sessl.util.Logging
 
 /**
@@ -48,7 +47,7 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
       // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], correctly construct initial state instead
       val (actionIndex, newSelector) = selectAction(state, (!state.problem.goalState and currentState).id, selector)
       val stateUpdate = executeAction(state, actionIndex)
-      val newState = updateState(state, stateUpdate)
+      val newState = DefaultPlanExecutor.updateState(state, stateUpdate)
       if (newState.isFinished)
         Stream.empty
       else if (stopDueToPreferences(newState) || counter >= maxTries)
@@ -84,30 +83,47 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     }
   }
 
+}
+
+/**
+ * General methods to update the execution state.
+ */
+object DefaultPlanExecutor extends Logging {
+
   /** Update execution context and plan state after an action has been executed. */
   def updateState(state: ExecutionState, update: StateUpdate): ExecutionState = {
 
     logger.info(s"State update: ${update}\nCurrent state: ${state.problem.constructState(state.context.planState)}")
 
-    // Update planning state
-    val literalsToUpdate = update.changes.flatMap(c => c.literals.map((_, c.add)))
-    val newPlanState = (state.context.planState.toMap ++ literalsToUpdate.toMap).toSeq
-
-    //Update execution context
-    val entitiesToChange = update.changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
-    val newEntities = state.context.entities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
-
-    //Update linked entities -- TODO: Move to extra method?
-    var literalLinks = scala.collection.mutable.Map() ++ state.context.entitiesForLiterals
-    for (link <- update.removeLinks)
-      literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) diff Seq(link._2)
-    for (link <- update.addLinks)
-      literalLinks(link._1) = literalLinks.getOrElse(link._1, Seq()) :+ link._2
+    val newPlanState = updatePlanState(state.context.planState, update.changes)
+    val newEntities = updateEntities(state.context.entities, update.changes)
+    val newLinks = updateLiteralLinks(state.context.entitiesForLiterals, update.addLinks, update.removeLinks)
 
     logger.info(s"New state: ${state.problem.constructState(newPlanState)}")
 
     //TODO: generalize this away from Local + JAMES II
-    ExecutionState(state.problem, state.plan, new LocalJamesExecutionContext(newEntities.toSeq, state.context.preferences, newPlanState, literalLinks.mapValues(_.distinct).toMap))
+    ExecutionState(state.problem, state.plan,
+      new LocalJamesExecutionContext(newEntities, state.context.preferences, newPlanState, newLinks))
   }
 
+  def updatePlanState(previousState: PlanState, changes: Seq[Change]): PlanState = {
+    val literalsToUpdate = changes.flatMap(c => c.literals.map((_, c.add)))
+    val newPlanState = previousState.toMap ++ literalsToUpdate.toMap
+    newPlanState.toSeq
+  }
+
+  def updateEntities(previousEntities: Seq[UserDomainEntity], changes: Seq[Change]): Seq[UserDomainEntity] = {
+    val entitiesToChange = changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
+    val newEntities = previousEntities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
+    newEntities.toSeq
+  }
+
+  def updateLiteralLinks(previousLinks: LiteralLinks, additions: LinkChanges, removals: LinkChanges): LiteralLinks = {
+    var newLinks = scala.collection.mutable.Map() ++ previousLinks
+    for (r <- removals) //TODO: warn in case there was nothing to be removed?
+      newLinks(r._1) = newLinks.getOrElse(r._1, Seq()) diff Seq(r._2)
+    for (a <- additions)
+      newLinks(a._1) = newLinks.getOrElse(a._1, Seq()) :+ a._2
+    newLinks.mapValues(_.distinct).toMap
+  }
 }

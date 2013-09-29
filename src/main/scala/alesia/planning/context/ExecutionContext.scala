@@ -3,6 +3,7 @@ package alesia.planning.context
 import alesia.bindings.ExperimentProvider
 import alesia.bindings.ResourceProvider
 import alesia.planning.execution.PlanState
+import alesia.planning.execution.LiteralLinks
 import alesia.query.UserDomainEntity
 import alesia.query.UserPreference
 import alesia.utils.misc.CollectionHelpers.filterType
@@ -39,6 +40,6 @@ trait ExecutionContext {
 
   def entitiesOf[T <: UserDomainEntity](implicit m: Manifest[T]): Seq[T] = filterType[T](entities)
 
-  def entitiesForLiterals: Map[String, Seq[UserDomainEntity]]
+  def entitiesForLiterals: LiteralLinks
 
 }
