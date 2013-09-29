@@ -1,20 +1,19 @@
 package alesia.planning.execution
 
+import scala.collection.mutable.ListBuffer
+
 import alesia.planning.PlanningProblem
 import alesia.planning.actions.Action
 import alesia.planning.context.ExecutionContext
 import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.plans.FailurePlanExecutionResult
 import alesia.planning.plans.FullPlanExecutionResult
 import alesia.planning.plans.Plan
-import alesia.planning.plans.FailurePlanExecutionResult
 import alesia.planning.plans.PlanExecutionResult
 import sessl.util.Logging
-import scala.collection.mutable.ListBuffer
 
 /**
- * Implements simple step-by-step execution of a plan.
- *
- * TODO: finish this
+ * Implements the [[PlanExecutor]] interface as a simple step-by-step execution of a plan.
  *
  * @author Roland Ewald
  */
@@ -22,25 +21,13 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   //TODO: This is to prevent infinite loops; generalize via UserPreferences
   val maxTries = 4
-
-  /** How to break ties in case multiple actions, represented by their indices, can be chosen. */
-  type TieBreaker = Iterable[Int] => Int
-
-  val first: TieBreaker = _.head
-
-  val random: TieBreaker = (x: Iterable[Int]) => {
-    val randIndex = math.round(scala.math.random * x.size).toInt
-    val elems = x.toArray
-    elems(randIndex)
-  }
-
-  val tieBreaker = first
+  val initialActionSelector: ActionSelector = FirstActionSelector //TODO: generalize via UserPreferences as well
 
   /** Execute planning. */
   def execute(s: ExecutionState): PlanExecutionResult = {
     val visitedStates = ListBuffer[ExecutionState]()
     try {
-      executionStream(s).foreach(visitedStates += _._1)
+      executionStream(s, 0, initialActionSelector).foreach(visitedStates += _._1)
     } catch {
       case t: Throwable => {
         logger.error("Plan execution failed", t)
@@ -55,11 +42,11 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   def stopDueToPreferences(s: ExecutionState): Boolean = false //TODO: finish this
 
   /** Creates a stream of execution states. */
-  def executionStream(state: ExecutionState, counter: Int = 0): Stream[(ExecutionState, Int)] =
-    (state, counter) #:: {
+  def executionStream(state: ExecutionState, counter: Int, selector: ActionSelector): Stream[(ExecutionState, Int, ActionSelector)] =
+    (state, counter, selector) #:: {
       val currentState = state.problem.constructState(state.context.planState)
       // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], correctly construct initial state instead
-      val actionIndex = selectAction(state, (!state.problem.goalState and currentState).id)
+      val (actionIndex, newSelector) = selectAction(state, (!state.problem.goalState and currentState).id, selector)
       val stateUpdate = executeAction(state, actionIndex)
       val newState = updateState(state, stateUpdate)
       if (newState.isFinished)
@@ -67,17 +54,17 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
       else if (stopDueToPreferences(newState) || counter >= maxTries)
         throw new IllegalStateException("Plan execution was stopped prematurely.")
       else
-        executionStream(newState, counter + 1)
+        executionStream(newState, counter + 1, newSelector)
     }
 
   /** Select action to be executed in current state. */
-  def selectAction(state: ExecutionState, currentState: Int): Int = {
+  def selectAction(state: ExecutionState, currentState: Int, selector: ActionSelector): (Int, ActionSelector) = {
     logger.info(s"Current state: ${state.problem.table.structureOf(currentState, state.problem.variableNames, "\t")}")
     val possibleActions = state.plan.decide(currentState)
     require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
-    val action = tieBreaker(possibleActions)
-    logger.info(s"Possible actions: ${possibleActions.mkString} --- choosing action ${action}")
-    action
+    val rv = selector(possibleActions, state)
+    logger.info(s"Possible actions: ${possibleActions.mkString} --- choosing action ${rv._1}")
+    rv
   }
 
   /** Execute selected action. */

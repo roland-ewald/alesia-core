@@ -7,6 +7,7 @@ import alesia.planning.PlanningProblem
 
 /**
  * The plan executor.
+ *
  *  @author Roland Ewald
  */
 trait PlanExecutor {
@@ -15,6 +16,7 @@ trait PlanExecutor {
    * Execute plan.
    *
    *  @param data the data required for execution
+   *  @return the sequence of actions and their results
    */
   def execute(data: ExecutionState): PlanExecutionResult
 
