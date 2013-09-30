@@ -10,9 +10,10 @@ import java.util.logging.Level
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.matchers.BePropertyMatchResult
 import org.scalatest.matchers.BePropertyMatcher
-
 import alesia.TestUtils._
 import alesia.query._
+import alesia.planning.execution.FirstActionSelector
+import alesia.planning.execution.DeterministicFirstActionSelector
 
 /**
  * Tests a simple scenario where a benchmark model should be checked regarding a single property.
@@ -66,6 +67,18 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         } {
           exists >> model | hasProperty("qss")
         }
+      } should produce[IllegalArgumentException]
+    }
+
+    it("fails whenever multiple start-with-action-selector preferences are defined") {
+      evaluating {
+        submit {
+          SingleModel("java://examples.sr.LinearChainSystem")
+        }(
+          WallClockTimeMaximum(seconds = 30), StartWithActionSelector(FirstActionSelector),
+          StartWithActionSelector(DeterministicFirstActionSelector)) {
+            exists >> model | hasProperty("qss")
+          }
       } should produce[IllegalArgumentException]
     }
 

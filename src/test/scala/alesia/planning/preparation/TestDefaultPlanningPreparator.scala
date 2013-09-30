@@ -5,6 +5,10 @@ import org.junit.Assert
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.ShouldMatchers
+import alesia.planning.execution.RandomActionSelector
+import alesia.planning.execution.ExecutionState
+import alesia.planning.execution.ActionSelector
 
 /**
  * Tests {@link DefaultPlanningPreparator}.
@@ -14,13 +18,14 @@ import org.scalatest.junit.JUnitRunner
  * @author Roland Ewald
  */
 @RunWith(classOf[JUnitRunner])
-class TestDefaultPlanningPreparator extends FunSpec {
+class TestDefaultPlanningPreparator extends FunSpec with ShouldMatchers {
 
   import alesia.query._
+  import alesia.TestUtils._
 
   val preparator = new DefaultPlanningPreparator()
 
-  val simpleUserSpecification = (Seq(
+  val testSpec = (Seq(
     SingleModel("java://examples.sr.LinearChainSystem"),
     SingleModel("java://examples.sr.TotallyIndependentSystem")),
     Seq(WallClockTimeMaximum(seconds = 30)),
@@ -45,17 +50,27 @@ class TestDefaultPlanningPreparator extends FunSpec {
     }
 
     it("can extract action declarations from action specifications") {
-      val declaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(simpleUserSpecification)
+      val declaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(testSpec)
       assert(declaredActions.size > 0)
-      assert(declaredActions.head._2.size > 0) 
+      assert(declaredActions.head._2.size > 0)
     }
 
     it("works for a simple hypothesis") {
-
-      val (problem, context) = preparator.preparePlanning(simpleUserSpecification)
-
+      val (problem, context) = preparator.preparePlanning(testSpec)
       Assert.assertNotNull(context)
       Assert.assertNotNull(problem)
+    }
+
+    it("uses a default action selector if none is selected") {
+      DefaultPlanningPreparator.initializeActionSelector(testSpec) should not be (null)
+    }
+
+    it("can be configured with a user-defined action selector") {
+      val customSelector = new ActionSelector() {
+        override def apply(actionIndices: Iterable[Int], state: ExecutionState) = ???
+      }
+      val result = DefaultPlanningPreparator.initializeActionSelector((testSpec._1, Seq(StartWithActionSelector(customSelector)), testSpec._3))
+      result should be(customSelector)
     }
   }
 }

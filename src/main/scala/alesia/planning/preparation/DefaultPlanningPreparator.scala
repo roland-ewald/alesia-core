@@ -22,6 +22,8 @@ import alesia.planning.context.LocalJamesExecutionContext
 import scala.collection.{ mutable => mutable }
 import alesia.planning.execution.ActionSelector
 import alesia.planning.execution.FirstActionSelector
+import alesia.utils.misc.CollectionHelpers
+import alesia.query.StartWithActionSelector
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -58,8 +60,6 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
   }
 
   override def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext) = {
-
-    val initialActionSelector = FirstActionSelector //TODO: generalize via UserPreferences
 
     //Retrieve suitable actions
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
@@ -174,7 +174,8 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     import scala.language.reflectiveCalls
 
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
-    (problem, new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList, Map(), initialActionSelector))
+    (problem, new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList, //TODO: Generalize this!
+      actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec)))
   }
 
   /** Extracts single hypothesis elements. */
@@ -222,4 +223,10 @@ object DefaultPlanningPreparator extends Logging {
     declaredActions.toMap
   }
 
+  def initializeActionSelector(spec: ProblemSpecification): ActionSelector = {
+    val actionSelectors = CollectionHelpers.filterType[StartWithActionSelector](spec._2)
+    require(actionSelectors.size < 2,
+      s"Aborting; multiple action selectors have been defined for initialization:${actionSelectors.mkString}")
+    actionSelectors.headOption.map(_.selector).getOrElse(FirstActionSelector)
+  }
 }
