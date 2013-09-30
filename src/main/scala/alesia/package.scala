@@ -5,6 +5,8 @@ import alesia.planning.preparation.PlanningPreparator
 import alesia.query.ProblemSpecification
 import alesia.planning.plans.EmptyPlan
 import alesia.planning.execution.ExecutionState
+import alesia.planning.execution.FirstActionSelector
+import alesia.planning.execution.ActionSelector
 
 /**
  * General type definitions and methods.
@@ -12,9 +14,10 @@ import alesia.planning.execution.ExecutionState
  * @author Roland Ewald
  */
 package object alesia {
-
+ 
   /** Major execution sequence. */
-  def run(prep: PlanningPreparator, planner: Planner, executor: PlanExecutor, spec: ProblemSpecification): PlanExecutionResult = {
+  def run(prep: PlanningPreparator, planner: Planner, executor: PlanExecutor,
+    spec: ProblemSpecification, selector: ActionSelector = FirstActionSelector): PlanExecutionResult = {       
     val (problem, context) = prep.preparePlanning(spec)
     val plan = planner.plan(problem)
     require(!plan.isInstanceOf[EmptyPlan],

@@ -20,13 +20,12 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
 
   //TODO: This is to prevent infinite loops; generalize via UserPreferences
   val maxTries = 4
-  val initialActionSelector: ActionSelector = FirstActionSelector //TODO: generalize via UserPreferences as well
 
-  /** Execute planning. */
+  /** Execute planning iteratively, by executing a [[Stream]] of actions. */
   override def apply(s: ExecutionState): PlanExecutionResult = {
     val visitedStates = ListBuffer[ExecutionState]()
     try {
-      executionStream(s, 0, initialActionSelector).foreach(visitedStates += _._1)
+      executionStream(s, 0).foreach(visitedStates += _._1)
     } catch {
       case t: Throwable => {
         logger.error("Plan execution failed", t)
@@ -41,15 +40,16 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
   def stopDueToPreferences(s: ExecutionState): Boolean = false //TODO: finish this
 
   /** Creates a stream of execution states. */
-  def executionStream(state: ExecutionState, counter: Int, selector: ActionSelector): Stream[(ExecutionState, Int, ActionSelector)] =
-    (state, counter, selector) #:: {
-      val (newState, newSelector) = DefaultPlanExecutor.iteratePlanExecution(state, selector)
+  def executionStream(
+    state: ExecutionState, counter: Int): Stream[(ExecutionState, Int)] =
+    (state, counter) #:: {
+      val newState = DefaultPlanExecutor.iteratePlanExecution(state)
       if (newState.isFinished)
         Stream.empty
       else if (stopDueToPreferences(newState) || counter >= maxTries)
         throw new IllegalStateException("Plan execution was stopped prematurely.")
       else
-        executionStream(newState, counter + 1, newSelector)
+        executionStream(newState, counter + 1)
     }
 
 }
@@ -59,20 +59,27 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
  */
 object DefaultPlanExecutor extends Logging {
 
-  def iteratePlanExecution(state: ExecutionState, selector: ActionSelector): (ExecutionState, ActionSelector) = {
+  /**
+   * A full iteration of the plan execution.
+   *  @param state current state
+   *  @return new state
+   */
+  def iteratePlanExecution(state: ExecutionState): ExecutionState = {
     val currentState = state.problem.constructState(state.context.planState)
-    // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], correctly construct initial state instead
-    val (actionIndex, newSelector) = DefaultPlanExecutor.selectAction(state, (!state.problem.goalState and currentState).id, selector)
+    // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], 
+    // correctly construct initial state instead
+    val (actionIndex, newSelector) = DefaultPlanExecutor.selectAction(state,
+      (!state.problem.goalState and currentState).id)
     val stateUpdate = DefaultPlanExecutor.executeAction(state, actionIndex)
-    (updateState(state, stateUpdate), newSelector)
+    updateState(state, stateUpdate, newSelector)
   }
 
   /** Select action to be executed in current state. */
-  def selectAction(state: ExecutionState, currentState: Int, selector: ActionSelector): (Int, ActionSelector) = {
+  def selectAction(state: ExecutionState, currentState: Int): (Int, ActionSelector) = {
     logger.info(s"Current state: ${state.problem.table.structureOf(currentState, state.problem.variableNames, "\t")}")
     val possibleActions = state.plan.decide(currentState)
     require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
-    val rv = selector(possibleActions, state)
+    val rv = state.context.actionSelector(possibleActions, state)
     logger.info(s"Possible actions: ${possibleActions.mkString} --- choosing action ${rv._1}")
     rv
   }
@@ -95,7 +102,7 @@ object DefaultPlanExecutor extends Logging {
   }
 
   /** Update execution context and plan state after an action has been executed. */
-  def updateState(state: ExecutionState, update: StateUpdate): ExecutionState = {
+  def updateState(state: ExecutionState, update: StateUpdate, newSelector: ActionSelector): ExecutionState = {
 
     logger.info(s"State update: ${update}\nCurrent state: ${state.problem.constructState(state.context.planState)}")
 
@@ -107,7 +114,7 @@ object DefaultPlanExecutor extends Logging {
 
     //TODO: generalize this away from Local + JAMES II
     ExecutionState(state.problem, state.plan,
-      new LocalJamesExecutionContext(newEntities, state.context.preferences, newPlanState, newLinks))
+      new LocalJamesExecutionContext(newEntities, state.context.preferences, newPlanState, newLinks, newSelector))
   }
 
   def updatePlanState(previousState: PlanState, changes: Seq[Change]): PlanState = {
@@ -118,7 +125,8 @@ object DefaultPlanExecutor extends Logging {
 
   def updateEntities(previousEntities: Seq[UserDomainEntity], changes: Seq[Change]): Seq[UserDomainEntity] = {
     val entitiesToChange = changes.groupBy(_.add).mapValues(_.flatMap(_.entities))
-    val newEntities = previousEntities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
+    val newEntities =
+      previousEntities.toSet -- entitiesToChange.getOrElse(false, Set()) ++ entitiesToChange.getOrElse(true, Set())
     newEntities.toSeq
   }
 

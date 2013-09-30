@@ -1,11 +1,12 @@
 package alesia.planning.context
 
-import alesia.bindings.ResourceProvider
-import alesia.bindings.james.JamesExperimentProvider
-import alesia.bindings.LocalResourceProvider
 import alesia.query.UserDomainEntity
 import alesia.query.UserPreference
 import alesia.planning.execution.PlanState
+import alesia.bindings.james.JamesExperimentProvider
+import alesia.bindings.LocalResourceProvider
+import alesia.planning.execution.ActionSelector
+import alesia.planning.execution.FirstActionSelector
 
 /**
  * Execution context for the local execution of JAMES II experiments.
@@ -19,7 +20,8 @@ case class LocalJamesExecutionContext(
   val entities: Seq[UserDomainEntity] = Seq(),
   val preferences: Seq[UserPreference] = Seq(),
   val planState: PlanState = Seq(),
-  val entitiesForLiterals: Map[String, Seq[UserDomainEntity]] = Map()) extends ExecutionContext {
+  val entitiesForLiterals: Map[String, Seq[UserDomainEntity]] = Map(),
+  val actionSelector: ActionSelector = FirstActionSelector) extends ExecutionContext {
 
   val resources = LocalResourceProvider
 

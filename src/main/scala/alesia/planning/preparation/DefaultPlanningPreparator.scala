@@ -20,6 +20,8 @@ import alesia.planning.actions.ActionEffect
 import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.context.LocalJamesExecutionContext
 import scala.collection.{ mutable => mutable }
+import alesia.planning.execution.ActionSelector
+import alesia.planning.execution.FirstActionSelector
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -56,6 +58,8 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
   }
 
   override def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext) = {
+
+    val initialActionSelector = FirstActionSelector //TODO: generalize via UserPreferences
 
     //Retrieve suitable actions
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
@@ -170,7 +174,7 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     import scala.language.reflectiveCalls
 
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
-    (problem, new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList))
+    (problem, new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList, Map(), initialActionSelector))
   }
 
   /** Extracts single hypothesis elements. */

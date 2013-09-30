@@ -7,6 +7,7 @@ import alesia.planning.execution.LiteralLinks
 import alesia.query.UserDomainEntity
 import alesia.query.UserPreference
 import alesia.utils.misc.CollectionHelpers.filterType
+import alesia.planning.execution.ActionSelector
 
 /**
  * The current execution context of a plan. On this basis, a plan decides upon the next action(s).
@@ -30,6 +31,8 @@ trait ExecutionContext {
    */
   def entities: Seq[UserDomainEntity]
 
+  def actionSelector: ActionSelector
+  
   def planState: PlanState
 
   def resources: ResourceProvider
