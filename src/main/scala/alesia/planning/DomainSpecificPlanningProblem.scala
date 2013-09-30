@@ -23,6 +23,7 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
   /** Maps a variable name to its corresponding function. */
   val functionByName: Map[String, PlanningDomainFunction]
 
+  /** Creates the representation of the [[PlanState]] in the planning domain. */
   def constructState(xs: PlanState): PlanningDomainFunction =
     conjunction {
       xs.map { x =>
@@ -54,9 +55,9 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
     rv.append("\nActions:\n")
     for (a <- actions)
       rv.append(s"""
-        		  		|Action '${a.name}':
-        		  	   	|- Precondition: ${table.structureOf(a.precondition, variableNames)}
-          			  	|- Effects: \n${printEffectsDescription(a.effects)}""".stripMargin)
+        		|Action '${a.name}':
+        		|- Precondition: ${table.structureOf(a.precondition, variableNames)}
+          		|- Effects: \n${printEffectsDescription(a.effects)}""".stripMargin)
 
     rv.append(s"\n\nGoal: ${table.structureOf(goalState, variableNames)}\n(raw: ${goalState})\n\n")
     rv.toString

@@ -36,3 +36,9 @@ object RandomActionSelector extends ActionSelector {
     (elems(randIndex), this)
   }
 }
+
+//TODO: implement 'smart' action selector:
+
+case class PatientActionSelector(val degreeOfPatience: Int) extends ActionSelector {
+  override def apply(actionIndices: Iterable[Int], state: ExecutionState) = ???
+}

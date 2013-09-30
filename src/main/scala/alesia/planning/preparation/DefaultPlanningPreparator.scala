@@ -28,7 +28,6 @@ import alesia.query.StartWithActionSelector
 /**
  * Default [[PlanPreparator]] implementation.
  *
- * TODO: Variable names should be mapped to elements of the context.
  * TODO: Clean up, refactor, and document the preparation.
  *
  * @author Roland Ewald
