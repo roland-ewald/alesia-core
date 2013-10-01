@@ -10,8 +10,6 @@ import alesia.query.UserDomainEntity
  */
 sealed trait StateUpdate {
 
-  //TODO: Add consistency checks: is a literal changed both to true and to false?
-
   /** List of changes regarding the planner's state and the available user domain entities. */
   def changes: Seq[Change]
 
@@ -20,6 +18,19 @@ sealed trait StateUpdate {
 
   /** Links to remove between literals in the planning domain and user domain entities. */
   def removeLinks: LinkChanges
+
+  /**
+   * Consistency checks: is a literal changed both to true and to false? Holds the same for entities and entity links?
+   */
+  lazy val isConsistent: Boolean =
+    inconsistentChanges(_.literals).isEmpty && inconsistentChanges(_.entities).isEmpty &&
+      (addLinks intersect removeLinks).isEmpty
+
+  /** Return all entities of type X that are included in add-changes and remove-changes. */
+  def inconsistentChanges[X](f: Change => Seq[X]): Set[X] = {
+    val changed = changes.groupBy(_.add).mapValues(_.flatMap(f).toSet)
+    changed.getOrElse(true, Set()) intersect changed.getOrElse(false, Set())
+  }
 }
 
 object StateUpdate {
