@@ -46,8 +46,8 @@ class TestStateUpdate extends FunSpec with ShouldMatchers {
     it("checks for inconsistent changes in literal<->entity links") {
       val e1 = new UserDomainEntity {}
       val e2 = new UserDomainEntity {}
-      StateUpdate.specify(add = Map("a" -> e1, "b" -> e2), del = Map("b" -> e1)).isConsistent should be(true)
-      StateUpdate.specify(add = Map("a" -> e1, "b" -> e2), del = Map("b" -> e2)).isConsistent should be(false)
+      StateUpdate.specify(add = Map("a" -> e1, "b" -> e2), remove = Map("b" -> e1)).isConsistent should be(true)
+      StateUpdate.specify(add = Map("a" -> e1, "b" -> e2), remove = Map("b" -> e2)).isConsistent should be(false)
     }
   }
 

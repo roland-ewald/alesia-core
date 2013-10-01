@@ -85,7 +85,7 @@ class TestDefaultPlanExecutor extends FunSpec with ShouldMatchers {
       links(twoAState)(aElem._1).last should be(bElem._2)
       links(twoAState)(bElem._1).size should be(1) //because only distinct elements are stored
 
-      val oneAState = updateState(twoAState, StateUpdate.specify(del = Map(aElem)), testSelector)
+      val oneAState = updateState(twoAState, StateUpdate.specify(remove = Map(aElem)), testSelector)
       links(oneAState).size should be(2)
       links(oneAState)(aElem._1).size should be(1)
       links(oneAState)(aElem._1).head should be(bElem._2)

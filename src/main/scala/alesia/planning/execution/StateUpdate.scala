@@ -20,7 +20,8 @@ sealed trait StateUpdate {
   def removeLinks: LinkChanges
 
   /**
-   * Consistency checks: is a literal changed both to true and to false? Holds the same for entities and entity links?
+   * Checks whether a literal is changed to both true and false, whether an entity is added and removed, and
+   * whether the same link is added or removed.
    */
   lazy val isConsistent: Boolean =
     inconsistentChanges(_.literals).isEmpty && inconsistentChanges(_.entities).isEmpty &&
@@ -33,22 +34,36 @@ sealed trait StateUpdate {
   }
 }
 
+/**
+ * Simple implementation of [[StateUpdate]].
+ * @param changes the changes regarding literals and entities
+ * @param addLinks the links between literals and domain entities to be added
+ * @param removeLinks the links between literals and domain entities to be removed
+ */
+case class SimpleStateUpdate(
+  val changes: Seq[Change],
+  val addLinks: LinkChanges,
+  val removeLinks: LinkChanges) extends StateUpdate
+
+/** Factory methods for [[StateUpdate]].*/
 object StateUpdate {
 
-  def apply(changes: Change*): SimpleStateUpdate = SimpleStateUpdate(Seq(), Seq(), changes)
+  /** Create update only containing changes. */
+  def apply(changes: Change*): SimpleStateUpdate = SimpleStateUpdate(changes, Seq(), Seq())
 
-  def specify(changes: Seq[Change] = Seq(), add: Map[String, UserDomainEntity] = Map(), del: Map[String, UserDomainEntity] = Map()): SimpleStateUpdate =
-    SimpleStateUpdate(add.toSeq, del.toSeq, changes)
+  /** Full specification of update. */
+  def specify(changes: Seq[Change] = Seq(),
+    add: Map[String, UserDomainEntity] = Map(), remove: Map[String, UserDomainEntity] = Map()): SimpleStateUpdate =
+    SimpleStateUpdate(changes, add.toSeq, remove.toSeq)
 }
 
-abstract class Change(val literals: Seq[String] = Seq(), val entities: Seq[UserDomainEntity] = Seq(), val add: Boolean = true)
+/** Represents a change in the [[ExecutionContext]] of the [[ExecutionState]], therefore part of a [[StateUpdate]]. */
+sealed abstract class Change(val literals: Seq[String], val entities: Seq[UserDomainEntity], val add: Boolean)
 
-case class AddLiterals(addLiterals: String*) extends Change(addLiterals)
-case class RemoveLiterals(removeLiterals: String*) extends Change(removeLiterals, add = false)
+case class AddLiterals(addLiterals: String*) extends Change(addLiterals, Seq(), true)
+case class RemoveLiterals(removeLiterals: String*) extends Change(removeLiterals, Seq(), add = false)
 
-case class AddEntities(addEntities: UserDomainEntity*) extends Change(entities = addEntities)
-case class RemoveEntities(removeEntities: UserDomainEntity*) extends Change(entities = removeEntities, add = false)
-
-case class SimpleStateUpdate(val addLinks: LinkChanges, val removeLinks: LinkChanges, val changes: Seq[Change]) extends StateUpdate
+case class AddEntities(addEntities: UserDomainEntity*) extends Change(Seq(), addEntities, true)
+case class RemoveEntities(removeEntities: UserDomainEntity*) extends Change(Seq(), removeEntities, false)
 
 object NoStateUpdate extends SimpleStateUpdate(Seq(), Seq(), Seq())
