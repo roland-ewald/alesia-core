@@ -131,11 +131,20 @@ object DefaultPlanExecutor extends Logging {
   }
 
   def updateLiteralLinks(previousLinks: LiteralLinks, additions: LinkChanges, removals: LinkChanges): LiteralLinks = {
-    var newLinks = scala.collection.mutable.Map() ++ previousLinks
-    for (r <- removals) //TODO: warn in case there was nothing to be removed?
-      newLinks(r._1) = newLinks.getOrElse(r._1, Seq()) diff Seq(r._2)
+    val newLinks = scala.collection.mutable.Map() ++ previousLinks
+    for (r <- removals) {
+      val links = newLinks.getOrElse(r._1, Seq())
+      val oldSize = links.size
+      newLinks(r._1) = links diff Seq(r._2)
+      if (!(oldSize > newLinks(r._1).size))
+        handlePotentialProblem(s"Can't remove ${r._2} from ${r._1}, as it is not contained!")
+    }
     for (a <- additions)
       newLinks(a._1) = newLinks.getOrElse(a._1, Seq()) :+ a._2
     newLinks.mapValues(_.distinct).toMap
+  }
+
+  def handlePotentialProblem(msg: String) {
+
   }
 }

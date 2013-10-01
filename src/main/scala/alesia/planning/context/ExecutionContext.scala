@@ -10,12 +10,14 @@ import alesia.utils.misc.CollectionHelpers.filterType
 import alesia.planning.execution.ActionSelector
 
 /**
- * The current execution context of a plan. On this basis, a plan decides upon the next action(s).
- * Contains references to intermediate results, user preferences, and (more generally) all other
- * data that does not need to be represented on the level on which the planning sub-system operates.
+ * The current execution context of a plan. On this basis, a [[PlanExecutor]] triggers the [[Plan]] to decides upon
+ * the next action(s).
+ *
+ * Contains references to intermediate results as [[UserDomainEntity]] instances, user preferences in the form of
+ * [[UserPreference]] instances, and (more generally) all other data that does not need to be represented on the
+ * level on which the planning sub-system operates.
  *
  * @author Roland Ewald
- *
  */
 trait ExecutionContext {
 
@@ -31,8 +33,12 @@ trait ExecutionContext {
    */
   def entities: Seq[UserDomainEntity]
 
+  /**
+   * The [[ActionSelector]] that is currently used. May change between successive contexts.
+   * @return the current action selector
+   */
   def actionSelector: ActionSelector
-  
+
   def planState: PlanState
 
   def resources: ResourceProvider

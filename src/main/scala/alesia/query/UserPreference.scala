@@ -3,6 +3,7 @@ package alesia.query
 import sessl.AbstractDuration
 import alesia.planning.execution.ActionSelector
 import alesia.planning.execution.TerminationCondition
+import alesia.planning.execution.ExecutionStrictness
 
 /** User preferences to consider during automatic experimentation. */
 trait UserPreference
@@ -21,7 +22,8 @@ case class CPUTimeMaximum(days: Int = 0, hours: Int = 0, minutes: Int = 0, secon
  */
 case class StartWithActionSelector(selector: ActionSelector) extends UserPreference
 
-/**
- * Decides which [[TerminationCondition]] to use.
- */
+/** Decides which [[TerminationCondition]] to use. */
 case class TerminateWhen(val condition: TerminationCondition) extends UserPreference
+
+/** Decides which [[ExecutionStrictness]] to apply. */
+case class WithStrictness(val strictness: ExecutionStrictness) extends UserPreference
