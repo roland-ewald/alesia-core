@@ -3,13 +3,13 @@ package alesia.planning.execution
 import scala.annotation.migration
 import scala.collection.immutable.Stream.consWrapper
 import scala.collection.mutable.ListBuffer
-
 import alesia.planning.context.LocalJamesExecutionContext
 import alesia.planning.plans.FailurePlanExecutionResult
 import alesia.planning.plans.FullPlanExecutionResult
 import alesia.planning.plans.PlanExecutionResult
 import alesia.query.UserDomainEntity
 import sessl.util.Logging
+import alesia.query.WithStrictness
 
 /**
  * Implements the [[PlanExecutor]] interface as a simple step-by-step execution of a plan.
@@ -104,11 +104,15 @@ object DefaultPlanExecutor extends Logging {
   /** Update execution context and plan state after an action has been executed. */
   def updateState(state: ExecutionState, update: StateUpdate, newSelector: ActionSelector): ExecutionState = {
 
+    val strictPref = state.context.preferencesOf[WithStrictness].headOption
+    if (!update.isConsistent)
+      strictPref.map(_.strictness(s"Update is inconsists: ${update}"))
+
     logger.info(s"State update: ${update}\nCurrent state: ${state.problem.constructState(state.context.planState)}")
 
     val newPlanState = updatePlanState(state.context.planState, update.changes)
     val newEntities = updateEntities(state.context.entities, update.changes)
-    val newLinks = updateLiteralLinks(state.context.entitiesForLiterals, update.addLinks, update.removeLinks)
+    val newLinks = updateLiteralLinks(state.context.entitiesForLiterals, update.addLinks, update.removeLinks, strictPref)
 
     logger.info(s"New state: ${state.problem.constructState(newPlanState)}")
 
@@ -130,21 +134,18 @@ object DefaultPlanExecutor extends Logging {
     newEntities.toSeq
   }
 
-  def updateLiteralLinks(previousLinks: LiteralLinks, additions: LinkChanges, removals: LinkChanges): LiteralLinks = {
+  def updateLiteralLinks(previousLinks: LiteralLinks, additions: LinkChanges, removals: LinkChanges, strict: Option[WithStrictness]): LiteralLinks = {
     val newLinks = scala.collection.mutable.Map() ++ previousLinks
     for (r <- removals) {
       val links = newLinks.getOrElse(r._1, Seq())
       val oldSize = links.size
       newLinks(r._1) = links diff Seq(r._2)
-      if (!(oldSize > newLinks(r._1).size))
-        handlePotentialProblem(s"Can't remove ${r._2} from ${r._1}, as it is not contained!")
+      if (oldSize == newLinks(r._1).size)
+        strict.map(_.strictness(
+          s"Can't remove link from literal '${r._1}' to entity '${r._2}', as the entities are not linked."))
     }
     for (a <- additions)
       newLinks(a._1) = newLinks.getOrElse(a._1, Seq()) :+ a._2
     newLinks.mapValues(_.distinct).toMap
-  }
-
-  def handlePotentialProblem(msg: String) {
-
   }
 }

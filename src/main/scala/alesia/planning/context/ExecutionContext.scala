@@ -2,12 +2,12 @@ package alesia.planning.context
 
 import alesia.bindings.ExperimentProvider
 import alesia.bindings.ResourceProvider
-import alesia.planning.execution.PlanState
+import alesia.planning.execution.ActionSelector
 import alesia.planning.execution.LiteralLinks
+import alesia.planning.execution.PlanState
 import alesia.query.UserDomainEntity
 import alesia.query.UserPreference
 import alesia.utils.misc.CollectionHelpers.filterType
-import alesia.planning.execution.ActionSelector
 
 /**
  * The current execution context of a plan. On this basis, a [[PlanExecutor]] triggers the [[Plan]] to decides upon
@@ -25,30 +25,49 @@ trait ExecutionContext {
    * The user preferences regarding execution.
    * @return user preferences
    */
-  def preferences: Seq[UserPreference]
+  val preferences: Seq[UserPreference]
 
   /**
    * The available domain entities.
    * @return domain entities
    */
-  def entities: Seq[UserDomainEntity]
+  val entities: Seq[UserDomainEntity]
 
   /**
    * The [[ActionSelector]] that is currently used. May change between successive contexts.
    * @return the current action selector
    */
-  def actionSelector: ActionSelector
+  val actionSelector: ActionSelector
 
-  def planState: PlanState
+  /**
+   * The current state in the planning domain.
+   * The [[PlanExecutor]] calls [[DomainSpecificPlanningProblem#constructState]] with this, which yields a boolean
+   * function that can be interpreted by the [[Plan]].
+   * @return current plan state
+   */
+  val planState: PlanState
 
-  def resources: ResourceProvider
+  /**
+   * Stores the links between literals (planning domain) and [[UserDomainEntity]] instances (execution domain).
+   */
+  val entitiesForLiterals: LiteralLinks
 
-  def experiments: ExperimentProvider
-
+  /**
+   * Retrieve preferences of a given type.
+   * @return all preferences of the given type
+   */
   def preferencesOf[T <: UserPreference](implicit m: Manifest[T]): Seq[T] = filterType[T](preferences)
 
+  /**
+   * Retrieve all [[UserDomainEntity]] instances of a given type.
+   * @return all domain entities of the given type
+   */
   def entitiesOf[T <: UserDomainEntity](implicit m: Manifest[T]): Seq[T] = filterType[T](entities)
 
-  def entitiesForLiterals: LiteralLinks
+  /** Provides all external resources (like files, URLs, artifacts).*/
+  val resources: ResourceProvider
+
+  /** Provides all executable experiments. This is where the simulation system is hidden. */
+  val experiments: ExperimentProvider
 
 }

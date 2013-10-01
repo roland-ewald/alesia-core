@@ -6,7 +6,7 @@ import alesia.planning.execution.TerminationCondition
 import alesia.planning.execution.ExecutionStrictness
 
 /** User preferences to consider during automatic experimentation. */
-trait UserPreference
+sealed trait UserPreference
 
 /** Constrains the amount of real time that may pass between starting and stopping experimentation.*/
 case class WallClockTimeMaximum(days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0, milliseconds: Int = 0)
