@@ -62,7 +62,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   override def effect: ActionFormula = qss or !qss
 
-  override def shortName = "Check	 QSS for Model"
+  override def shortName = "Check QSS for Model"
 
   override def description = "Checks whether a model has a quasi-steady state (useful for performance comparisons)."
 
