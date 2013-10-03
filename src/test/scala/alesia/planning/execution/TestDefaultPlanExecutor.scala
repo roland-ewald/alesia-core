@@ -26,8 +26,6 @@ class TestDefaultPlanExecutor extends FunSpec with ShouldMatchers {
 
     val executor = new DefaultPlanExecutor
 
-    val testSelector = RandomActionSelector
-
     val testProblem = new DomainSpecificPlanningProblem() {
       val declaredActions = Map[Int, ActionDeclaration]()
       val planningActions = Map[Int, DomainAction]()
@@ -42,10 +40,13 @@ class TestDefaultPlanExecutor extends FunSpec with ShouldMatchers {
 
     val emptyState = ExecutionState(testProblem, testPlan, LocalJamesExecutionContext())
 
+    val testSelector = emptyState.context.actionSelector
+
     //TODO: Removing a literal =/= adding a negative literal! 2x remove == negative literal?
 
-    it("works with an empty update of the execution state context") {
-      updateState(emptyState, StateUpdate(), testSelector) should equal(emptyState)
+    it("works with an empty update of the execution state context, and updates statistics accordingly") {
+      updateState(emptyState, StateUpdate(), testSelector) should equal(
+        ExecutionState(testProblem, testPlan, LocalJamesExecutionContext(statistics = emptyState.context.statistics.actionExecuted)))
     }
 
     it("correctly updates the planning domain literals") {
