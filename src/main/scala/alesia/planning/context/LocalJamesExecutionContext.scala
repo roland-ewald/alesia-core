@@ -21,7 +21,9 @@ case class LocalJamesExecutionContext(
   val preferences: Seq[UserPreference] = Seq(),
   val planState: PlanState = Seq(),
   val entitiesForLiterals: Map[String, Seq[UserDomainEntity]] = Map(),
-  val actionSelector: ActionSelector = FirstActionSelector) extends ExecutionContext {
+  val actionSelector: ActionSelector = FirstActionSelector,
+  val statistics: ExecutionStatistics = ExecutionStatistics())
+  extends ExecutionContext {
 
   val resources = LocalResourceProvider
 

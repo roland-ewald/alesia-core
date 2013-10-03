@@ -53,6 +53,11 @@ trait ExecutionContext {
   val entitiesForLiterals: LiteralLinks
 
   /**
+   * Aggregated execution statistics. Used by [[TerminationCondition]] instances.
+   */
+  val statistics: ExecutionStatistics
+
+  /**
    * Retrieve preferences of a given type.
    * @return all preferences of the given type
    */

@@ -1,15 +1,15 @@
 package alesia.planning.execution
 
+import org.junit.runner.RunWith
 import org.scalatest.FunSpec
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
 import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.actions.ActionDeclaration
-import alesia.planning.plans.EmptyPlan
-import alesia.planning.context.LocalJamesExecutionContext
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import alesia.query.SingleModel
 import alesia.planning.domain.ParameterizedModel
+import alesia.planning.plans.EmptyPlan
+import alesia.query.SingleModel
+import alesia.planning.context.LocalJamesExecutionContext
 
 /**
  * Tests for [[DefaultPlanExecutor]].
@@ -40,7 +40,7 @@ class TestDefaultPlanExecutor extends FunSpec with ShouldMatchers {
 
     val testEntities = Seq(SingleModel("x"), SingleModel("y"))
 
-    val emptyState = ExecutionState(testProblem, testPlan, LocalJamesExecutionContext(actionSelector = testSelector))
+    val emptyState = ExecutionState(testProblem, testPlan, LocalJamesExecutionContext())
 
     //TODO: Removing a literal =/= adding a negative literal! 2x remove == negative literal?
 

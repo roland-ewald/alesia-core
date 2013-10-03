@@ -118,7 +118,13 @@ object DefaultPlanExecutor extends Logging {
 
     //TODO: generalize this away from Local + JAMES II
     ExecutionState(state.problem, state.plan,
-      new LocalJamesExecutionContext(newEntities, state.context.preferences, newPlanState, newLinks, newSelector))
+      new LocalJamesExecutionContext(
+        newEntities,
+        state.context.preferences,
+        newPlanState,
+        newLinks,
+        newSelector,
+        state.context.statistics.actionExecuted))
   }
 
   def updatePlanState(previousState: PlanState, changes: Seq[Change]): PlanState = {

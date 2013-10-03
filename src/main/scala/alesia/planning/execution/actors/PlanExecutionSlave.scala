@@ -1,10 +1,9 @@
 package alesia.planning.execution.actors
 
 import scala.actors.Actor
-import sessl.util.Logging
-import alesia.bindings.ExperimentProvider
+
+import alesia.planning.context.ExecutionStatistics
 import alesia.planning.context.LocalJamesExecutionContext
-import alesia.planning.execution.actors.ActionJobMessage
 
 /**
  * Slave to execute single experiment actions.

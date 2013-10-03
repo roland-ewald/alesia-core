@@ -8,6 +8,7 @@ import alesia.planning.domain.Algorithm
 import alesia.planning.actions.experiments.CalibrateSimSteps
 import alesia.planning.actions.experiments.CheckQSSModelProperty
 import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.context.ExecutionStatistics
 
 /**
  * Tests for experiment actions.
@@ -24,7 +25,7 @@ class TestExperimentActions extends ExperimentationTest {
 
   test("qss-check") {
     val action = TestCheckQSSModelProperty.action
-    action.execute(new LocalJamesExecutionContext(Seq(), Seq(), Seq()))
+    action.execute(LocalJamesExecutionContext())
   }
 
 }

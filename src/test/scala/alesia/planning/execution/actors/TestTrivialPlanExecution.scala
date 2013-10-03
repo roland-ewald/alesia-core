@@ -14,7 +14,6 @@ import alesia.planning.actions.ActionDeclaration
 import alesia.planning.context.LocalJamesExecutionContext
 import alesia.planning.execution.ExecutionState
 
-
 /**
  * Test execution of a trivial plan.
  *  @author Roland Ewald
@@ -31,12 +30,12 @@ class TestTrivialPlanExecution extends ExperimentationTest {
   }
 
   test("executing a single calibration action") {
-    
+
     pending
     //FIXME
-    
+
     val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
-    val result = executor(ExecutionState(dummyProblem, SingleActionPlan(0), new LocalJamesExecutionContext(Seq(),Seq(), Seq())))
+    val result = executor(ExecutionState(dummyProblem, SingleActionPlan(0), LocalJamesExecutionContext()))
     assertNotNull(result)
   }
 

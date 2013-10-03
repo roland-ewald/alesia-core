@@ -1,29 +1,30 @@
 package alesia.planning.preparation
 
+import scala.collection.mutable
+import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.PlanningProblem
 import alesia.planning.actions.ActionDeclaration
+import alesia.planning.actions.ActionEffect
+import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionRegistry
 import alesia.planning.actions.ActionSpecification
 import alesia.planning.actions.Literal
 import alesia.planning.actions.PublicLiteral
 import alesia.planning.context.ExecutionContext
+import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.execution.ActionSelector
+import alesia.planning.execution.FirstActionSelector
 import alesia.query.PredicateRelation
 import alesia.query.PredicateSubject
 import alesia.query.Quantifier
+import alesia.query.StartWithActionSelector
 import alesia.query.UserHypothesis
 import alesia.query.exists
+import alesia.utils.misc.CollectionHelpers
 import sessl.util.Logging
 import alesia.planning.actions.AllDeclaredActions
 import alesia.query.ProblemSpecification
-import alesia.planning.actions.ActionFormula
-import alesia.planning.actions.ActionEffect
-import alesia.planning.DomainSpecificPlanningProblem
-import alesia.planning.context.LocalJamesExecutionContext
-import scala.collection.{ mutable => mutable }
-import alesia.planning.execution.ActionSelector
-import alesia.planning.execution.FirstActionSelector
-import alesia.utils.misc.CollectionHelpers
-import alesia.query.StartWithActionSelector
+import alesia.planning.context.ExecutionStatistics
 
 /**
  * Default [[PlanPreparator]] implementation.
@@ -173,8 +174,9 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     import scala.language.reflectiveCalls
 
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
-    (problem, new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList, //TODO: Generalize this!
-      actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec)))
+    (problem, //TODO: Generalize this:
+      new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList,
+        actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec), statistics = ExecutionStatistics()))
   }
 
   /** Extracts single hypothesis elements. */
