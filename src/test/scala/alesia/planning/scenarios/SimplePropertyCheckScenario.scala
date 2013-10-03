@@ -9,11 +9,13 @@ import alesia.planning.execution.MaxOverallNumberOfActions
  */
 object SimplePropertyCheckScenario {
 
+  val maxNumOfActions = 5
+
   import alesia.query._
 
   val domain = SingleModel("java://examples.sr.LinearChainSystem")
 
-  val preferences = Seq(WallClockTimeMaximum(seconds = 30), TerminateWhen(MaxOverallNumberOfActions(10)))
+  val preferences = Seq(WallClockTimeMaximum(seconds = 30), TerminateWhen(MaxOverallNumberOfActions(maxNumOfActions)))
 
   val hypothesis = exists >> model | hasProperty("qss")
 

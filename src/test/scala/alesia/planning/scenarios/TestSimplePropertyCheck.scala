@@ -57,8 +57,8 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         } {
           exists >> model | hasProperty("undefined")
         }
-      //TODO: check user preferences regarding maximum tries
       result should be(ofType[FailurePlanExecutionResult])
+      result.trace.size should be(maxNumOfActions)
     }
 
     it("returns result of a failed attempt whenever no termination condition is defined") {

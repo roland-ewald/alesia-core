@@ -36,6 +36,7 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
     FullPlanExecutionResult(trace)
   }
 
+  /** Create termination condition from user preferences. */
   def configureTermination(state: ExecutionState): TerminationCondition =
     TerminationDisjunction(state.context.preferencesOf[TerminateWhen].map(_.condition): _*)
 
