@@ -14,19 +14,30 @@ trait TerminationCondition {
 
 }
 
+abstract class CompositeTerminationCondition(val conditions: Seq[TerminationCondition]) extends TerminationCondition {
+  require(conditions.nonEmpty, "No termination conditions are given!")
+}
+
 /**
- * To create conjunctions of termination conditions. Per default,
- * multiple termination conditions are interpreted as a disjunction,
- * so the execution would stop whenever a single one is true.
- * This class allows to configure a termination only in case _all_
- * of the given conditions are true.
+ * A disjunctions of termination conditions. The execution stops whenever a single one is true.
+ * This is the default interpretation of encountering multiple termination conditions.
+ *
  * @param conditions the termination conditions that form the conjunction
  */
-case class TerminationConjunction(val conditions: TerminationCondition*) extends TerminationCondition {
-
-  require(conditions.nonEmpty, "No conditions are given!")
-
+case class TerminationDisjunction(override val conditions: TerminationCondition*)
+  extends CompositeTerminationCondition(conditions) {
   override def apply(state: ExecutionState) = conditions.exists(_(state))
+}
+
+/**
+ * A conjunctions of termination conditions. The execution stops only if _all_
+ * given conditions are true.
+ *
+ * @param conditions the termination conditions that form the conjunction
+ */
+case class TerminationConjunction(override val conditions: TerminationCondition*)
+  extends CompositeTerminationCondition(conditions) {
+  override def apply(state: ExecutionState) = conditions.forall(_(state))
 }
 
 /**

@@ -10,7 +10,7 @@ import alesia.planning.execution.DefaultPlanExecutor
 
 /**
  * Specifies default implementations of [[PlanningPreparator]], [[Planner]], and [[PlanExecutor]].
- * 
+ *
  * It also provides a method `submit`, to submit the planning problem to the system.
  */
 package object query {
@@ -19,7 +19,7 @@ package object query {
 
   val defaultPlanner: Planner = new NonDeterministicPolicyPlanner
 
-  val defaultExecutor: PlanExecutor = new DefaultPlanExecutor
+  val defaultExecutor: PlanExecutor = DefaultPlanExecutor
 
   type ProblemSpecification = (Seq[UserDomainEntity], Seq[UserPreference], UserHypothesis)
 

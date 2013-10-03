@@ -10,22 +10,21 @@ import alesia.planning.plans.PlanExecutionResult
 import alesia.query.UserDomainEntity
 import sessl.util.Logging
 import alesia.query.WithStrictness
+import alesia.query.TerminateWhen
+import scala.annotation.tailrec
 
 /**
  * Implements the [[PlanExecutor]] interface as a simple step-by-step execution of a plan.
  *
  * @author Roland Ewald
  */
-class DefaultPlanExecutor extends PlanExecutor with Logging {
-
-  //TODO: This is to prevent infinite loops; generalize via UserPreferences
-  val maxTries = 4
+object DefaultPlanExecutor extends PlanExecutor with Logging {
 
   /** Execute planning iteratively, by executing a [[Stream]] of actions. */
   override def apply(s: ExecutionState): PlanExecutionResult = {
     val visitedStates = ListBuffer[ExecutionState]()
     try {
-      executionStream(s, 0).foreach(visitedStates += _._1)
+      executionStream(s, configureTermination(s)).foreach(visitedStates += _)
     } catch {
       case t: Throwable => {
         logger.error("Plan execution failed", t)
@@ -37,27 +36,20 @@ class DefaultPlanExecutor extends PlanExecutor with Logging {
     FullPlanExecutionResult(trace)
   }
 
-  def stopDueToPreferences(s: ExecutionState): Boolean = false //TODO: finish this
+  def configureTermination(state: ExecutionState): TerminationCondition =
+    TerminationDisjunction(state.context.preferencesOf[TerminateWhen].map(_.condition): _*)
 
   /** Creates a stream of execution states. */
-  def executionStream(
-    state: ExecutionState, counter: Int): Stream[(ExecutionState, Int)] =
-    (state, counter) #:: {
+  def executionStream(state: ExecutionState, terminate: TerminationCondition): Stream[ExecutionState] =
+    state #:: {
       val newState = DefaultPlanExecutor.iteratePlanExecution(state)
       if (newState.isFinished)
         Stream.empty
-      else if (stopDueToPreferences(newState) || counter >= maxTries)
+      else if (terminate(newState))
         throw new IllegalStateException("Plan execution was stopped prematurely.")
       else
-        executionStream(newState, counter + 1)
+        executionStream(newState, terminate)
     }
-
-}
-
-/**
- * General methods to update the execution state.
- */
-object DefaultPlanExecutor extends Logging {
 
   /**
    * A full iteration of the plan execution.

@@ -14,6 +14,7 @@ import alesia.TestUtils._
 import alesia.query._
 import alesia.planning.execution.FirstActionSelector
 import alesia.planning.execution.DeterministicFirstActionSelector
+import alesia.planning.execution.MaxOverallNumberOfActions
 
 /**
  * Tests a simple scenario where a benchmark model should be checked regarding a single property.
@@ -28,16 +29,18 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
 
   ApplicationLogger.setLogLevel(Level.SEVERE)
 
+  import SimplePropertyCheckScenario._
+
   describe("Simple Property Check Scenario") {
 
     it("works in principle :)") {
 
       val result = submit {
-        SingleModel("java://examples.sr.LinearChainSystem")
+        domain
       } {
-        WallClockTimeMaximum(seconds = 30)
+        preferences: _*
       } {
-        exists >> model | hasProperty("qss")
+        hypothesis
       }
 
       result.trace.size should be >= 2
@@ -48,13 +51,25 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
     it("returns result of a failed attempt whenever plan goals cannot be reached") {
       val result =
         submit {
-          SingleModel("java://examples.sr.LinearChainSystem")
+          domain
         } {
-          WallClockTimeMaximum(seconds = 30)
+          preferences: _*
         } {
           exists >> model | hasProperty("undefined")
         }
       //TODO: check user preferences regarding maximum tries
+      result should be(ofType[FailurePlanExecutionResult])
+    }
+
+    it("returns result of a failed attempt whenever no termination condition is defined") {
+      val result =
+        submit {
+          domain
+        } {
+          preferences.take(1): _*
+        } {
+          hypothesis
+        }
       result should be(ofType[FailurePlanExecutionResult])
     }
 
@@ -63,9 +78,9 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         submit {
           new UserDomainEntity {}
         } {
-          WallClockTimeMaximum(seconds = 30)
+          preferences: _*
         } {
-          exists >> model | hasProperty("qss")
+          hypothesis
         }
       } should produce[IllegalArgumentException]
     }
@@ -73,11 +88,11 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
     it("fails whenever multiple start-with-action-selector preferences are defined") {
       evaluating {
         submit {
-          SingleModel("java://examples.sr.LinearChainSystem")
+          domain
         }(
           WallClockTimeMaximum(seconds = 30), StartWithActionSelector(FirstActionSelector),
           StartWithActionSelector(DeterministicFirstActionSelector)) {
-            exists >> model | hasProperty("qss")
+            hypothesis
           }
       } should produce[IllegalArgumentException]
     }
