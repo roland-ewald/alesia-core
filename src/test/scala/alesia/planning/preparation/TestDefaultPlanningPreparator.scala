@@ -9,6 +9,7 @@ import org.scalatest.matchers.ShouldMatchers
 import alesia.planning.execution.RandomActionSelector
 import alesia.planning.execution.ExecutionState
 import alesia.planning.execution.ActionSelector
+import alesia.planning.execution.WallClockTimeMaximum
 
 /**
  * Tests {@link DefaultPlanningPreparator}.
@@ -28,7 +29,7 @@ class TestDefaultPlanningPreparator extends FunSpec with ShouldMatchers {
   val testSpec = (Seq(
     SingleModel("java://examples.sr.LinearChainSystem"),
     SingleModel("java://examples.sr.TotallyIndependentSystem")),
-    Seq(WallClockTimeMaximum(seconds = 30)),
+    Seq(TerminateWhen(WallClockTimeMaximum(seconds = 30))),
     exists >> model | hasProperty("qss"))
 
   describe("Default Planning Preparator") {

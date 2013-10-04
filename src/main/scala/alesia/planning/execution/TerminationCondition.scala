@@ -1,6 +1,7 @@
 package alesia.planning.execution
 
 import sessl.Duration
+import sessl.AbstractDuration
 
 /**
  * Class hierarchy to represent termination conditions as defined by the user.
@@ -52,16 +53,28 @@ case class MaxOverallNumberOfActions(val max: Int) extends TerminationCondition 
 }
 
 /**
- * Stop when a certain amount of wall-clock time has passed.
+ * Stop when a certain amount of wall-clock time has passed between starting and stopping experimentation.
  * @see [[Duration]]
- * @param maxDuration maximum overall duration
  */
-case class MaxOverallTime(val maxDuration: Duration) extends TerminationCondition {
+case class WallClockTimeMaximum(days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0, milliseconds: Int = 0)
+  extends AbstractDuration with TerminationCondition {
 
-  require(maxDuration.toMilliSeconds > 0, "Overall duration must be >= 0")
+  require(toMilliSeconds > 0, "Overall duration must be >= 0")
 
   override def apply(state: ExecutionState) = {
     val duration = System.currentTimeMillis - state.context.statistics.startTime
-    duration >= maxDuration.toMilliSeconds
+    duration >= toMilliSeconds
   }
+}
+
+/**
+ * Stop when a certain amount of CPU time has been consumed.
+ * @see [[Duration]]
+ */
+case class CPUTimeMaximum(days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0, milliseconds: Int = 0)
+  extends AbstractDuration with TerminationCondition {
+
+  require(toMilliSeconds > 0, "Overall duration must be >= 0")
+
+  override def apply(state: ExecutionState) = ??? //TODO
 }

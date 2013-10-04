@@ -15,6 +15,8 @@ import alesia.query._
 import alesia.planning.execution.FirstActionSelector
 import alesia.planning.execution.DeterministicFirstActionSelector
 import alesia.planning.execution.MaxOverallNumberOfActions
+import alesia.planning.execution.WallClockTimeMaximum
+import alesia.planning.execution.RandomActionSelector
 
 /**
  * Tests a simple scenario where a benchmark model should be checked regarding a single property.
@@ -61,12 +63,25 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
       result.trace.size should be(maxNumOfActions)
     }
 
+    it("returns result of a failed attempt whenever there is no time to execute the plan") {
+      val result =
+        submit {
+          domain
+        } {
+          TerminateWhen(WallClockTimeMaximum(milliseconds = 1))
+        } {
+          hypothesis
+        }
+      result should be(ofType[FailurePlanExecutionResult])
+      result.trace.size should be(1)
+    }
+
     it("returns result of a failed attempt whenever no termination condition is defined") {
       val result =
         submit {
           domain
         } {
-          preferences.take(1): _*
+          StartWithActionSelector(RandomActionSelector)
         } {
           hypothesis
         }
@@ -90,7 +105,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         submit {
           domain
         }(
-          WallClockTimeMaximum(seconds = 30), StartWithActionSelector(FirstActionSelector),
+          TerminateWhen(WallClockTimeMaximum(seconds = 30)), StartWithActionSelector(FirstActionSelector),
           StartWithActionSelector(DeterministicFirstActionSelector)) {
             hypothesis
           }
