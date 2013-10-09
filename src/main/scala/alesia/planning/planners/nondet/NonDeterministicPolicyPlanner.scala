@@ -22,11 +22,25 @@ import scala.collection.mutable.ArrayBuffer
  * Creates a plan assuming a non-deterministic environment, via techniques for symbolic model checking.
  * Implementation relies on ordered binary decision diagrams (OBDDs).
  *
- * The algorithms are mostly taken from chapter 17, p. 403 et sqq., of
+ * The weak and strong algorithms are mostly taken from chapter 17, p. 403 et sqq., of
  *
  * M. Ghallab, D. Nau, and P. Traverso, Automated Planning: Theory & Practice, 1st ed., ser. The Morgan Kaufmann Series in Artificial Intelligence.
  *
  * Available: http://www.worldcat.org/isbn/9781558608566
+ * 
+ * The strong-cylcic planning algorithm is Rintanen's simplification of an algorithm by Cimatti et al.
+ * 
+ * The paper describing the original algorithm: 
+ * 
+ * A. Cimatti, M. Pistore, M. Roveri, and P. Traverso, "Weak, strong, and strong cyclic planning via symbolic model checking," Artificial Intelligence, vol. 147, no. 1-2, pp. 35-84, Jul. 2003.
+ * 
+ * Available: http://dx.doi.org/10.1016/s0004-3702(02)00374-0
+ * 
+ * Rintanen's simplification is described in his lecture notes for courses on AI planning at the University of Freiburg, 
+ * 2004 and 2005, as well as in this paper:
+ * 
+ * J. Rintanen, "Complexity of conditional planning under partial observability and infinite executions," 
+ * in Proceedings of the 20th European Conference on Artificial Intelligence. IOS Press, 2012, pp. 678-683. 
  *
  * @author Roland Ewald
  */
