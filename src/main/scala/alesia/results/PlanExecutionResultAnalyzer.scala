@@ -3,7 +3,7 @@ package alesia.results
 import alesia.planning.plans.PlanExecutionResult
 
 /**
- * Analyzes a [[PlanExecutionResult]].
+ * Analyzes a [[alesia.planning.plans.PlanExecutionResult]].
  *
  * @author Roland Ewald
  */

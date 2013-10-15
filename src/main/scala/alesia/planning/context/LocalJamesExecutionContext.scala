@@ -11,8 +11,8 @@ import alesia.planning.execution.FirstActionSelector
 /**
  * Execution context for the local execution of JAMES II experiments.
  *
- * @see [[LocalResourceProvider]]
- * @see [[JamesExperimentProvider]]
+ * @see [[alesia.bindings.LocalResourceProvider]]
+ * @see [[alesia.bindings.james.JamesExperimentProvider]]
  *
  * @author Roland Ewald
  */

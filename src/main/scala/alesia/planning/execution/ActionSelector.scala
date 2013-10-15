@@ -1,7 +1,8 @@
 package alesia.planning.execution
 
 /**
- * Decides which of the (potentially multiple) actions of a [[Plan]] a [[PlanExecutor]] should select.
+ * Decides which of the (potentially multiple) actions of a [[alesia.planning.plans.Plan]] a 
+ * [[alesia.planning.execution.PlanExecutor]] should select.
  *
  * @author Roland Ewald
  */

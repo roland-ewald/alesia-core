@@ -54,7 +54,6 @@ case class MaxOverallNumberOfActions(val max: Int) extends TerminationCondition 
 
 /**
  * Stop when a certain amount of wall-clock time has passed between starting and stopping experimentation.
- * @see [[Duration]]
  */
 case class WallClockTimeMaximum(days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0, milliseconds: Int = 0)
   extends AbstractDuration with TerminationCondition {
@@ -69,7 +68,6 @@ case class WallClockTimeMaximum(days: Int = 0, hours: Int = 0, minutes: Int = 0,
 
 /**
  * Stop when a certain amount of CPU time has been consumed.
- * @see [[Duration]]
  */
 case class CPUTimeMaximum(days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0, milliseconds: Int = 0)
   extends AbstractDuration with TerminationCondition {

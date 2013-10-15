@@ -9,7 +9,8 @@ import alesia.planning.preparation.DefaultPlanningPreparator
 import alesia.planning.execution.DefaultPlanExecutor
 
 /**
- * Specifies default implementations of [[PlanningPreparator]], [[Planner]], and [[PlanExecutor]].
+ * Specifies default implementations of [[alesia.planning.preparation.PlanningPreparator]], 
+ * [[alesia.planning.planners.Planner]], and [[alesia.planning.execution.PlanExecutor]].
  *
  * It also provides a method `submit`, to submit the planning problem to the system.
  */

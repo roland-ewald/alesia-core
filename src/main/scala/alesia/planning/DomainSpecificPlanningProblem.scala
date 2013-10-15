@@ -5,7 +5,7 @@ import alesia.planning.actions.Literal
 import alesia.planning.execution.PlanState
 
 /**
- * Represents a [[PlanningProblem]] that is tied to a specific application domain.
+ * Represents a [[alesia.planning.PlanningProblem]] that is tied to a specific application domain.
  *
  * Hence, it provides additional data structures that link the domain entities with the entities
  * in the planning domain.
@@ -23,7 +23,7 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
   /** Maps a variable name to its corresponding function. */
   val functionByName: Map[String, PlanningDomainFunction]
 
-  /** Creates the representation of the [[PlanState]] in the planning domain. */
+  /** Creates the representation of the [[alesia.planning.execution.PlanState]] in the planning domain. */
   def constructState(xs: PlanState): PlanningDomainFunction =
     conjunction {
       xs.map { x =>

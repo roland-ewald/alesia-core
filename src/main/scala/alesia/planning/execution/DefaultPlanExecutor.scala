@@ -20,7 +20,7 @@ import scala.annotation.tailrec
  */
 object DefaultPlanExecutor extends PlanExecutor with Logging {
 
-  /** Execute planning iteratively, by executing a [[Stream]] of actions. */
+  /** Execute planning iteratively, by executing a stream of actions. */
   override def apply(s: ExecutionState): PlanExecutionResult = {
     val visitedStates = ListBuffer[ExecutionState]()
     try {

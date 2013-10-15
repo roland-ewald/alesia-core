@@ -6,9 +6,8 @@ import alesia.planning.context.ExecutionContext
 
 /**
  * All data required for execution of a single iteration.
- * Contains the [[DomainSpecificPlanningProblem]], the [[Plan]] to be executed,
- * the current [[ExecutionContext]] (may contain references to intermediate results etc.),
- * and the current [[ActionSelector]].
+ * Contains the [[alesia.planning.DomainSpecificPlanningProblem]], the [[alesia.planning.plans.Plan]] to be executed,
+ * and the current [[alesia.planning.context.ExecutionContext]] (may contain references to intermediate results etc.).
  */
 case class ExecutionState(problem: DomainSpecificPlanningProblem, plan: Plan, context: ExecutionContext) {
 

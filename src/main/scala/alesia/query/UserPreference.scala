@@ -9,13 +9,13 @@ import alesia.planning.execution.ExecutionStrictness
 sealed trait UserPreference
 
 /**
- * Decides with which [[ActionSelector]] the execution should start.
+ * Decides with which [[alesia.planning.execution.ActionSelector]] the execution should start.
  * Note that the selector may switch autonomously to some other selector between execution state transitions.
  */
 case class StartWithActionSelector(selector: ActionSelector) extends UserPreference
 
-/** Decides which [[TerminationCondition]] to use. */
+/** Decides which [[alesia.planning.execution.TerminationCondition]] to use. */
 case class TerminateWhen(val condition: TerminationCondition) extends UserPreference
 
-/** Decides which [[ExecutionStrictness]] to apply. */
+/** Decides which [[alesia.planning.execution.ExecutionStrictness]] to apply. */
 case class WithStrictness(val strictness: ExecutionStrictness) extends UserPreference

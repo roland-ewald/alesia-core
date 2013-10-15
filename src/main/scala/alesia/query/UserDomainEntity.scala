@@ -13,8 +13,7 @@ trait UserDomainEntity {
 
   /**
    * Defines the representation of the domain entity in the planning domain.
-   *  @default empty
-   *  @return list of (name, flag) tuples, where name is the name of a new state variable and flag determines whether
+   * @return list of (name, flag) tuples, where name is the name of a new state variable and flag determines whether
    *  it is true or not
    */
   def planningDomainRepresentation(p: PlanningProblem): Seq[(String, Boolean)] = Seq()

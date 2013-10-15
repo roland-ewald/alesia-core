@@ -8,7 +8,10 @@ import alesia.planning.execution.ExecutionState
  */
 trait PlanExecutionResult {
 
-  /** @return the execution trace for the given plan, as a sequence of [[ExecutionState]] instances */
+  /**
+   * @return the execution trace for the given plan, as a sequence of [[alesia.planning.execution.ExecutionState]]
+   *  instances
+   */
   def trace: Seq[ExecutionState]
 
 }

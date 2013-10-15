@@ -4,7 +4,8 @@ import alesia.planning.actions.Literal
 import alesia.query.UserDomainEntity
 
 /**
- * Represents a state update, relates to both the [[PlanningProblem]] and the [[ExecutionContext]].
+ * Represents a state update, relates to both the [[alesia.planning.PlanningProblem]] and the 
+ * [[alesia.planning.context.ExecutionContext]].
  *
  * @author Roland Ewald
  */
@@ -57,7 +58,8 @@ object StateUpdate {
     SimpleStateUpdate(changes, add.toSeq, remove.toSeq)
 }
 
-/** Represents a change in the [[ExecutionContext]] of the [[ExecutionState]], therefore part of a [[StateUpdate]]. */
+/** Represents a change in the [[alesia.planning.context.ExecutionContext]] of the 
+ *  [[alesia.planning.execution.ExecutionState]], therefore part of a [[StateUpdate]]. */
 sealed abstract class Change(val literals: Seq[String], val entities: Seq[UserDomainEntity], val add: Boolean)
 
 case class AddLiterals(addLiterals: String*) extends Change(addLiterals, Seq(), true)

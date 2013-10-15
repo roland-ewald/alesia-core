@@ -27,7 +27,7 @@ import alesia.query.ProblemSpecification
 import alesia.planning.context.ExecutionStatistics
 
 /**
- * Default [[PlanPreparator]] implementation.
+ * Default [[alesia.planning.preparation.PlanningPreparator]] implementation.
  *
  * TODO: Clean up, refactor, and document the preparation.
  *

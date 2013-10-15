@@ -3,7 +3,7 @@ package alesia.results
 import alesia.planning.plans.PlanExecutionResult
 
 /**
- * Generates a user-readable report from the [[PlanExecutionResult]].
+ * Generates a user-readable report from the [[alesia.planning.plans.PlanExecutionResult]].
  *
  * @author Roland Ewald
  */

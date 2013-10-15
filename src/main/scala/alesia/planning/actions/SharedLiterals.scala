@@ -7,6 +7,6 @@ package alesia.planning.actions
  */
 object SharedLiterals {
 
-  /** A model that has been 'loaded' in some sense. Linked to [[ParameterizedModel]].*/
+  /** A model that has been 'loaded' in some sense. Linked to [[alesia.planning.domain.ParameterizedModel]].*/
   val loadedModel = "loadedModel"
 }
