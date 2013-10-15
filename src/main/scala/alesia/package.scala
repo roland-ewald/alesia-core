@@ -14,15 +14,30 @@ import alesia.planning.execution.ActionSelector
  * @author Roland Ewald
  */
 package object alesia {
- 
-  /** Major execution sequence. */
+
+  /**
+   * Major execution sequence.
+   *
+   *  @param prep the planning preparator
+   *  @param planner the planner
+   *  @param executor the plan executor
+   *  @param spec the problem specification
+   *  @param selector the action selector
+   *  @return the result of the plan execution
+   */
   def run(prep: PlanningPreparator, planner: Planner, executor: PlanExecutor,
-    spec: ProblemSpecification, selector: ActionSelector = FirstActionSelector): PlanExecutionResult = {       
+    spec: ProblemSpecification, selector: ActionSelector = FirstActionSelector): PlanExecutionResult = {
+
     val (problem, context) = prep.preparePlanning(spec)
+
     val plan = planner.plan(problem)
-    require(!plan.isInstanceOf[EmptyPlan],
-      s"Plan must not be empty. ${planner.getClass.getName} could not find a solution, please check your problem definition.")
-    executor(ExecutionState(problem, plan, context))
+
+    plan match {
+      case e: EmptyPlan => throw new IllegalStateException(
+        s"Plan must not be empty. ${planner.getClass.getName} could not find a solution, please check your problem definition.")
+      case _ => executor(ExecutionState(problem, plan, context))
+    }
+
   }
 
 }
