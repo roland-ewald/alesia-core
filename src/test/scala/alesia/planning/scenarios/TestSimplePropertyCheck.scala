@@ -88,7 +88,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
       result should be(ofType[FailurePlanExecutionResult])
     }
 
-    it("fails whenever elements of the problem specification are missing") {
+    it("fails whenever elements of the problem specification are missing, and thus planning fails") {
       evaluating {
         submit {
           new UserDomainEntity {}
@@ -97,7 +97,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         } {
           hypothesis
         }
-      } should produce[IllegalArgumentException]
+      } should produce[IllegalStateException]
     }
 
     it("fails whenever multiple start-with-action-selector preferences are defined") {
