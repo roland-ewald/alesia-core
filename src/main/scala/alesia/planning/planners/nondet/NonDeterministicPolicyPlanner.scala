@@ -27,31 +27,43 @@ import scala.collection.mutable.ArrayBuffer
  * M. Ghallab, D. Nau, and P. Traverso, Automated Planning: Theory & Practice, 1st ed., ser. The Morgan Kaufmann Series in Artificial Intelligence.
  *
  * Available: http://www.worldcat.org/isbn/9781558608566
- * 
+ *
  * The strong-cylcic planning algorithm is Rintanen's simplification of an algorithm by Cimatti et al.
- * 
- * The paper describing the original algorithm: 
- * 
+ *
+ * The paper describing the original algorithm:
+ *
  * A. Cimatti, M. Pistore, M. Roveri, and P. Traverso, "Weak, strong, and strong cyclic planning via symbolic model checking," Artificial Intelligence, vol. 147, no. 1-2, pp. 35-84, Jul. 2003.
- * 
+ *
  * Available: http://dx.doi.org/10.1016/s0004-3702(02)00374-0
- * 
- * Rintanen's simplification is described in his lecture notes for courses on AI planning at the University of Freiburg, 
+ *
+ * Rintanen's simplification is described in his lecture notes for courses on AI planning at the University of Freiburg,
  * 2004 and 2005, as well as in this paper:
- * 
- * J. Rintanen, "Complexity of conditional planning under partial observability and infinite executions," 
- * in Proceedings of the 20th European Conference on Artificial Intelligence. IOS Press, 2012, pp. 678-683. 
+ *
+ * J. Rintanen, "Complexity of conditional planning under partial observability and infinite executions,"
+ * in Proceedings of the 20th European Conference on Artificial Intelligence. IOS Press, 2012, pp. 678-683.
  *
  * @author Roland Ewald
  */
 class NonDeterministicPolicyPlanner extends Planner with Logging {
 
-  override def plan(problem: PlanningProblem) = createPlan(problem)
+  override def plan(problem: PlanningProblem) = {
+    import NonDeterministicPlanTypes._
+    createPlan(problem, Strong).getOrElse {
+      logger.info("No strong plan found.")
+      createPlan(problem, StrongCyclic).getOrElse {
+        logger.info("No strong-cyclic plan found.")
+        createPlan(problem, Weak).getOrElse {
+          logger.info("No weak plan found.")
+          FailurePolicy
+        }
+      }
+    }
+  }
 
   /**
    * Creates a plan of a certain type.
    */
-  def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = Weak): Plan = {
+  def createPlan(problem: PlanningProblem, planType: NonDeterministicPlanTypes.Value = Weak): Option[Plan] = {
     implicit val domain = problem.table
     planType match {
       case Strong => planWeakOrStrong(problem, strongPreImage)
@@ -104,7 +116,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
    * @param problem the planning problem
    * @return conditional plan
    */
-  def planStrongCyclic(p: PlanningProblem)(implicit t: UniqueTable): Plan = {
+  def planStrongCyclic(p: PlanningProblem)(implicit t: UniqueTable): Option[Plan] = {
     import t._
 
     val G = p.goalStates
@@ -119,7 +131,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
     }
 
     if (!isContained(p.initialStates, W_new))
-      return FailurePolicy
+      return None
 
     val D_i = ArrayBuffer[Int]()
     D_i += G
@@ -133,7 +145,7 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
       D_i += intersection(L, S_new)
     }
 
-    new DistanceBasedPlan(p, D_i.toArray)
+    Some(new DistanceBasedPlan(p, D_i.toArray))
   }
 
   /**
@@ -208,11 +220,11 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
    * @param policy the policy that has been constructed
    * @return deterministic policy
    */
-  def createPlanIfPossible(initialStates: Int, reachedStates: Int, policy: Policy)(implicit t: UniqueTable) = {
+  def createPlanIfPossible(initialStates: Int, reachedStates: Int, policy: Policy)(implicit t: UniqueTable): Option[Plan] = {
     if (t.isContained(initialStates, reachedStates))
-      makeDeterministic(policy)
+      Some(makeDeterministic(policy))
     else
-      FailurePolicy
+      None
   }
 
   /**
@@ -229,5 +241,4 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
   /** Creates debugging output. */
   protected def logOutput(policy: Policy) = "New policy of iteration:\n" + policy.symbolicRepresentation
 
-  
 }
