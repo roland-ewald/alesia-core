@@ -9,7 +9,10 @@ import alesia.planning.plans.PlanExecutionResult
  */
 trait PlanExecutionResultAnalyzer[+A] {
 
-  /** Analyze plan execution result and return the result of this analysis. */
+  /**
+   * Analyze plan execution result and return the result of this analysis.
+   *  @param results the results of the plan execution, containing a sequence of [[alesia.planning.execution.ExecutionState]]
+   */
   def apply(results: PlanExecutionResult): A
 
 }

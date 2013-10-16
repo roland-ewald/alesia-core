@@ -6,7 +6,7 @@ import alesia.planning.execution.ExecutionState
  * Super type of all plan results.
  *  @author Roland Ewald
  */
-trait PlanExecutionResult {
+sealed trait PlanExecutionResult {
 
   /**
    * @return the execution trace for the given plan, as a sequence of [[alesia.planning.execution.ExecutionState]]
