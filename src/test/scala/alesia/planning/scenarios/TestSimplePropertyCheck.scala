@@ -13,7 +13,7 @@ import org.scalatest.matchers.BePropertyMatcher
 import alesia.TestUtils._
 import alesia.query._
 import alesia.planning.execution.FirstActionSelector
-import alesia.planning.execution.DeterministicFirstActionSelector
+import alesia.planning.execution.MinActionIndexSelector
 import alesia.planning.execution.MaxOverallNumberOfActions
 import alesia.planning.execution.WallClockTimeMaximum
 import alesia.planning.execution.RandomActionSelector
@@ -106,7 +106,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
           domain
         }(
           TerminateWhen(WallClockTimeMaximum(seconds = 30)), StartWithActionSelector(FirstActionSelector),
-          StartWithActionSelector(DeterministicFirstActionSelector)) {
+          StartWithActionSelector(MinActionIndexSelector)) {
             hypothesis
           }
       } should produce[IllegalArgumentException]
