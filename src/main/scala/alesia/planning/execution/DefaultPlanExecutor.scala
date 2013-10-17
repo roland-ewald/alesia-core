@@ -71,7 +71,7 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
   def selectAction(state: ExecutionState, currentState: Int): (Int, ActionSelector) = {
     logger.info(s"Current state: ${state.problem.table.structureOf(currentState, state.problem.variableNames, "\t")}")
     val possibleActions = state.plan.decide(currentState)
-    require(possibleActions.nonEmpty, "Plan has no actions for state.") //TODO: attempt repair & check its success?
+    require(possibleActions.nonEmpty, "Plan has no actions for state.")
     val rv = state.context.actionSelector(possibleActions, state)
     logger.info(s"Possible actions: ${possibleActions.mkString} --- choosing action ${rv._1}")
     rv
