@@ -39,24 +39,12 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
   type HypothesisElement = (Quantifier, PredicateSubject, PredicateRelation)
 
   /** For each variable/action, corresponding name in the planning domain. */
-  private[this] var nameForEntity = mutable.Map[Any, String]()
-
-  /** For each name in the planning domain, corresponding variable/action.*/
-  private[this] var entityForName = mutable.Map[String, Any]()
-
-  private[this] var addedVariableNames = mutable.Set[String]()
-
-  private[this] var addedActionNames = mutable.Set[String]()
-
-  lazy val varNames = addedVariableNames.toList
-
-  lazy val actNames = addedActionNames.toList
+  private[this] val entityNames = mutable.Map[Any, String]()
 
   /** Associate a name in the planning domain with an entity (holding meta-data etc).*/
   private[this] def associateEntityWithName(a: Any, n: String): Unit = {
-    require(!nameForEntity.isDefinedAt(a), s"Entity names must be unique, but ${a} is associated with both ${n} and ${nameForEntity(a)}")
-    nameForEntity(a) = n
-    entityForName(n) = a
+    require(!entityNames.isDefinedAt(a), s"Entity must be associated with a single name, but ${a} is associated with both ${n} and ${entityNames(a)}")
+    entityNames(a) = n
   }
 
   override def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext) = {
@@ -138,7 +126,6 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
        */
       private[this] def addVariable(l: Literal): PlanningDomainFunction = {
         variablesByName.getOrElseUpdate(l.name, {
-          addedVariableNames += l.name
           val newVariable = v(l.name)
           associateEntityWithName(newVariable, l.name)
           newVariable
@@ -163,7 +150,6 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         def convertEffect(as: Seq[ActionEffect]): Seq[Effect] =
           as.map(a => Effect(convertFormula(a.condition), a.add.map(addVariable), a.del.map(addVariable), a.nondeterministic))
 
-        addedActionNames += a.name
         val newAction = action(a.name, convertFormula(a.preCondition), convertEffect(a.effect): _*)
         associateEntityWithName(newAction, a.name)
         newAction
@@ -176,7 +162,8 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
     (problem, //TODO: Generalize this:
       new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList,
-        actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec), statistics = ExecutionStatistics()))
+        actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec),
+        statistics = ExecutionStatistics()))
   }
 
   /** Extracts single hypothesis elements. */

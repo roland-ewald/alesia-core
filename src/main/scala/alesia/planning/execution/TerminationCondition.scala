@@ -15,6 +15,7 @@ trait TerminationCondition {
 
 }
 
+/** Aggregates several conditions into one. */
 abstract class CompositeTerminationCondition(val conditions: Seq[TerminationCondition]) extends TerminationCondition {
   require(conditions.nonEmpty, "No termination conditions are given!")
 }

@@ -3,7 +3,7 @@ package alesia.planning
 import alesia.query.UserDomainEntity
 
 /**
- * Some utilities for plan execution.
+ * This package contains the component that execute a plan.
  */
 package object execution {
 

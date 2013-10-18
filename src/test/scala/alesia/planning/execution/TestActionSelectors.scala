@@ -22,7 +22,7 @@ import alesia.planning.plans.EmptyPlan
 /**
  * Tests the trivial implementations of [[alesia.planning.execution.ActionSelector]].
  *
- * @author roland
+ * @author Roland Ewald
  */
 @RunWith(classOf[JUnitRunner])
 class TestActionSelectors extends FunSpec with ShouldMatchers {
