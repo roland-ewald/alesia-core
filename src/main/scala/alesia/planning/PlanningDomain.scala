@@ -250,13 +250,11 @@ class PlanningDomain extends Logging {
               varNumInstructionIds(v),
               not(epc(es, v, false))),
             epc(es, v, true))) //... or it is made true            
-        //        debug(criterion, variableNames(nextStateVarNums(v)) + "<=> ")
       }).foldLeft(TrueVariable.id)(and)
     }
 
     def epc(e: Seq[Effect], varNum: Int, positive: Boolean): Int = {
       e.foldLeft(0)((x, eff) => or(x, epc(eff, varNum, positive)))
-      // debug(result, "EPC for " + (if (positive) "" else "!") + variableNames(varNum))
     }
 
     def epc(e: Effect, varNum: Int, positive: Boolean): Int = {
