@@ -29,27 +29,22 @@ import alesia.planning.context.ExecutionStatistics
 /**
  * Default [[alesia.planning.preparation.PlanningPreparator]] implementation.
  *
- * TODO: Clean up, refactor, and document the preparation.
- *
  * @author Roland Ewald
  */
 class DefaultPlanningPreparator extends PlanningPreparator with Logging {
-
-  /** Refers to a single 'atomic' predicate relation (and to which subject and quantifier it relates). */
-  type HypothesisElement = (Quantifier, PredicateSubject, PredicateRelation)
 
   /** For each variable/action, corresponding name in the planning domain. */
   private[this] val entityNames = mutable.Map[Any, String]()
 
   /** Associate a name in the planning domain with an entity (holding meta-data etc).*/
   private[this] def associateEntityWithName(a: Any, n: String): Unit = {
-    require(!entityNames.isDefinedAt(a), s"Entity must be associated with a single name, but ${a} is associated with both ${n} and ${entityNames(a)}")
+    require(!entityNames.isDefinedAt(a),
+      s"Entity must be associated with a single name, but ${a} is associated with both ${n} and ${entityNames(a)}")
     entityNames(a) = n
   }
 
   override def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext) = {
 
-    //Retrieve suitable actions
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
 
     val declaredActionsList = allDeclaredActions.flatMap(_._2)
@@ -57,10 +52,8 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
     val preparator = this
 
-    // TODO: new class?
     val inititalPlanState = mutable.ListBuffer[(String, Boolean)]()
 
-    // TODO: Make custom class out of this
     // TODO: Check problems with duplicate creations of literals etc. 
     val problem = new DomainSpecificPlanningProblem() {
 
