@@ -1,6 +1,6 @@
 package alesia.planning.planners
 
-import alesia.planning.plans.Plan
+import alesia.planning.planners.Plan
 import alesia.planning.PlanningProblem
 
 

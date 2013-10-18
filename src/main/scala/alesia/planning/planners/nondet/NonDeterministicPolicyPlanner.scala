@@ -8,11 +8,11 @@ import NonDeterministicPlanTypes.StrongCyclic
 import NonDeterministicPlanTypes.Weak
 import alesia.planning.PlanningProblem
 import alesia.planning.planners.Planner
-import alesia.planning.plans.EmptyPlan
-import alesia.planning.plans.Plan
+import alesia.planning.planners.EmptyPlan
+import alesia.planning.planners.Plan
 import alesia.utils.bdd.UniqueTable
 import sessl.util.Logging
-import alesia.planning.plans.EmptyPlan
+import alesia.planning.planners.EmptyPlan
 import alesia.planning.PlanningDomain
 import alesia.planning.PlanningDomainAction
 import scala.collection.mutable.ListBuffer

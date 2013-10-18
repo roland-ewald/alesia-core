@@ -5,7 +5,7 @@ import org.scalatest.FunSpec
 import org.scalatest.junit.JUnitRunner
 import alesia.planning.PlanningDomain
 import alesia.planning.TrivialPlanningProblem
-import alesia.planning.plans.Plan
+import alesia.planning.planners.Plan
 import sessl.util.Logging
 import alesia.planning.SamplePlanningProblemTransport
 import alesia.planning.TrivialStrongCyclicPlanningProblem

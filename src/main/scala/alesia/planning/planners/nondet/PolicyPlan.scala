@@ -2,7 +2,7 @@ package alesia.planning.planners.nondet
 
 import scala.annotation.tailrec
 
-import alesia.planning.plans.Plan
+import alesia.planning.planners.Plan
 import sessl.util.Logging
 
 /**

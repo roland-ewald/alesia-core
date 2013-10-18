@@ -7,7 +7,7 @@ import org.scalatest.matchers.ShouldMatchers
 import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.actions.ActionDeclaration
 import alesia.planning.domain.ParameterizedModel
-import alesia.planning.plans.EmptyPlan
+import alesia.planning.planners.EmptyPlan
 import alesia.query.SingleModel
 import alesia.planning.context.LocalJamesExecutionContext
 

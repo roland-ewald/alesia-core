@@ -1,9 +1,9 @@
 package alesia.planning.planners.nondet
 
 import alesia.utils.bdd.UniqueTable
-import alesia.planning.plans.Plan
+import alesia.planning.planners.Plan
 import alesia.planning.PlanningProblem
-import alesia.planning.plans.EmptyPlan
+import alesia.planning.planners.EmptyPlan
 import alesia.planning.PlanningDomainAction
 
 /**

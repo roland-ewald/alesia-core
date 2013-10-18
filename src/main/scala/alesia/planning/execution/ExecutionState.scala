@@ -1,6 +1,6 @@
 package alesia.planning.execution
 
-import alesia.planning.plans.Plan
+import alesia.planning.planners.Plan
 import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.context.ExecutionContext
 

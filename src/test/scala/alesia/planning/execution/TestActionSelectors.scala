@@ -12,12 +12,12 @@ import alesia.planning.context.ExecutionContext
 import alesia.planning.context.ExecutionContext
 import alesia.planning.context.LocalJamesExecutionContext
 import alesia.planning.planners.nondet.EmptyPolicy
-import alesia.planning.plans.EmptyPlan
-import alesia.planning.plans.EmptyPlan
-import alesia.planning.plans.EmptyPlan
-import alesia.planning.plans.EmptyPlan
-import alesia.planning.plans.EmptyPlan
-import alesia.planning.plans.EmptyPlan
+import alesia.planning.planners.EmptyPlan
+import alesia.planning.planners.EmptyPlan
+import alesia.planning.planners.EmptyPlan
+import alesia.planning.planners.EmptyPlan
+import alesia.planning.planners.EmptyPlan
+import alesia.planning.planners.EmptyPlan
 
 /**
  * Tests the trivial implementations of [[alesia.planning.execution.ActionSelector]].

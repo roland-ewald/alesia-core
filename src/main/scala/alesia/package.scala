@@ -3,7 +3,7 @@ import alesia.planning.planners.Planner
 import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.preparation.PlanningPreparator
 import alesia.query.ProblemSpecification
-import alesia.planning.plans.EmptyPlan
+import alesia.planning.planners.EmptyPlan
 import alesia.planning.execution.ExecutionState
 import alesia.planning.execution.FirstActionSelector
 import alesia.planning.execution.ActionSelector

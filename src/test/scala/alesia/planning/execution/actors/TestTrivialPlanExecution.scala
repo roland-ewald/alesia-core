@@ -6,8 +6,8 @@ import org.scalatest.junit.JUnitRunner
 import alesia.ExperimentationTest
 import alesia.planning.actions.TestCalibrationSimSteps
 import alesia.planning.execution.PlanExecutor
-import alesia.planning.plans.SingleActionPlan
-import alesia.planning.plans.EmptyPlan
+import alesia.planning.planners.SingleActionPlan
+import alesia.planning.planners.EmptyPlan
 import alesia.planning.PlanningProblem
 import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.actions.ActionDeclaration

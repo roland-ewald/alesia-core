@@ -1,8 +1,8 @@
 package alesia.planning.planners.nondet
 
 import alesia.planning.PlanningProblem
-import alesia.planning.plans.Plan
-import alesia.planning.plans.EmptyPlan
+import alesia.planning.planners.Plan
+import alesia.planning.planners.EmptyPlan
 import alesia.planning.actions.experiments.ExperimentAction
 import alesia.planning.context.ExecutionContext
 import scala.annotation.tailrec
