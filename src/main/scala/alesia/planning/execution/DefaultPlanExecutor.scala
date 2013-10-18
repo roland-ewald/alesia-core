@@ -42,7 +42,7 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
 
   /** Creates a stream of execution states. */
   def executionStream(state: ExecutionState, terminate: TerminationCondition): Stream[ExecutionStepResult] = {
-    def execStream(current: (Int, ExecutionState)): Stream[(Int, ExecutionState)] = {
+    def execStream(current: ExecutionStepResult): Stream[ExecutionStepResult] = {
       val (actionIndex, newState) = iteratePlanExecution(current._2)
       if (newState.isFinished)
         Stream.empty
@@ -51,7 +51,7 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
       else
         (actionIndex, newState) #:: execStream((actionIndex, newState))
     }
-    execStream(-1, state)
+    (-1, state) #:: execStream(-1, state)
   }
 
   /**
