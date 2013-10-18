@@ -1,7 +1,9 @@
 package alesia.planning
 
 import alesia.planning.actions.ActionDeclaration
-import alesia.planning.execution.PlanState
+import alesia.planning.preparation.DefaultPlanningProblem
+
+import alesia.query._
 
 /**
  * Dummy used for testing.
@@ -10,10 +12,9 @@ import alesia.planning.execution.PlanState
  *
  * @author Roland Ewald
  */
-object DummyDomainSpecificPlanningProblem extends DomainSpecificPlanningProblem {
-  override val initialState = FalseVariable
-  override val goalState = FalseVariable
-  override val declaredActions = Map[Int, ActionDeclaration]()
-  override val planningActions = Map[Int, DomainAction]()
-  override def constructState(xs: PlanState): PlanningDomainFunction = ???
+case class DummyDomainSpecificPlanningProblem(literals: String*)
+  extends DefaultPlanningProblem(
+    (Seq(), Seq(), UserHypothesis(exists, model, hasProperty(""))), Seq()) {
+
+  literals.foreach(addVariable)
 }

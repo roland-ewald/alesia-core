@@ -25,7 +25,7 @@ class TestDefaultPlanExecutor extends FunSpec with ShouldMatchers {
 
     import DefaultPlanExecutor._
 
-    val testProblem = DummyDomainSpecificPlanningProblem
+    val testProblem = new DummyDomainSpecificPlanningProblem("a", "b", "c")
 
     val testPlan = new EmptyPlan {}
 

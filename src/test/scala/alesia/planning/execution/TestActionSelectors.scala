@@ -27,7 +27,7 @@ import alesia.planning.planners.EmptyPlan
 @RunWith(classOf[JUnitRunner])
 class TestActionSelectors extends FunSpec with ShouldMatchers {
 
-  object TestState extends ExecutionState(DummyDomainSpecificPlanningProblem, EmptyPolicy, LocalJamesExecutionContext())
+  object TestState extends ExecutionState(DummyDomainSpecificPlanningProblem(), EmptyPolicy, LocalJamesExecutionContext())
 
   val testActions = IndexedSeq(Seq(1, 2, 3), Seq(3, 23, 435))
 
