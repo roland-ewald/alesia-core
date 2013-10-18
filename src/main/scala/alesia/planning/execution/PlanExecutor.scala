@@ -1,9 +1,9 @@
 package alesia.planning.execution
 
 import alesia.planning.planners.Plan
-import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.context.ExecutionContext
 import alesia.planning.PlanningProblem
+import alesia.planning.planners.PlanExecutionResult
 
 /**
  * The plan executor.

@@ -4,14 +4,14 @@ import scala.annotation.migration
 import scala.collection.immutable.Stream.consWrapper
 import scala.collection.mutable.ListBuffer
 import alesia.planning.context.LocalJamesExecutionContext
-import alesia.planning.plans.FailurePlanExecutionResult
-import alesia.planning.plans.FullPlanExecutionResult
-import alesia.planning.plans.PlanExecutionResult
 import alesia.query.UserDomainEntity
 import sessl.util.Logging
 import alesia.query.WithStrictness
 import alesia.query.TerminateWhen
 import scala.annotation.tailrec
+import alesia.planning.planners.PlanExecutionResult
+import alesia.planning.planners.FullPlanExecutionResult
+import alesia.planning.planners.FailurePlanExecutionResult
 
 /**
  * Implements the [[PlanExecutor]] interface as a simple step-by-step execution of a plan.

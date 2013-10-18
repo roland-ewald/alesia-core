@@ -1,6 +1,6 @@
 package alesia.results
 
-import alesia.planning.plans.PlanExecutionResult
+import alesia.planning.planners.PlanExecutionResult
 
 /**
  * Analyzes a [[alesia.planning.plans.PlanExecutionResult]].

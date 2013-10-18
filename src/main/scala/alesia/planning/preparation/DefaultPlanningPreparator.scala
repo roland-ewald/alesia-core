@@ -25,6 +25,7 @@ import sessl.util.Logging
 import alesia.planning.actions.AllDeclaredActions
 import alesia.query.ProblemSpecification
 import alesia.planning.context.ExecutionStatistics
+import alesia.planning.DefaultPlanningProblem
 
 /**
  * Default [[alesia.planning.preparation.PlanningPreparator]] implementation.
@@ -40,78 +41,14 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
     val declaredActionsList = allDeclaredActions.flatMap(_._2)
     logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActionsList.mkString("\n")}, for ${allDeclaredActions.size} specifications.")
 
-    val preparator = this
-
-    val inititalPlanState = mutable.ListBuffer[(String, Boolean)]()
-
-    // TODO: Check problems with duplicate creations of literals etc. 
-    val problem = new DomainSpecificPlanningProblem() {
-
-      // Declare actions
-      val declaredActions = declaredActionsList.zipWithIndex.map(x => (x._2, x._1)).toMap
-      val planningActions = {
-        declaredActionsList.zipWithIndex map { (a: (ActionDeclaration, Int)) =>
-          logger.info(s"Adding action to planning problem: ${a._1}")
-          (a._2, addAction(a._1))
-        }
-      }.toMap
-
-      // Set up initial state
-      val initialDomainVariables =
-        (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
-          yield userDomainEntity.planningDomainRepresentation(this)).flatten.map { v =>
-          addVariable(v._1)
-          (v._1, v._2)
-        }
-
-      inititalPlanState ++= (initialDomainVariables ++ declaredActionsList.flatMap(_.initialState))
-
-      val initialState = constructState(inititalPlanState)
-
-      //Set up goal state
-      val goalState = {
-        val hypothesis = spec._3
-        val hypothesisElements = extractHypothesisElements(hypothesis)
-        conjunction(hypothesisElements.map(interpretHypothesisElement))
-      }
-
-      //TODO: Generalize this
-      private[this] def interpretHypothesisElement(h: HypothesisElement): PlanningDomainFunction = h._1 match {
-        case alesia.query.exists => h._2 match {
-          case alesia.query.model => convertModelRelation("loadedModel", h._3)
-          case alesia.query.model(pattern) => restrictModelToPattern(pattern) and convertModelRelation("loadedModel", h._3)
-          case _ => ???
-        }
-        case _ => ???
-      }
-
-      //TODO: Move to dedicated converter, resolve fixation on 'loadedModel'
-      private[this] def convertModelRelation(model: String, p: PredicateRelation): PlanningDomainFunction = p match {
-        case alesia.query.Conjunction(l, r) => convertModelRelation(model, l) and convertModelRelation(model, r)
-        case alesia.query.Disjunction(l, r) => convertModelRelation(model, l) or convertModelRelation(model, r)
-        case alesia.query.Negation(r) => !convertModelRelation(model, r)
-        case alesia.query.hasProperty(prop) => addVariable(s"${prop}(loadedModel)")
-        case alesia.query.hasAttributeValue(a, v) => addVariable("${a}(loadedModel, ${v})")
-      }
-
-      private[this] def restrictModelToPattern(pattern: String): PlanningDomainFunction = ???
-
-      private[this] def addVariable(s: String): PlanningDomainFunction = addVariable(PublicLiteral(s))
-
-    }
-
-    import scala.language.reflectiveCalls
+    val problem = new DefaultPlanningProblem(spec, declaredActionsList)
 
     logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
     (problem, //TODO: Generalize this:
-      new LocalJamesExecutionContext(spec._1, spec._2, inititalPlanState.toList,
+      new LocalJamesExecutionContext(spec._1, spec._2, problem.inititalPlanState.toList,
         actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec),
         statistics = ExecutionStatistics()))
   }
-
-  /** Extracts single hypothesis elements. */
-  def extractHypothesisElements(h: UserHypothesis): Seq[HypothesisElement] =
-    h.relation.atomicRelations.map((h.quantifier, h.subject, _))
 
 }
 

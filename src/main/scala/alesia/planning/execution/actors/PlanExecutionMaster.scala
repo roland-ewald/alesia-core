@@ -4,11 +4,11 @@ import scala.actors.Actor
 import alesia.planning.execution.PlanExecutor
 import alesia.planning.execution.ExecutionState
 import alesia.planning.planners.Plan
-import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.planners.SingleActionPlan
 import alesia.planning.context.ExecutionContext
 import alesia.planning.PlanningProblem
-import alesia.planning.plans.FailurePlanExecutionResult
+import alesia.planning.planners.PlanExecutionResult
+import alesia.planning.planners.FailurePlanExecutionResult
 
 /**
  * Actor to execute a plan action-by-action.

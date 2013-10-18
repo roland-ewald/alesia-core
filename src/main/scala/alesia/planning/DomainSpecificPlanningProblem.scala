@@ -1,11 +1,24 @@
 package alesia.planning
 
+import scala.collection.Map
+import scala.collection.Seq
+import scala.collection.mutable
 import alesia.planning.actions.ActionDeclaration
-import alesia.planning.actions.Literal
-import alesia.planning.execution.PlanState
-import scala.collection._
 import alesia.planning.actions.ActionEffect
 import alesia.planning.actions.ActionFormula
+import alesia.planning.actions.Conjunction
+import alesia.planning.actions.Disjunction
+import alesia.planning.actions.FalseFormula
+import alesia.planning.actions.Literal
+import alesia.planning.actions.Negation
+import alesia.planning.actions.PublicLiteral
+import alesia.planning.actions.TrueFormula
+import alesia.planning.execution.PlanState
+import alesia.planning.preparation.FormulaConverter.extractHypothesisElements
+import alesia.planning.preparation.HypothesisElement
+import alesia.query.PredicateRelation
+import alesia.query.UserHypothesis
+import alesia.query.ProblemSpecification
 
 /**
  * Represents a [[alesia.planning.PlanningProblem]] that is tied to a specific application domain.
@@ -15,13 +28,48 @@ import alesia.planning.actions.ActionFormula
  *
  * @author Roland Ewald
  */
-abstract class DomainSpecificPlanningProblem extends PlanningProblem {
+trait DomainSpecificPlanningProblem extends PlanningProblem {
 
   /** Specifies which declared action corresponds to which action index. */
-  val declaredActions: Map[Int, ActionDeclaration]
+  val declaredActions = Map[Int, ActionDeclaration]()
 
   /** Specifies which formal action (in the planning domain) corresponds to which action index. */
-  val planningActions: Map[Int, DomainAction]
+  val planningActions = Map[Int, DomainAction]()
+
+  /** Creates the representation of the [[alesia.planning.execution.PlanState]] in the planning domain. */
+  def constructState(xs: PlanState): PlanningDomainFunction
+
+}
+
+/**
+ * Default implementation of how to construct a [[DomainSpecificPlanningProblem]] from a [[ProblemSpecification]].
+ *
+ * @author Roland Ewald
+ */
+class DefaultPlanningProblem(val spec: ProblemSpecification, val declaredActionsList: Iterable[ActionDeclaration])
+  extends DomainSpecificPlanningProblem {
+
+  override val declaredActions: Map[Int, ActionDeclaration] = declaredActionsList.zipWithIndex.map(x => (x._2, x._1)).toMap
+
+  override val planningActions = {
+    declaredActionsList.zipWithIndex map { (a: (ActionDeclaration, Int)) =>
+      logger.info(s"Adding action to planning problem: ${a._1}")
+      (a._2, addAction(a._1))
+    }
+  }.toMap
+
+  /** */
+  val inititalPlanState =
+    (for (userDomainEntity <- spec._1 if userDomainEntity.inPlanningDomain)
+      yield userDomainEntity.planningDomainRepresentation(this)).flatten.map { v =>
+      addVariable(v._1)
+      (v._1, v._2)
+    } ++ declaredActionsList.flatMap(_.initialState)
+
+  override val initialState = constructState(inititalPlanState)
+
+  //Set up goal state
+  override val goalState = configureHypothesis(spec._3)
 
   /** Maps a variable name to its corresponding function. */
   lazy val functionByName = variablesByName.toMap
@@ -61,6 +109,34 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
     }
   }
 
+  //TODO: Resolve fixation on 'loadedModel'
+  protected def convertModelRelation(model: String, p: PredicateRelation): PlanningDomainFunction = p match {
+    case alesia.query.Conjunction(l, r) => convertModelRelation(model, l) and convertModelRelation(model, r)
+    case alesia.query.Disjunction(l, r) => convertModelRelation(model, l) or convertModelRelation(model, r)
+    case alesia.query.Negation(r) => !convertModelRelation(model, r)
+    case alesia.query.hasProperty(prop) => addVariable(s"${prop}(loadedModel)")
+    case alesia.query.hasAttributeValue(a, v) => addVariable("${a}(loadedModel, ${v})")
+  }
+
+  //TODO: Generalize this
+  protected def interpretHypothesisElement(h: HypothesisElement): PlanningDomainFunction = h._1 match {
+    case alesia.query.exists => h._2 match {
+      case alesia.query.model => convertModelRelation("loadedModel", h._3)
+      case alesia.query.model(pattern) => restrictModelToPattern(pattern) and convertModelRelation("loadedModel", h._3)
+      case _ => ???
+    }
+    case _ => ???
+  }
+
+  protected def configureHypothesis(h: UserHypothesis): PlanningDomainFunction = {
+    val elems = extractHypothesisElements(h)
+    conjunction(elems.map(interpretHypothesisElement))
+  }
+
+  protected def restrictModelToPattern(pattern: String): PlanningDomainFunction = ???
+
+  protected def addVariable(s: String): PlanningDomainFunction = addVariable(PublicLiteral(s))
+
   /**
    * Adds a variable to the planning domain.
    *  @return true whether this is a new variable, otherwise false
@@ -73,8 +149,7 @@ abstract class DomainSpecificPlanningProblem extends PlanningProblem {
     })
   }
 
-  /** Creates the representation of the [[alesia.planning.execution.PlanState]] in the planning domain. */
-  def constructState(xs: PlanState): PlanningDomainFunction =
+  override def constructState(xs: PlanState): PlanningDomainFunction =
     conjunction {
       xs.map { x =>
         val elemFunction = functionByName(x._1)

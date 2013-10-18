@@ -3,13 +3,13 @@ package alesia.results
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FunSpec
 import alesia.planning.execution.PlanExecutor
-import alesia.planning.plans.FullPlanExecutionResult
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import alesia.planning.scenarios.SimplePropertyCheckScenario
 import alesia.query.UserDomainEntity
 import alesia.query.TerminateWhen
 import alesia.planning.execution.WallClockTimeMaximum
+import alesia.planning.planners.FullPlanExecutionResult
 
 /**
  * Tests for [[ReportingResultAnalyzer]].

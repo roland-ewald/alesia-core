@@ -1,9 +1,9 @@
 package alesia.results
 
-import alesia.planning.plans.PlanExecutionResult
 import alesia.planning.execution.ExecutionState
 import alesia.planning.DomainSpecificPlanningProblem
-import alesia.planning.plans.FailurePlanExecutionResult
+import alesia.planning.planners.PlanExecutionResult
+import alesia.planning.planners.FailurePlanExecutionResult
 
 /**
  * Generates a user-readable report from the [[alesia.planning.plans.PlanExecutionResult]].

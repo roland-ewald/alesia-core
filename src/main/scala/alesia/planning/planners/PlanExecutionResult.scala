@@ -1,4 +1,4 @@
-package alesia.planning.plans
+package alesia.planning.planners
 
 import alesia.planning.execution.ExecutionState
 
