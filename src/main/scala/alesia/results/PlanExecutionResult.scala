@@ -15,6 +15,9 @@ sealed trait PlanExecutionResult {
    */
   def trace: Seq[ExecutionStepResult]
 
+  /** The first state is recorded in the trace as well, so decrement by one. */
+  def numOfActions = trace.size - 1
+
 }
 
 case class FailurePlanExecutionResult(val states: Seq[ExecutionStepResult], cause: Throwable) extends PlanExecutionResult {

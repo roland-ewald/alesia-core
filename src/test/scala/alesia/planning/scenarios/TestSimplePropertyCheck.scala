@@ -45,8 +45,8 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         hypothesis
       }
 
-      result.trace.size should be >= 2
-      result.trace.size should be <= 3
+      result.numOfActions should be >= 2
+      result.numOfActions should be <= 3
       result should not be ofType[FailurePlanExecutionResult]
     }
 
@@ -60,7 +60,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
           exists >> model | hasProperty("undefined")
         }
       result should be(ofType[FailurePlanExecutionResult])
-      result.trace.size should be(maxNumOfActions + 1)
+      result.numOfActions should be(maxNumOfActions)
     }
 
     it("returns result of a failed attempt whenever there is no time to execute the plan") {
@@ -73,7 +73,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
           hypothesis
         }
       result should be(ofType[FailurePlanExecutionResult])
-      result.trace.size should be(2)
+      result.numOfActions should be(1)
     }
 
     it("returns result of a failed attempt whenever no termination condition is defined") {

@@ -44,12 +44,14 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
   def executionStream(state: ExecutionState, terminate: TerminationCondition): Stream[ExecutionStepResult] = {
     def execStream(current: ExecutionStepResult): Stream[ExecutionStepResult] = {
       val (actionIndex, newState) = iteratePlanExecution(current._2)
-      if (newState.isFinished)
-        Stream.empty
-      else if (terminate(newState))
-        throw new IllegalStateException("Plan execution was stopped prematurely.")
-      else
-        (actionIndex, newState) #:: execStream((actionIndex, newState))
+      (actionIndex, newState) #:: {
+        if (newState.isFinished)
+          Stream.empty
+        else if (terminate(newState))
+          throw new IllegalStateException("Plan execution was stopped prematurely.")
+        else
+          execStream((actionIndex, newState))
+      }
     }
     (-1, state) #:: execStream(-1, state)
   }
