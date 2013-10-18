@@ -25,7 +25,6 @@ import sessl.util.Logging
 import alesia.planning.actions.AllDeclaredActions
 import alesia.query.ProblemSpecification
 import alesia.planning.context.ExecutionStatistics
-import alesia.planning.DefaultPlanningProblem
 
 /**
  * Default [[alesia.planning.preparation.PlanningPreparator]] implementation.
