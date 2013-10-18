@@ -6,7 +6,7 @@ import alesia.planning.execution.PlanExecutor
 import alesia.planning.planners.nondet.NonDeterministicPolicyPlanner
 import alesia.planning.preparation.DefaultPlanningPreparator
 import alesia.planning.execution.DefaultPlanExecutor
-import alesia.planning.planners.PlanExecutionResult
+import alesia.results.PlanExecutionResult
 
 /**
  * Specifies default implementations of [[alesia.planning.preparation.PlanningPreparator]],

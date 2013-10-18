@@ -6,7 +6,7 @@ import alesia.planning.planners.EmptyPlan
 import alesia.planning.execution.ExecutionState
 import alesia.planning.execution.FirstActionSelector
 import alesia.planning.execution.ActionSelector
-import alesia.planning.planners.PlanExecutionResult
+import alesia.results.PlanExecutionResult
 
 /**
  * General type definitions and methods.

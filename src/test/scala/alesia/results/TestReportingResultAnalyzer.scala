@@ -9,7 +9,6 @@ import alesia.planning.scenarios.SimplePropertyCheckScenario
 import alesia.query.UserDomainEntity
 import alesia.query.TerminateWhen
 import alesia.planning.execution.WallClockTimeMaximum
-import alesia.planning.planners.FullPlanExecutionResult
 
 /**
  * Tests for [[ReportingResultAnalyzer]].
@@ -52,7 +51,10 @@ class TestReportingResultAnalyzer extends FunSpec with ShouldMatchers {
     }
 
     it("produces action-by-action output") {
-      pending
+      val report = ReportingResultAnalyzer(normalResult)
+      assert(!report.failure)
+      assert(!report.failureCause.isDefined)
+      report.actions.size should be(normalResult.trace.size)
     }
 
   }

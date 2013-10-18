@@ -3,7 +3,7 @@ package alesia.planning.execution
 import alesia.planning.planners.Plan
 import alesia.planning.context.ExecutionContext
 import alesia.planning.PlanningProblem
-import alesia.planning.planners.PlanExecutionResult
+import alesia.results.PlanExecutionResult
 
 /**
  * The plan executor.

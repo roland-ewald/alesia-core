@@ -1,9 +1,7 @@
 package alesia.results
 
 import alesia.planning.execution.ExecutionState
-import alesia.planning.DomainSpecificPlanningProblem
-import alesia.planning.planners.PlanExecutionResult
-import alesia.planning.planners.FailurePlanExecutionResult
+import alesia.planning.execution.ExecutionStepResult
 
 /**
  * Generates a user-readable report from the [[alesia.planning.plans.PlanExecutionResult]].
@@ -24,12 +22,18 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
       case _ => None
     }
 
-  def createReport(lastState: ExecutionState, results: PlanExecutionResult): PlanExecutionReport = {
+  def createReport(lastState: ExecutionStepResult, results: PlanExecutionResult): PlanExecutionReport = {
 
     val failureCause = failureCauseOf(results)
-    val failure = lastState.isFinished || failureCause.isDefined
+    val failure = lastState._2.isFinished || failureCause.isDefined
 
-    PlanExecutionReport(Seq(), failure, failureCause)
+    PlanExecutionReport(createActionReports(results.trace), failure, failureCause)
+  }
+
+  def createActionReports(steps: Seq[ExecutionStepResult]): Seq[ActionExecutionReport] = {
+    for (step <- steps) yield {
+      ActionExecutionReport()
+    }
   }
 
 }

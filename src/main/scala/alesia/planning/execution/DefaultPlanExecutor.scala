@@ -9,9 +9,9 @@ import sessl.util.Logging
 import alesia.query.WithStrictness
 import alesia.query.TerminateWhen
 import scala.annotation.tailrec
-import alesia.planning.planners.PlanExecutionResult
-import alesia.planning.planners.FullPlanExecutionResult
-import alesia.planning.planners.FailurePlanExecutionResult
+import alesia.results.PlanExecutionResult
+import alesia.results.FullPlanExecutionResult
+import alesia.results.FailurePlanExecutionResult
 
 /**
  * Implements the [[PlanExecutor]] interface as a simple step-by-step execution of a plan.
@@ -22,7 +22,7 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
 
   /** Execute planning iteratively, by executing a stream of actions. */
   override def apply(s: ExecutionState): PlanExecutionResult = {
-    val visitedStates = ListBuffer[ExecutionState]()
+    val visitedStates = ListBuffer[ExecutionStepResult]()
     try {
       executionStream(s, configureTermination(s)).foreach(visitedStates += _)
     } catch {
@@ -41,30 +41,32 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
     TerminationDisjunction(state.context.preferencesOf[TerminateWhen].map(_.condition): _*)
 
   /** Creates a stream of execution states. */
-  def executionStream(state: ExecutionState, terminate: TerminationCondition): Stream[ExecutionState] =
-    state #:: {
-      val newState = DefaultPlanExecutor.iteratePlanExecution(state)
+  def executionStream(state: ExecutionState, terminate: TerminationCondition): Stream[ExecutionStepResult] = {
+    def execStream(current: (Int, ExecutionState)): Stream[(Int, ExecutionState)] = {
+      val (actionIndex, newState) = iteratePlanExecution(current._2)
       if (newState.isFinished)
         Stream.empty
       else if (terminate(newState))
         throw new IllegalStateException("Plan execution was stopped prematurely.")
       else
-        executionStream(newState, terminate)
+        (actionIndex, newState) #:: execStream((actionIndex, newState))
     }
+    execStream(-1, state)
+  }
 
   /**
    * A full iteration of the plan execution.
    *  @param state current state
    *  @return new state
    */
-  def iteratePlanExecution(state: ExecutionState): ExecutionState = {
+  def iteratePlanExecution(state: ExecutionState): ExecutionStepResult = {
     val currentState = state.problem.constructState(state.context.planState)
     // FIXME: this is only a temporary solution [Conjunction of not(goal) and currentState], 
     // correctly construct initial state instead
     val (actionIndex, newSelector) = DefaultPlanExecutor.selectAction(state,
       (!state.problem.goalState and currentState).id)
     val stateUpdate = DefaultPlanExecutor.executeAction(state, actionIndex)
-    updateState(state, stateUpdate, newSelector)
+    (actionIndex, updateState(state, stateUpdate, newSelector))
   }
 
   /** Select action to be executed in current state. */

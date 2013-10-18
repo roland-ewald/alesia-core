@@ -7,8 +7,8 @@ import alesia.planning.planners.Plan
 import alesia.planning.planners.SingleActionPlan
 import alesia.planning.context.ExecutionContext
 import alesia.planning.PlanningProblem
-import alesia.planning.planners.PlanExecutionResult
-import alesia.planning.planners.FailurePlanExecutionResult
+import alesia.results.PlanExecutionResult
+import alesia.results.FailurePlanExecutionResult
 
 /**
  * Actor to execute a plan action-by-action.

@@ -3,7 +3,7 @@ package alesia.planning.scenarios
 import org.scalatest.FunSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import alesia.planning.planners.FailurePlanExecutionResult
+import alesia.results.FailurePlanExecutionResult
 import org.junit.Assert._
 import org.jamesii.core.util.logging.ApplicationLogger
 import java.util.logging.Level
