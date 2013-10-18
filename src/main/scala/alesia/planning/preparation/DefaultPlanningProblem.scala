@@ -16,8 +16,14 @@ import alesia.planning.actions.ActionFormula
  *
  * @author Roland Ewald
  */
-class DefaultPlanningProblem(val spec: ProblemSpecification, val declaredActionsList: Iterable[ActionDeclaration])
-  extends DomainSpecificPlanningProblem {
+class DefaultPlanningProblem(
+  val spec: ProblemSpecification,
+  val declaredActionsList: Iterable[ActionDeclaration]) extends DomainSpecificPlanningProblem {
+
+  /** For each variable/action, corresponding name in the planning domain. */
+  private[this] val entityNames = scala.collection.mutable.Map[Any, String]()
+
+  private[this] val variablesByName = scala.collection.mutable.Map[String, PlanningDomainFunction]()
 
   override val declaredActions: Map[Int, ActionDeclaration] = declaredActionsList.zipWithIndex.map(x => (x._2, x._1)).toMap
 
@@ -43,11 +49,6 @@ class DefaultPlanningProblem(val spec: ProblemSpecification, val declaredActions
 
   /** Maps a variable name to its corresponding function. */
   lazy val functionByName = variablesByName.toMap
-
-  /** For each variable/action, corresponding name in the planning domain. */
-  private[this] val entityNames = scala.collection.mutable.Map[Any, String]()
-
-  private[this] val variablesByName = scala.collection.mutable.Map[String, PlanningDomainFunction]()
 
   /** Associate a name in the planning domain with an entity (holding meta-data etc).*/
   private[this] def associateEntityWithName(a: Any, n: String): Unit = {

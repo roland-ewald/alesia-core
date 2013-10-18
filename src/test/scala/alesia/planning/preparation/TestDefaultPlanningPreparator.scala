@@ -24,8 +24,6 @@ class TestDefaultPlanningPreparator extends FunSpec with ShouldMatchers {
   import alesia.query._
   import alesia.TestUtils._
 
-  val preparator = new DefaultPlanningPreparator()
-
   val testSpec = (Seq(
     SingleModel("java://examples.sr.LinearChainSystem"),
     SingleModel("java://examples.sr.TotallyIndependentSystem")),
@@ -57,7 +55,7 @@ class TestDefaultPlanningPreparator extends FunSpec with ShouldMatchers {
     }
 
     it("works for a simple hypothesis") {
-      val (problem, context) = preparator.preparePlanning(testSpec)
+      val (problem, context) = DefaultPlanningPreparator.preparePlanning(testSpec)
       Assert.assertNotNull(context)
       Assert.assertNotNull(problem)
     }

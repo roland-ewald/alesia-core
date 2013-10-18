@@ -31,30 +31,37 @@ import alesia.planning.context.ExecutionStatistics
  *
  * @author Roland Ewald
  */
-class DefaultPlanningPreparator extends PlanningPreparator with Logging {
-
-  override def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext) = {
-
-    val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
-
-    val declaredActionsList = allDeclaredActions.flatMap(_._2)
-    logger.info(s"\n\nDeclared actions:\n=======================\n\n${declaredActionsList.mkString("\n")}, for ${allDeclaredActions.size} specifications.")
-
-    val problem = new DefaultPlanningProblem(spec, declaredActionsList)
-
-    logger.info(s"\n\nGenerated planning problem:\n===========================\n\n${problem.detailedDescription}")
-    (problem, //TODO: Generalize this:
-      new LocalJamesExecutionContext(spec._1, spec._2, problem.inititalPlanState.toList,
-        actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec),
-        statistics = ExecutionStatistics()))
-  }
-
-}
-
-object DefaultPlanningPreparator extends Logging {
+object DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
   /** The maximal number of rounds before action creation is aborted. */
   val maxRounds = 100
+
+  override def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext) = {
+
+    val allDeclaredActions = retrieveDeclaredActions(spec)
+    val declaredActionsList = allDeclaredActions.flatMap(_._2)
+
+    logger info {
+      s"""
+      	|Declared actions:
+      	|=================
+      	|${declaredActionsList.mkString("\n")}, for ${allDeclaredActions.size} specifications.""".stripMargin
+    }
+
+    val problem = new DefaultPlanningProblem(spec, declaredActionsList)
+
+    logger info {
+      s"""
+      |Generated planning problem:
+      |===========================
+      |${problem.detailedDescription}""".stripMargin
+    }
+
+    (problem,
+      new LocalJamesExecutionContext(spec._1, spec._2, problem.inititalPlanState.toList,
+        actionSelector = DefaultPlanningPreparator.initializeActionSelector(spec),
+        statistics = ExecutionStatistics())) //TODO: Generalize LocalJamesExecutionContext
+  }
 
   /**
    * Creates a set of actions by repeatedly querying all action specification with the current number of
