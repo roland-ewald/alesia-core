@@ -2,17 +2,13 @@ package alesia.planning.execution.actors
 
 import org.junit.Assert.assertNotNull
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import alesia.ExperimentationTest
-import alesia.planning.actions.TestCalibrationSimSteps
 import alesia.planning.execution.PlanExecutor
-import alesia.planning.planners.SingleActionPlan
-import alesia.planning.planners.EmptyPlan
-import alesia.planning.PlanningProblem
-import alesia.planning.DomainSpecificPlanningProblem
-import alesia.planning.actions.ActionDeclaration
-import alesia.planning.context.LocalJamesExecutionContext
 import alesia.planning.execution.ExecutionState
+import org.scalatest.junit.JUnitRunner
+import alesia.planning.DummyDomainSpecificPlanningProblem
+import alesia.planning.planners.SingleActionPlan
+import alesia.planning.context.LocalJamesExecutionContext
 
 /**
  * Test execution of a trivial plan.
@@ -21,21 +17,13 @@ import alesia.planning.execution.ExecutionState
 @RunWith(classOf[JUnitRunner])
 class TestTrivialPlanExecution extends ExperimentationTest {
 
-  val dummyProblem = new DomainSpecificPlanningProblem() {
-    val initialState = FalseVariable
-    val goalState = TrueVariable
-    val declaredActions = Map[Int, ActionDeclaration]()
-    val planningActions = Map[Int, DomainAction]()
-    val functionByName = Map[String, PlanningDomainFunction]()
-  }
-
   test("executing a single calibration action") {
 
     pending
     //FIXME
 
     val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
-    val result = executor(ExecutionState(dummyProblem, SingleActionPlan(0), LocalJamesExecutionContext()))
+    val result = executor(ExecutionState(DummyDomainSpecificPlanningProblem, SingleActionPlan(0), LocalJamesExecutionContext()))
     assertNotNull(result)
   }
 

@@ -10,6 +10,7 @@ import alesia.planning.domain.ParameterizedModel
 import alesia.planning.planners.EmptyPlan
 import alesia.query.SingleModel
 import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.DummyDomainSpecificPlanningProblem
 
 /**
  * Tests for [[DefaultPlanExecutor]].
@@ -24,13 +25,7 @@ class TestDefaultPlanExecutor extends FunSpec with ShouldMatchers {
 
     import DefaultPlanExecutor._
 
-    val testProblem = new DomainSpecificPlanningProblem() {
-      val declaredActions = Map[Int, ActionDeclaration]()
-      val planningActions = Map[Int, DomainAction]()
-      val functionByName = Seq("a", "b", "c").map(x => (x, v(x))).toMap
-      val goalState = FalseVariable
-      val initialState = FalseVariable
-    }
+    val testProblem = DummyDomainSpecificPlanningProblem
 
     val testPlan = new EmptyPlan {}
 

@@ -33,16 +33,6 @@ import alesia.planning.context.ExecutionStatistics
  */
 class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
-  /** For each variable/action, corresponding name in the planning domain. */
-  private[this] val entityNames = mutable.Map[Any, String]()
-
-  /** Associate a name in the planning domain with an entity (holding meta-data etc).*/
-  private[this] def associateEntityWithName(a: Any, n: String): Unit = {
-    require(!entityNames.isDefinedAt(a),
-      s"Entity must be associated with a single name, but ${a} is associated with both ${n} and ${entityNames(a)}")
-    entityNames(a) = n
-  }
-
   override def preparePlanning(spec: ProblemSpecification): (DomainSpecificPlanningProblem, ExecutionContext) = {
 
     val allDeclaredActions = DefaultPlanningPreparator.retrieveDeclaredActions(spec)
@@ -56,8 +46,6 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
 
     // TODO: Check problems with duplicate creations of literals etc. 
     val problem = new DomainSpecificPlanningProblem() {
-
-      private[this] var variablesByName = mutable.Map[String, PlanningDomainFunction]()
 
       // Declare actions
       val declaredActions = declaredActionsList.zipWithIndex.map(x => (x._2, x._1)).toMap
@@ -87,9 +75,6 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
         conjunction(hypothesisElements.map(interpretHypothesisElement))
       }
 
-      /** Maps literal names and so on to functions in the planning domain. */
-      lazy val functionByName = variablesByName.toMap
-
       //TODO: Generalize this
       private[this] def interpretHypothesisElement(h: HypothesisElement): PlanningDomainFunction = h._1 match {
         case alesia.query.exists => h._2 match {
@@ -112,41 +97,6 @@ class DefaultPlanningPreparator extends PlanningPreparator with Logging {
       private[this] def restrictModelToPattern(pattern: String): PlanningDomainFunction = ???
 
       private[this] def addVariable(s: String): PlanningDomainFunction = addVariable(PublicLiteral(s))
-
-      /**
-       * Adds a variable to the planning domain.
-       *  @return true whether this is a new variable, otherwise false
-       */
-      private[this] def addVariable(l: Literal): PlanningDomainFunction = {
-        variablesByName.getOrElseUpdate(l.name, {
-          val newVariable = v(l.name)
-          associateEntityWithName(newVariable, l.name)
-          newVariable
-        })
-      }
-
-      private[this] def convertFormula(a: ActionFormula): PlanningDomainFunction = {
-        import alesia.planning.actions._
-        a match {
-          case Conjunction(l, r) => convertFormula(l) and convertFormula(r)
-          case Disjunction(l, r) => convertFormula(l) or convertFormula(r)
-          case Negation(r) => !convertFormula(r)
-          case l: Literal => addVariable(l)
-          case FalseFormula => FalseVariable
-          case TrueFormula => TrueVariable
-        }
-      }
-
-      /** Adds an action to the planning domain. */
-      private[this] def addAction(a: ActionDeclaration): DomainAction = {
-
-        def convertEffect(as: Seq[ActionEffect]): Seq[Effect] =
-          as.map(a => Effect(convertFormula(a.condition), a.add.map(addVariable), a.del.map(addVariable), a.nondeterministic))
-
-        val newAction = action(a.name, convertFormula(a.preCondition), convertEffect(a.effect): _*)
-        associateEntityWithName(newAction, a.name)
-        newAction
-      }
 
     }
 
