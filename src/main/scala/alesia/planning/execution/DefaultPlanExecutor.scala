@@ -42,18 +42,21 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
 
   /** Creates a stream of execution states. */
   def executionStream(state: ExecutionState, terminate: TerminationCondition): Stream[ExecutionStepResult] = {
-    def execStream(current: ExecutionStepResult): Stream[ExecutionStepResult] = {
-      val (actionIndex, newState) = iteratePlanExecution(current._2)
-      (actionIndex, newState) #:: {
-        if (newState.isFinished)
+
+    def execute(current: ExecutionStepResult): Stream[ExecutionStepResult] = {
+      val next = iteratePlanExecution(current.newState)
+      next #:: {
+        if (next.newState.isFinished)
           Stream.empty
-        else if (terminate(newState))
+        else if (terminate(next.newState))
           throw new IllegalStateException("Plan execution was stopped prematurely.")
         else
-          execStream((actionIndex, newState))
+          execute(next)
       }
     }
-    (-1, state) #:: execStream(-1, state)
+
+    val start = ExecutionStepResult(-1, state)
+    start #:: execute(start)
   }
 
   /**
@@ -68,7 +71,7 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
     val (actionIndex, newSelector) = DefaultPlanExecutor.selectAction(state,
       (!state.problem.goalState and currentState).id)
     val stateUpdate = DefaultPlanExecutor.executeAction(state, actionIndex)
-    (actionIndex, updateState(state, stateUpdate, newSelector))
+    ExecutionStepResult(actionIndex, updateState(state, stateUpdate, newSelector))
   }
 
   /** Select action to be executed in current state. */

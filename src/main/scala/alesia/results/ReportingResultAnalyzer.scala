@@ -12,7 +12,7 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
 
   override def apply(results: PlanExecutionResult): PlanExecutionReport =
     results.trace.lastOption match {
-      case None => PlanExecutionReport(Seq(), true, failureCauseOf(results))
+      case None => PlanExecutionReport(None, Seq(), true, failureCauseOf(results))
       case Some(x) => createReport(x, results)
     }
 
@@ -23,21 +23,29 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
     }
 
   def createReport(lastState: ExecutionStepResult, results: PlanExecutionResult): PlanExecutionReport = {
-
     val failureCause = failureCauseOf(results)
-    val failure = !lastState._2.isFinished || failureCause.isDefined
-
-    PlanExecutionReport(createActionReports(results.trace), failure, failureCause)
+    val failure = !lastState.newState.isFinished || failureCause.isDefined
+    PlanExecutionReport(Some(reportState(results.trace.head)), reportActions(results.trace), failure, failureCause)
   }
 
-  def createActionReports(steps: Seq[ExecutionStepResult]): Seq[ActionExecutionReport] = {
-    for (step <- steps.tail) yield {
-      ActionExecutionReport()
-    }
+  def reportActions(steps: Seq[ExecutionStepResult]): Seq[ActionExecutionReport] =
+    for (step <- steps.sliding(2).toSeq) yield reportAction(step(0), step(1))
+
+  def reportAction(before: ExecutionStepResult, after: ExecutionStepResult): ActionExecutionReport = {
+    ActionExecutionReport()
+  }
+
+  def reportState(state: ExecutionStepResult): InitialStateReport = {
+    //    require(state.)
+    ???
   }
 
 }
 
-case class PlanExecutionReport(actions: Seq[ActionExecutionReport], failure: Boolean, failureCause: Option[Throwable] = None)
+case class PlanExecutionReport(init: Option[InitialStateReport], actions: Seq[ActionExecutionReport], failure: Boolean, failureCause: Option[Throwable] = None) {
+
+}
+
+case class InitialStateReport()
 
 case class ActionExecutionReport()
