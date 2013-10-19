@@ -54,7 +54,7 @@ class TestReportingResultAnalyzer extends FunSpec with ShouldMatchers {
       val report = ReportingResultAnalyzer(normalResult)
       assert(!report.failure)
       assert(!report.failureCause.isDefined)
-      report.actions.size should be(normalResult.trace.size)
+      report.actions.size should be(normalResult.numOfActions)
     }
 
   }

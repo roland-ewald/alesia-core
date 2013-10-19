@@ -25,13 +25,13 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
   def createReport(lastState: ExecutionStepResult, results: PlanExecutionResult): PlanExecutionReport = {
 
     val failureCause = failureCauseOf(results)
-    val failure = lastState._2.isFinished || failureCause.isDefined
+    val failure = !lastState._2.isFinished || failureCause.isDefined
 
     PlanExecutionReport(createActionReports(results.trace), failure, failureCause)
   }
 
   def createActionReports(steps: Seq[ExecutionStepResult]): Seq[ActionExecutionReport] = {
-    for (step <- steps) yield {
+    for (step <- steps.tail) yield {
       ActionExecutionReport()
     }
   }
