@@ -55,6 +55,18 @@ class TestReportingResultAnalyzer extends FunSpec with ShouldMatchers {
       assert(!report.failure)
       assert(!report.failureCause.isDefined)
       report.actions.size should be(normalResult.numOfActions)
+      report.actions foreach { ar =>
+        assert(ar.index >= 0)
+        assert(!ar.name.isEmpty)
+      }
+    }
+  }
+
+  describe("Result report renderer") {
+
+    it("can render a normal report") {
+      val report = ReportingResultAnalyzer(normalResult)
+      pending
     }
 
   }

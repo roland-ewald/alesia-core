@@ -2,6 +2,7 @@ package alesia.results
 
 import alesia.planning.execution.ExecutionState
 import alesia.planning.execution.ExecutionStepResult
+import alesia.planning.execution.PlanState
 
 /**
  * Generates a user-readable report from the [[alesia.planning.plans.PlanExecutionResult]].
@@ -32,20 +33,18 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
     for (step <- steps.sliding(2).toSeq) yield reportAction(step(0), step(1))
 
   def reportAction(before: ExecutionStepResult, after: ExecutionStepResult): ActionExecutionReport = {
-    ActionExecutionReport()
+    val actionIndex = after.action
+    val action = before.newState.problem.declaredActions(actionIndex)
+    ActionExecutionReport(actionIndex, action.name)
   }
 
-  def reportState(state: ExecutionStepResult): InitialStateReport = {
-    //    require(state.)
-    ???
+  def reportState(step: ExecutionStepResult): StateReport = {
+    val state = step.newState
+    StateReport(state.context.planState)
   }
 
 }
 
-case class PlanExecutionReport(init: Option[InitialStateReport], actions: Seq[ActionExecutionReport], failure: Boolean, failureCause: Option[Throwable] = None) {
-
-}
-
-case class InitialStateReport()
-
-case class ActionExecutionReport()
+case class PlanExecutionReport(init: Option[StateReport], actions: Seq[ActionExecutionReport], failure: Boolean, failureCause: Option[Throwable] = None)
+case class StateReport(planState: PlanState)
+case class ActionExecutionReport(index: Int, name: String)
