@@ -18,23 +18,7 @@ import alesia.planning.execution.WallClockTimeMaximum
 @RunWith(classOf[JUnitRunner])
 class TestReportingResultAnalyzer extends FunSpec with ShouldMatchers {
 
-  import SimplePropertyCheckScenario._
-
-  val normalResult = alesia.query.submit {
-    domain
-  } {
-    preferences: _*
-  } {
-    hypothesis
-  }
-
-  val failureResult = alesia.query.submit {
-    domain
-  } {
-    TerminateWhen(WallClockTimeMaximum(milliseconds = 1))
-  } {
-    hypothesis
-  }
+  import TestScenarios._
 
   describe("Reporting result analyzer") {
 
@@ -61,16 +45,4 @@ class TestReportingResultAnalyzer extends FunSpec with ShouldMatchers {
       }
     }
   }
-
-  describe("Result report renderer") {
-
-    it("can render a normal report") {
-      val report = ReportingResultAnalyzer(normalResult)
-      pending
-    }
-
-  }
-
-  //TODO: use result report renderer from JAMES II?
-
 }
