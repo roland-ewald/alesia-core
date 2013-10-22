@@ -32,14 +32,20 @@ import alesia.planning.actions.SharedLiterals._
  */
 class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Logging {
 
+  val depleted = a.uniqueLiteralName("depleted")
+  val loadedModel = a.uniqueLiteralName("loadedModel")
+
   override def execute(e: ExecutionContext): StateUpdate = {
     val singleModels = e.entitiesOf[SingleModel]
     if (singleModels.isEmpty) {
-      StateUpdate(AddLiterals(a.uniqueLiteralName("depleted")))
+      StateUpdate(AddLiterals())
     } else {
       val selectedModel = selectModel(singleModels)
+
+      val addLiterals = loadedModel :: (if (singleModels.size == 1) List(depleted) else Nil)
+
       StateUpdate.specify(
-        Seq(AddLiterals(a.uniqueLiteralName(loadedModel)), RemoveEntities(selectedModel)),
+        Seq(AddLiterals(addLiterals: _*), RemoveEntities(selectedModel)),
         Map(loadedModel -> ParameterizedModel(selectedModel.uri)))
     }
   }

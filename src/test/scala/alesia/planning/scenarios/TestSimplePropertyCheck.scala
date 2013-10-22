@@ -45,8 +45,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         hypothesis
       }
 
-      result.numOfActions should be >= 2
-      result.numOfActions should be <= 3
+      result.numOfActions should be(2)
       result should not be ofType[FailurePlanExecutionResult]
     }
 
