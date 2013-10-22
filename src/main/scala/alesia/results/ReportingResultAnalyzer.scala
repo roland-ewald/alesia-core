@@ -3,6 +3,7 @@ package alesia.results
 import alesia.planning.execution.ExecutionState
 import alesia.planning.execution.ExecutionStepResult
 import alesia.planning.execution.PlanState
+import alesia.planning.context.ExecutionContext
 
 /**
  * Generates a user-readable report from the [[alesia.planning.plans.PlanExecutionResult]].
@@ -30,21 +31,18 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
   }
 
   def reportActions(steps: Seq[ExecutionStepResult]): Seq[ActionExecutionReport] =
-    for (step <- steps.sliding(2).toSeq) yield reportAction(step(0), step(1))
+    for (step <- steps.sliding(2).toSeq.zipWithIndex) yield reportAction(step._1(0), step._1(1), step._2 + 1)
 
-  def reportAction(before: ExecutionStepResult, after: ExecutionStepResult): ActionExecutionReport = {
+  def reportAction(before: ExecutionStepResult, after: ExecutionStepResult, step: Int): ActionExecutionReport = {
     val actionIndex = after.action
     val action = before.newState.problem.declaredActions(actionIndex)
-    ActionExecutionReport(actionIndex, action.name, before.newState.context.planState, after.newState.context.planState)
+    ActionExecutionReport(step, actionIndex, action.name, before.newState.context.planState, after.newState.context.planState)
   }
 
-  def reportState(step: ExecutionStepResult): StateReport = {
-    val state = step.newState
-    StateReport(state.context.planState)
-  }
+  def reportState(step: ExecutionStepResult): StateReport = StateReport(step.newState)
 
 }
 
 case class PlanExecutionReport(init: Option[StateReport], actions: Seq[ActionExecutionReport], failure: Boolean, failureCause: Option[Throwable] = None)
-case class StateReport(planState: PlanState)
-case class ActionExecutionReport(index: Int, name: String, before: PlanState, after: PlanState)
+case class StateReport(state: ExecutionState)
+case class ActionExecutionReport(step: Int, index: Int, name: String, before: PlanState, after: PlanState)

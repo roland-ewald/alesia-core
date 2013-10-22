@@ -1,14 +1,26 @@
 package alesia.results
 
-import james.resultreport.ResultReport
-import james.resultreport.ResultReportSection
-import alesia.planning.execution.ExecutionStepResult
-import james.resultreport.ResultReportGenerator
-import james.resultreport.renderer.rtex.RTexResultReportRenderer
 import java.io.File
-import sessl.TableView
-import james.resultreport.dataview.TableDataView
+
+import scala.collection.mutable.ListBuffer
+
+import alesia.planning.DomainSpecificPlanningProblem
+import alesia.planning.actions.ActionDeclaration
+import alesia.planning.actions.ActionFormula
+import alesia.planning.actions.Conjunction
+import alesia.planning.actions.Disjunction
+import alesia.planning.actions.FalseFormula
+import alesia.planning.actions.Literal
+import alesia.planning.actions.Negation
+import alesia.planning.actions.PrivateLiteral
+import alesia.planning.actions.PublicLiteral
+import alesia.planning.actions.TrueFormula
 import alesia.planning.execution.PlanState
+import james.resultreport.ResultReport
+import james.resultreport.ResultReportGenerator
+import james.resultreport.ResultReportSection
+import james.resultreport.dataview.TableDataView
+import james.resultreport.renderer.rtex.RTexResultReportRenderer
 import sessl.utils.doclet.LatexStringConverter.convertSpecialChars
 
 /**
@@ -41,6 +53,10 @@ trait ReportResultRenderer {
  */
 object DefaultResultRenderer extends ReportResultRenderer {
 
+  val trueSymbol = raw"\top"
+
+  val falseSymbol = raw"\bot"
+
   override def storeReport(report: PlanExecutionReport, scenarioName: String, target: File): Unit = {
 
     checkDirectory(target)
@@ -48,8 +64,8 @@ object DefaultResultRenderer extends ReportResultRenderer {
     val resultReport = new ResultReport(scenarioName,
       s"This is a report on the plan execution of scenario'${scenarioName}' by ALeSiA.")
 
-    report.init.foreach(s => resultReport.addSection(renderScenario(s)))
-    report.actions.foreach(a => resultReport.addSection(renderActionExecution(a)))
+    report.init.foreach(s => resultReport.addSection(describeScenario(s)))
+    report.actions.foreach(a => resultReport.addSection(describeActionExecution(report, a)))
 
     (new ResultReportGenerator).generateReport(resultReport, new RTexResultReportRenderer, target)
   }
@@ -60,23 +76,67 @@ object DefaultResultRenderer extends ReportResultRenderer {
     require(dir.isDirectory(), s"'${dir.getAbsolutePath}' must be a directory.")
   }
 
-  def renderScenario(initialState: StateReport): ResultReportSection = {
-    val s = new ResultReportSection("Initial Problem", "This section describes the problem as submitted to the system")
-    s.addDataView(createPlanStateTable(initialState.planState, "The initial state"))
-    s
+  def describeScenario(sr: StateReport): ResultReportSection = {
+    val desc = new ResultReportSection("Initial Problem",
+      "This section describes the problem as submitted to the system")
+    desc.addDataView(describePlanState(sr.state.context.planState, "The initial state"))
+    desc
   }
 
-  def renderActionExecution(stepResult: ActionExecutionReport): ResultReportSection = {
-    val s = new ResultReportSection(
-      s"Executing Action ${stepResult.name}", "")
-    s.addDataView(createPlanStateTable(stepResult.before, "The state before execution."))
-    s.addDataView(createPlanStateTable(stepResult.after, "The state after execution."))
-    s
+  def describeActionExecution(planExecution: PlanExecutionReport, actionExecution: ActionExecutionReport): ResultReportSection = {
+    val desc = new ResultReportSection(s"Step ${actionExecution.step} Executing Action ${actionExecution.name}", "")
+
+    planExecution.init.map { r =>
+      desc.addDataView(describeActionDeclaration(r.state.problem.declaredActions(actionExecution.index)))
+      desc.addDataView(describeDomainAction(r.state.problem)(r.state.problem.actions(actionExecution.index)))
+    }
+
+    desc.addDataView(describePlanState(actionExecution.before, "The state before execution."))
+    desc.addDataView(describePlanState(actionExecution.after, "The state after execution."))
+    desc
   }
 
-  def createPlanStateTable(ps: PlanState, title: String): TableDataView = {
-    val tableData = for (s <- ps) yield Array[String](convertSpecialChars(s._1), s._2.toString)
+  def describePlanState(ps: PlanState, title: String): TableDataView = {
+    val tableData = for (s <- ps.toSeq.sortBy(_._1)) yield Array[String](convertSpecialChars(s._1), s._2.toString)
     new TableDataView((Array("Literal", "True?") :: tableData.toList).toArray, title)
   }
+
+  def describeActionDeclaration(a: ActionDeclaration): TableDataView = {
+    val tableData = ListBuffer[Array[String]]()
+    tableData += Array("Pre-codition", actionFormulaToLatex(a.preCondition))
+    for (e <- a.effect.zipWithIndex) {
+      val prefix = s"Effect ${e._2 + 1} "
+      tableData += Array(prefix + "precondition", actionFormulaToLatex(e._1.condition))
+      tableData += Array(prefix + "nondeterministic?", e._1.nondeterministic.toString)
+      tableData += Array(prefix + "additions", e._1.add.map(singleLiteralToLatex).mkString(","))
+      tableData += Array(prefix + "deletions", e._1.del.map(singleLiteralToLatex).mkString(","))
+    }
+    new TableDataView((Array("Action Property", "Value") :: tableData.toList).toArray, s"Declaration of action ${a.name}")
+  }
+
+  def describeDomainAction(p: DomainSpecificPlanningProblem)(a: p.DomainAction): TableDataView = {
+    val tableData = ListBuffer[Array[String]]()
+    new TableDataView((Array("Formal Action Property", "Value") :: tableData.toList).toArray, s"Formal definition of action ${a.name}")
+  }
+
+  def actionFormulaToLatex(a: ActionFormula): String = {
+    def traverse(a: ActionFormula): String = a match {
+      case TrueFormula => trueSymbol
+      case FalseFormula => falseSymbol
+      case l: Literal => literalToLatex(l)
+      case Negation(e) => raw"\neg" + traverse(e)
+      case Conjunction(l, r) => "(" + traverse(l) + raw"\wedge" + traverse(r) + ")"
+      case Disjunction(l, r) => "(" + traverse(l) + raw"\vee" + traverse(r) + ")"
+      case _ => "?"
+    }
+    "$" + traverse(a) + "$"
+  }
+
+  def literalToLatex(l: Literal): String = l match {
+    case PrivateLiteral(l) => " " + convertSpecialChars(l) + " "
+    case PublicLiteral(l) => raw"\mathbf{" + convertSpecialChars(l) + "}"
+  }
+
+  def singleLiteralToLatex(l: Literal) = "$" + literalToLatex(l) + "$"
 
 }
