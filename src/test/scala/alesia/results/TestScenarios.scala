@@ -21,7 +21,7 @@ object TestScenarios {
     hypothesis
   }
 
-  lazy val failureResult = alesia.query.submit {
+  lazy val failureResult = submit {
     domain
   } {
     TerminateWhen(WallClockTimeMaximum(milliseconds = 1))
