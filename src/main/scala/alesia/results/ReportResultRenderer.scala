@@ -84,11 +84,10 @@ object DefaultResultRenderer extends ReportResultRenderer {
   }
 
   def describeActionExecution(planExecution: PlanExecutionReport, actionExecution: ActionExecutionReport): ResultReportSection = {
-    val desc = new ResultReportSection(s"Step ${actionExecution.step} Executing Action ${actionExecution.name}", "")
+    val desc = new ResultReportSection(s"Step ${actionExecution.step}: Executing Action \\emph{${actionExecution.name}}", "")
 
     planExecution.init.map { r =>
       desc.addDataView(describeActionDeclaration(r.state.problem.declaredActions(actionExecution.index)))
-      desc.addDataView(describeDomainAction(r.state.problem)(r.state.problem.actions(actionExecution.index)))
     }
 
     desc.addDataView(describePlanState(actionExecution.before, "The state before execution."))
@@ -112,11 +111,6 @@ object DefaultResultRenderer extends ReportResultRenderer {
       tableData += Array(prefix + "deletions", e._1.del.map(singleLiteralToLatex).mkString(","))
     }
     new TableDataView((Array("Action Property", "Value") :: tableData.toList).toArray, s"Declaration of action ${a.name}")
-  }
-
-  def describeDomainAction(p: DomainSpecificPlanningProblem)(a: p.DomainAction): TableDataView = {
-    val tableData = ListBuffer[Array[String]]()
-    new TableDataView((Array("Formal Action Property", "Value") :: tableData.toList).toArray, s"Formal definition of action ${a.name}")
   }
 
   def actionFormulaToLatex(a: ActionFormula): String = {
