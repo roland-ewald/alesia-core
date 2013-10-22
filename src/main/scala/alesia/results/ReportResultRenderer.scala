@@ -6,6 +6,10 @@ import alesia.planning.execution.ExecutionStepResult
 import james.resultreport.ResultReportGenerator
 import james.resultreport.renderer.rtex.RTexResultReportRenderer
 import java.io.File
+import sessl.TableView
+import james.resultreport.dataview.TableDataView
+import alesia.planning.execution.PlanState
+import sessl.utils.doclet.LatexStringConverter.convertSpecialChars
 
 /**
  * Render result reports.
@@ -39,10 +43,7 @@ object DefaultResultRenderer extends ReportResultRenderer {
 
   override def storeReport(report: PlanExecutionReport, scenarioName: String, target: File): Unit = {
 
-    if (!target.exists())
-      target.mkdir()
-
-    require(target.isDirectory(), s"'${target.getAbsolutePath}' must be a directory.")
+    checkDirectory(target)
 
     val resultReport = new ResultReport(scenarioName,
       s"This is a report on the plan execution of scenario'${scenarioName}' by ALeSiA.")
@@ -53,17 +54,29 @@ object DefaultResultRenderer extends ReportResultRenderer {
     (new ResultReportGenerator).generateReport(resultReport, new RTexResultReportRenderer, target)
   }
 
+  def checkDirectory(dir: File) = {
+    if (!dir.exists())
+      dir.mkdir()
+    require(dir.isDirectory(), s"'${dir.getAbsolutePath}' must be a directory.")
+  }
+
   def renderScenario(initialState: StateReport): ResultReportSection = {
     val s = new ResultReportSection("Initial Problem", "This section describes the problem as submitted to the system")
+    s.addDataView(createPlanStateTable(initialState.planState, "The initial state"))
     s
   }
 
   def renderActionExecution(stepResult: ActionExecutionReport): ResultReportSection = {
-
     val s = new ResultReportSection(
       s"Executing Action ${stepResult.name}", "")
-
+    s.addDataView(createPlanStateTable(stepResult.before, "The state before execution."))
+    s.addDataView(createPlanStateTable(stepResult.after, "The state after execution."))
     s
+  }
+
+  def createPlanStateTable(ps: PlanState, title: String): TableDataView = {
+    val tableData = for (s <- ps) yield Array[String](convertSpecialChars(s._1), s._2.toString)
+    new TableDataView((Array("Literal", "True?") :: tableData.toList).toArray, title)
   }
 
 }

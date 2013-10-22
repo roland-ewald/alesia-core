@@ -35,7 +35,7 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
   def reportAction(before: ExecutionStepResult, after: ExecutionStepResult): ActionExecutionReport = {
     val actionIndex = after.action
     val action = before.newState.problem.declaredActions(actionIndex)
-    ActionExecutionReport(actionIndex, action.name)
+    ActionExecutionReport(actionIndex, action.name, before.newState.context.planState, after.newState.context.planState)
   }
 
   def reportState(step: ExecutionStepResult): StateReport = {
@@ -47,4 +47,4 @@ object ReportingResultAnalyzer extends PlanExecutionResultAnalyzer[PlanExecution
 
 case class PlanExecutionReport(init: Option[StateReport], actions: Seq[ActionExecutionReport], failure: Boolean, failureCause: Option[Throwable] = None)
 case class StateReport(planState: PlanState)
-case class ActionExecutionReport(index: Int, name: String)
+case class ActionExecutionReport(index: Int, name: String, before: PlanState, after: PlanState)
