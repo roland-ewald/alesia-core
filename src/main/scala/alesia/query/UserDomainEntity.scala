@@ -1,6 +1,7 @@
 package alesia.query
 
 import alesia.planning.PlanningProblem
+import alesia.planning.domain.Algorithm
 
 /** An entity of the experimentation domain (performance analysis). */
 trait UserDomainEntity {
@@ -27,3 +28,6 @@ case class ModelSet(val setURI: String) extends UserDomainEntity
 
 /** A (potentially infinite) set of parameterized models. */
 case class ModelDistribution(val generatorURI: String, paramBounds: Map[String, List[_]]) extends UserDomainEntity
+
+/** A single simulator. */
+case class SingleSimulator[T <: sessl.Simulator](override val entity: T) extends Algorithm[T]

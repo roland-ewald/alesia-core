@@ -1,13 +1,22 @@
 package alesia.planning.domain
 
 import sessl.Simulator
+import alesia.query.UserDomainEntity
+import alesia.planning.PlanningProblem
 
 /**
  * Represents a (simulation) algorithm.
  *
  * @author Roland Ewald
  */
-case class Algorithm[T <: sessl.Algorithm](val entity: T)
+trait Algorithm[T <: sessl.Algorithm] extends UserDomainEntity {
+
+  def entity: T
+
+  override def inPlanningDomain = true
+
+  override def planningDomainRepresentation(p: PlanningProblem): Seq[(String, Boolean)] = Seq((entity.toString, true))
+}
 
 /**
  * Represents a parameterized algorithm.

@@ -22,6 +22,7 @@ import alesia.utils.misc.CollectionHelpers
 import alesia.planning.execution.StateUpdate
 import alesia.planning.execution.AddLiterals
 import alesia.planning.execution.RemoveLiterals
+import alesia.query.SingleSimulator
 
 /**
  * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
@@ -80,7 +81,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
     val models = CollectionHelpers.filterType[ParameterizedModel](c.entitiesForLiterals(loadedModel))
     require(models.nonEmpty, s"No parameterized model linked to '${loadedModel}'")
 
-    val simulator: Simulator = Algorithm(NextReactionMethod()) //FIXME: generalize this
+    val simulator: Simulator = SingleSimulator(NextReactionMethod()) //FIXME: generalize this
     val maxExecTime: Double = 5.0 //FIXME: generalize this
 
     CheckQSSModelProperty(models.head, simulator, maxExecTime)
