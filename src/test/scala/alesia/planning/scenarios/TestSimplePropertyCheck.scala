@@ -37,13 +37,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
 
     it("works in principle :)") {
 
-      val result = submit {
-        domain
-      } {
-        preferences: _*
-      } {
-        hypothesis
-      }
+      val result = submit(SimplePropertyCheckScenario)
 
       result.numOfActions should be(2)
       result should not be ofType[FailurePlanExecutionResult]
@@ -52,7 +46,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
     it("returns result of a failed attempt whenever plan goals cannot be reached") {
       val result =
         submit {
-          domain
+          domain: _*
         } {
           preferences: _*
         } {
@@ -65,7 +59,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
     it("returns result of a failed attempt whenever there is no time to execute the plan") {
       val result =
         submit {
-          domain
+          domain: _*
         } {
           TerminateWhen(WallClockTimeMaximum(milliseconds = 1))
         } {
@@ -78,7 +72,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
     it("returns result of a failed attempt whenever no termination condition is defined") {
       val result =
         submit {
-          domain
+          domain: _*
         } {
           StartWithActionSelector(RandomActionSelector)
         } {
@@ -102,7 +96,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
     it("fails whenever multiple start-with-action-selector preferences are defined") {
       evaluating {
         submit {
-          domain
+          domain: _*
         }(
           TerminateWhen(WallClockTimeMaximum(seconds = 30)), StartWithActionSelector(FirstActionSelector),
           StartWithActionSelector(MinActionIndexSelector)) {

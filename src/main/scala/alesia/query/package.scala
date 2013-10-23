@@ -32,6 +32,8 @@ package object query {
   def submit(dom: UserDomainEntity*)(prefs: UserPreference*)(hyp: UserHypothesis): PlanExecutionResult =
     submit(DefaultPlanningPreparator, defaultPlanner, defaultExecutor)(dom: _*)(prefs: _*)(hyp)
 
+  def submit(s: Scenario): PlanExecutionResult = submit(s.domain: _*)(s.preferences: _*)(s.hypothesis)
+
   /**
    * Major execution sequence.
    *

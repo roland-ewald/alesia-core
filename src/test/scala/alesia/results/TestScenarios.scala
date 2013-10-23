@@ -13,16 +13,10 @@ object TestScenarios {
   import alesia.query._
   import SimplePropertyCheckScenario._
 
-  lazy val normalResult = submit {
-    domain
-  } {
-    preferences: _*
-  } {
-    hypothesis
-  }
+  lazy val normalResult = submit(SimplePropertyCheckScenario)
 
   lazy val failureResult = submit {
-    domain
+    domain: _*
   } {
     TerminateWhen(WallClockTimeMaximum(milliseconds = 1))
   } {
