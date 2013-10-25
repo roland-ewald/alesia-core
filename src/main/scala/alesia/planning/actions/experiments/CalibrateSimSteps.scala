@@ -45,7 +45,7 @@ import alesia.planning.actions.ActionEffect
  *  @author Roland Ewald
  */
 case class CalibrateSimSteps(problem: ParameterizedModel, sims: Seq[Simulator],
-  execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction with Logging {
+  execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction {
 
   /**
    * Execute the action.

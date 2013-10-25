@@ -32,7 +32,7 @@ import alesia.query.MaxAllowedQSSError
  * @author Roland Ewald
  */
 case class CheckQSSModelProperty(calibration: CalibrationResults, maxExecTimeSeconds: Double, errorAllowed: Double,
-  linearSteps: Int = 3) extends ExperimentAction with Logging {
+  linearSteps: Int = 3) extends ExperimentAction {
 
   val lowerBound = 1 - errorAllowed / 2
   val upperBound = 1 + errorAllowed / 2

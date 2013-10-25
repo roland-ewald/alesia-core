@@ -30,7 +30,7 @@ import alesia.planning.actions.SharedLiterals._
  *
  * @author Roland Ewald
  */
-class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Logging {
+class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action {
 
   val depleted = a.uniqueLiteralName("depleted")
   val loaded = a.uniqueLiteralName(loadedModel)
