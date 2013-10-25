@@ -27,3 +27,6 @@ case class WithStrictness(val strictness: ExecutionStrictness) extends UserPrefe
  *  *preference* and not enforced by the system.
  */
 case class MaxSingleExecutionWallClockTime(days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0, milliseconds: Int = 0) extends AbstractDuration with UserPreference
+
+/** The permissible QSS error that is allowed. */
+case class MaxAllowedQSSError(relativeError: Double = 0.2) extends UserPreference

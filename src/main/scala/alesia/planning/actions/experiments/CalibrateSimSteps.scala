@@ -84,7 +84,11 @@ case class CalibrateSimSteps(problem: ParameterizedModel, sims: Seq[Simulator],
 }
 
 case class CalibrationResult(problem: ParameterizedModel, sim: Simulator, steps: Long, runtime: Double)
-case class CalibrationResults(results: Seq[CalibrationResult]) extends UserDomainEntity
+
+case class CalibrationResults(results: Seq[CalibrationResult]) extends UserDomainEntity {
+  require(results.nonEmpty, "No empty results permitted.")
+  require(results.forall(_.problem == results.head.problem), "Only results for the same model can be stored together.")
+}
 
 object CalibrateSimStepsSpecification extends ActionSpecification {
 

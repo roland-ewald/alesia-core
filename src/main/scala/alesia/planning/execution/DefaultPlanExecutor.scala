@@ -32,7 +32,7 @@ object DefaultPlanExecutor extends PlanExecutor with Logging {
       }
     }
     val trace = visitedStates.toVector
-    logger.info(s"Plan execution finished  --- ${visitedStates.size} actions executed.")
+    logger.info(s"Plan execution finished  --- ${visitedStates.size - 1} actions executed.")
     FullPlanExecutionResult(trace)
   }
 

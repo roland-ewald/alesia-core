@@ -39,7 +39,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
 
       val result = submit(SimplePropertyCheckScenario)
 
-      result.numOfActions should be(2)
+      result.numOfActions should be(3)
       result should not be ofType[FailurePlanExecutionResult]
     }
 
