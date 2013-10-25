@@ -18,12 +18,6 @@ import alesia.planning.execution.PlanState
  */
 trait ActionSpecification {
 
-  /** Precondition to create action. */
-  def preCondition: ActionFormula
-
-  /** Effect of the formula. */
-  def effect: ActionFormula
-
   /** Factory method that may adapt the execution context. */
   def createAction(a: ActionDeclaration, c: ExecutionContext): Action
 
@@ -46,6 +40,16 @@ trait ActionSpecification {
    * @return *newly* declared actions, if any
    */
   def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]]
+
+  /**
+   * Use this in case only a single action shall be defined.
+   */
+  protected def singleAction(declaredActions: AllDeclaredActions)(action: ActionDeclaration): Option[Seq[ActionDeclaration]] = {
+    if (declaredActions(this).nonEmpty)
+      None
+    else
+      Some(Seq(action))
+  }
 }
 
 /**
@@ -91,11 +95,11 @@ case class SimpleActionDeclaration(specification: ActionSpecification, name: Str
   val myId = ActionDeclarationUtils.newId
 
   val uniquePrivateLiterals: Map[String, String] = {
-    val publicLiterals = simplePreCondition.publicLiterals.toSet ++ effects.flatMap(_.publicLiterals) 
+    val publicLiterals = simplePreCondition.publicLiterals.toSet ++ effects.flatMap(_.publicLiterals)
     val privateLiterals = (simplePreCondition.privateLiterals ++ effects.flatMap(_.privateLiterals)).toSet
     privateLiterals.map { literal =>
       (literal.name, literal.name + "_private_" + myId)
-    }.toMap ++ publicLiterals.map(l => (l.name,l.name)).toMap
+    }.toMap ++ publicLiterals.map(l => (l.name, l.name)).toMap
   }
 
   val initialState: PlanState = initState.map(s => (uniquePrivateLiterals(s._1), s._2))

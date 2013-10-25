@@ -33,7 +33,7 @@ import alesia.planning.actions.SharedLiterals._
 class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Logging {
 
   val depleted = a.uniqueLiteralName("depleted")
-  val loadedModel = a.uniqueLiteralName("loadedModel")
+  val loaded = a.uniqueLiteralName(loadedModel)
 
   override def execute(e: ExecutionContext): StateUpdate = {
     val singleModels = e.entitiesOf[SingleModel]
@@ -42,11 +42,11 @@ class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Lo
     } else {
       val selectedModel = selectModel(singleModels)
 
-      val addLiterals = loadedModel :: (if (singleModels.size == 1) List(depleted) else Nil)
+      val addLiterals = loaded :: (if (singleModels.size == 1) List(depleted) else Nil)
 
       StateUpdate.specify(
         Seq(AddLiterals(addLiterals: _*), RemoveEntities(selectedModel)),
-        Map(loadedModel -> ParameterizedModel(selectedModel.uri)))
+        Map(loaded -> ParameterizedModel(selectedModel.uri)))
     }
   }
 
@@ -56,10 +56,6 @@ class SingleModelIntroduction(a: SimpleActionDeclaration) extends Action with Lo
 }
 
 object SingleModelIntroductionSpecification extends ActionSpecification {
-
-  override def preCondition: ActionFormula = !PrivateLiteral("done")
-
-  override def effect: ActionFormula = PublicLiteral("new-model") and PrivateLiteral("done")
 
   override def shortName = "Load Single Model"
 

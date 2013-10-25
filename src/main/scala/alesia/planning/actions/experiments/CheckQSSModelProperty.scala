@@ -19,7 +19,7 @@ import alesia.query.UserPreference
 import alesia.utils.misc.CollectionHelpers
 import sessl.AfterWallClockTime
 import sessl.util.Logging
-import alesia.query.QSSMaxExecutionWallClockTime
+import alesia.query.MaxSingleExecutionWallClockTime
 import alesia.planning.actions.AllDeclaredActions
 import alesia.query.ProblemSpecification
 import alesia.bindings.Simulator
@@ -59,24 +59,18 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   val qss = PublicLiteral(property("qss", loadedModel))
 
-  val defaultMaxExecWCT = QSSMaxExecutionWallClockTime(5.0)
-
-  override def preCondition: ActionFormula = PublicLiteral(loadedModel) //TODO: and PublicLiteral("loadedSimulator")
-
-  override def effect: ActionFormula = qss or !qss
+  val defaultMaxExecWCT = MaxSingleExecutionWallClockTime(40.0)
 
   override def shortName = "Check QSS for Model"
 
   override def description = "Checks whether a model has a quasi-steady state (useful for performance comparisons)."
 
-  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] = {
-    if (declaredActions(this).nonEmpty)
-      None
-    else Some(
-      Seq(SimpleActionDeclaration(this, shortActionName, Seq(), preCondition, Seq(
+  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] =
+    singleAction(declaredActions) {
+      SimpleActionDeclaration(this, shortActionName, Seq(), PublicLiteral(loadedModel), Seq(
         ActionEffect(add = Seq(qss), nondeterministic = true),
-        ActionEffect(del = Seq(qss), nondeterministic = true)))))
-  }
+        ActionEffect(del = Seq(qss), nondeterministic = true)))
+    }
 
   override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
     import CollectionHelpers._
@@ -87,7 +81,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
     val simulators = filterType[SingleSimulator](c.entities)
     require(simulators.nonEmpty, s"No single simulator defined.")
 
-    val maxExecTime: Double = getOrElse[QSSMaxExecutionWallClockTime](c.preferences, defaultMaxExecWCT).time
+    val maxExecTime: Double = getOrElse[MaxSingleExecutionWallClockTime](c.preferences, defaultMaxExecWCT).time
     CheckQSSModelProperty(models.head, simulators.head, maxExecTime)
   }
 

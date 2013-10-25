@@ -13,14 +13,11 @@ import alesia.planning.context.ExecutionContext
  */
 trait ExperimentAction extends Action {
 
-  val results = scala.collection.mutable.Map[String, AnyRef]()
-
   /** The estimated cost of executing this action. */
   def estimatedCost: Double = .0
 
-  def resultFor(key: String) = results.get(key)
 
+  
   protected[this] def addResult(key: String, result: AnyRef): Unit = {
-    results(key) = result
   }
 }

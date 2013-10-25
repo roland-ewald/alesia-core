@@ -20,4 +20,9 @@ case class TerminateWhen(val condition: TerminationCondition) extends UserPrefer
 /** Decides which [[alesia.planning.execution.ExecutionStrictness]] to apply. */
 case class WithStrictness(val strictness: ExecutionStrictness) extends UserPreference
 
-case class QSSMaxExecutionWallClockTime(val time: Double) extends UserPreference
+/**
+ * Determine how long *any* simulation execution should take at most.
+ * Many actions will likely interpret this as a soft boundary, i.e., this is really just a
+ *  *preference* and not enforced by the system.
+ */
+case class MaxSingleExecutionWallClockTime(val time: Double) extends UserPreference

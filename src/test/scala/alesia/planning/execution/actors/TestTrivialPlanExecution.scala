@@ -17,14 +17,13 @@ import alesia.planning.context.LocalJamesExecutionContext
 @RunWith(classOf[JUnitRunner])
 class TestTrivialPlanExecution extends ExperimentationTest {
 
-  test("executing a single calibration action") {
+  describe("Actor-based plan execution") {
+    it("executes a single calibration action") {
+      pending //FIXME
 
-    pending
-    //FIXME
-
-    val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
-    val result = executor(ExecutionState(DummyDomainSpecificPlanningProblem(), SingleActionPlan(0), LocalJamesExecutionContext()))
-    assertNotNull(result)
+      val executor: PlanExecutor = PlanExecutionMaster(PlanExecutionSlave(10))
+      val result = executor(ExecutionState(DummyDomainSpecificPlanningProblem(), SingleActionPlan(0), LocalJamesExecutionContext()))
+      assertNotNull(result)
+    }
   }
-
 }

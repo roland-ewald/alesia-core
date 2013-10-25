@@ -9,49 +9,39 @@ import alesia.planning.actions.experiments.CalibrateSimSteps
 import alesia.planning.actions.experiments.CheckQSSModelProperty
 import alesia.planning.context.LocalJamesExecutionContext
 import alesia.planning.context.ExecutionStatistics
+import alesia.planning.actions.experiments.CalibrationResults
+import org.scalatest.matchers.ShouldMatchers
 
 /**
  * Tests for experiment actions.
  *  @author Roland Ewald
  */
 @RunWith(classOf[JUnitRunner])
-class TestExperimentActions extends ExperimentationTest {
-
-  test("calibration") {
-    val action = TestCalibrationSimSteps.action
-    //    action.execute
-    TestCalibrationSimSteps.checkResult(action)
-  }
-
-  test("qss-check") {
-    val action = TestCheckQSSModelProperty.action
-    action.execute(LocalJamesExecutionContext())
-  }
-
-}
-
-object TestCalibrationSimSteps extends ExperimentationTest {
+class TestExperimentActions extends ExperimentationTest with ShouldMatchers {
 
   val desiredRuntime = 3.0
 
   val permEpsilon = 0.1
 
-  def action = CalibrateSimSteps(problem, nrm, desiredRuntime, eps = permEpsilon)
-
-  def checkResult(action: CalibrateSimSteps) = for (result <- action.resultFor(action.result)) result match {
-    case (prob, sim, s, r) => {
-      require(s.isInstanceOf[Long] && r.isInstanceOf[Double], "Wrong result type: " + s.getClass + " & " + r.getClass + " instead of Long & Double.")
-      val steps = s.asInstanceOf[Long]
-      val runtime = r.asInstanceOf[Double]
-      logger.info("Calibration result: " + result)
-      assert(steps > 1000, "More than 10000 steps should be required.")
-      assert(abs(runtime - desiredRuntime) / desiredRuntime <= permEpsilon)
+  describe("Calibration action") {
+    it("works in principle") {
+      val action = CalibrateSimSteps(problem, Seq(nrm), desiredRuntime, eps = permEpsilon)
+      val update = action.execute(LocalJamesExecutionContext())
+      update.addLinks.map(_._2).collect {
+        case r: CalibrationResults =>
+          for (result <- r.results) {
+            result.steps should be >= 1000L
+            (abs(result.runtime - desiredRuntime) / desiredRuntime) should be <= permEpsilon
+          }
+      }
     }
   }
-}
 
-object TestCheckQSSModelProperty extends ExperimentationTest {
-
-  def action = CheckQSSModelProperty(problem, nrm, 20.5)
+  describe("QSS Action") {
+    it("works in principle") {
+      val action = CheckQSSModelProperty(problem, nrm, 20.5)
+      action.execute(LocalJamesExecutionContext())
+    }
+  }
 
 }
