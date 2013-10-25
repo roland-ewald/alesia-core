@@ -59,7 +59,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   val qss = PublicLiteral(property("qss", loadedModel))
 
-  val defaultMaxExecWCT = MaxSingleExecutionWallClockTime(4.0)
+  val defaultMaxExecWCT = MaxSingleExecutionWallClockTime(seconds = 4)
 
   override def shortName = "Check QSS for Model"
 
@@ -81,7 +81,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
     val simulators = filterType[SingleSimulator](c.entities)
     require(simulators.nonEmpty, s"No single simulator defined.")
 
-    val maxExecTime: Double = getOrElse[MaxSingleExecutionWallClockTime](c.preferences, defaultMaxExecWCT).time
+    val maxExecTime: Double = getOrElse[MaxSingleExecutionWallClockTime](c.preferences, defaultMaxExecWCT).asSecondsOrUnitless
     CheckQSSModelProperty(models.head, simulators.head, maxExecTime)
   }
 

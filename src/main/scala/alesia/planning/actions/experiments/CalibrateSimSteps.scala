@@ -90,7 +90,7 @@ object CalibrateSimStepsSpecification extends ActionSpecification {
 
   val calibrated = PublicLiteral(calibratedModel)
 
-  val defaultMaxExecWCT = MaxSingleExecutionWallClockTime(10.0)
+  val defaultMaxExecWCT = MaxSingleExecutionWallClockTime(seconds = 10)
 
   override def shortName = "Calibrate Model"
 
@@ -113,7 +113,7 @@ object CalibrateSimStepsSpecification extends ActionSpecification {
     val simulators = filterType[SingleSimulator](c.entities)
     require(simulators.nonEmpty, s"No single simulator defined.")
 
-    val maxExecTime: Double = getOrElse[MaxSingleExecutionWallClockTime](c.preferences, defaultMaxExecWCT).time
+    val maxExecTime: Double = getOrElse[MaxSingleExecutionWallClockTime](c.preferences, defaultMaxExecWCT).asSecondsOrUnitless
 
     CalibrateSimSteps(models.head, simulators, maxExecTime)
   }

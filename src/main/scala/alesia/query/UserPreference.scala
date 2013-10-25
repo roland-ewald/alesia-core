@@ -4,6 +4,7 @@ import sessl.AbstractDuration
 import alesia.planning.execution.ActionSelector
 import alesia.planning.execution.TerminationCondition
 import alesia.planning.execution.ExecutionStrictness
+import sessl.Duration
 
 /** User preferences to consider during automatic experimentation. */
 sealed trait UserPreference
@@ -25,4 +26,4 @@ case class WithStrictness(val strictness: ExecutionStrictness) extends UserPrefe
  * Many actions will likely interpret this as a soft boundary, i.e., this is really just a
  *  *preference* and not enforced by the system.
  */
-case class MaxSingleExecutionWallClockTime(val time: Double) extends UserPreference
+case class MaxSingleExecutionWallClockTime(days: Int = 0, hours: Int = 0, minutes: Int = 0, seconds: Int = 0, milliseconds: Int = 0) extends AbstractDuration with UserPreference

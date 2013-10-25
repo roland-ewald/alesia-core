@@ -48,16 +48,16 @@ class NonDeterministicPolicyPlanner extends Planner with Logging {
 
   override def plan(problem: PlanningProblem) = {
     import NonDeterministicPlanTypes._
-    createPlan(problem, Strong).getOrElse {
-      logger.info("No strong plan found.")
-      createPlan(problem, StrongCyclic).getOrElse {
-        logger.info("No strong-cyclic plan found.")
-        createPlan(problem, Weak).getOrElse {
-          logger.info("No weak plan found.")
-          FailurePolicy
-        }
+    //    createPlan(problem, Strong).getOrElse { //FIXME: see issue ALESIA-31 
+    //      logger.info("No strong plan found.")
+    createPlan(problem, StrongCyclic).getOrElse {
+      logger.info("No strong-cyclic plan found.")
+      createPlan(problem, Weak).getOrElse {
+        logger.info("No weak plan found.")
+        FailurePolicy
       }
     }
+    //    }
   }
 
   /**

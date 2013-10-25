@@ -20,7 +20,9 @@ object SimplePropertyCheckScenario extends Scenario {
     SingleModel("java://examples.sr.LinearChainSystem"),
     SingleSimulator("nrm", NextReactionMethod()))
 
-  override val preferences = Seq(TerminateWhen(MaxOverallNumberOfActions(maxNumOfActions)))
+  override val preferences = Seq(
+    TerminateWhen(MaxOverallNumberOfActions(maxNumOfActions)),
+    MaxSingleExecutionWallClockTime(seconds = 1))
 
   override val hypothesis = exists >> model | hasProperty("qss")
 
