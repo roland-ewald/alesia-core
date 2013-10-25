@@ -16,8 +16,4 @@ trait ExperimentAction extends Action {
   /** The estimated cost of executing this action. */
   def estimatedCost: Double = .0
 
-
-  
-  protected[this] def addResult(key: String, result: AnyRef): Unit = {
-  }
 }

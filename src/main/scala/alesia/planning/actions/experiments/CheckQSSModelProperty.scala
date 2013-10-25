@@ -25,12 +25,12 @@ import alesia.query.ProblemSpecification
 import alesia.bindings.Simulator
 
 /**
- * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
+ * Checks whether a pre-calibrated model exhibits a quasi-steady state property.
  *
  * @author Roland Ewald
  */
 case class CheckQSSModelProperty(problem: ParameterizedModel, sim: Simulator,
-  maxExecTimeSeconds: Double, linearSteps: Int = 3, errorAllowed: Double = 0.1) extends ExperimentAction with Logging {
+  maxExecTimeSeconds: Double, linearSteps: Int = 3, errorAllowed: Double = 0.2) extends ExperimentAction with Logging {
 
   import QSSModelPropertyCheckSpecification._
 
@@ -59,7 +59,7 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
   val qss = PublicLiteral(property("qss", loadedModel))
 
-  val defaultMaxExecWCT = MaxSingleExecutionWallClockTime(40.0)
+  val defaultMaxExecWCT = MaxSingleExecutionWallClockTime(4.0)
 
   override def shortName = "Check QSS for Model"
 

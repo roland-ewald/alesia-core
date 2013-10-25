@@ -40,7 +40,7 @@ class TestExperimentActions extends ExperimentationTest with ShouldMatchers {
   describe("QSS Action") {
     it("works in principle") {
       val action = CheckQSSModelProperty(problem, nrm, 20.5)
-      action.execute(LocalJamesExecutionContext())
+      val update = action.execute(LocalJamesExecutionContext())
     }
   }
 

@@ -90,7 +90,7 @@ class TestSimplePropertyCheck extends FunSpec with ShouldMatchers {
         } {
           hypothesis
         }
-      } should produce[IllegalStateException]
+      } should produce[Exception]
     }
 
     it("fails whenever multiple start-with-action-selector preferences are defined") {

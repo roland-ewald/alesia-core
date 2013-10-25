@@ -17,5 +17,5 @@ object SharedLiterals {
   def property(name: String, literal: String) = s"${name}(${literal})"
 
   /** Defines format of describing entities. */
-  def entity(adjective: String, literal: String) = adjective + literal.headOption.map(_.toUpper) + literal.tail
+  def entity(adjective: String, literal: String) = adjective + literal.headOption.map(_.toUpper).getOrElse("") + literal.tail
 }

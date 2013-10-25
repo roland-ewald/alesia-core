@@ -111,7 +111,7 @@ class PlanningDomain extends Logging {
 
   /** Returns a conjunction of all given functions, and false (empty set) when empty.*/
   def conjunction(fs: Iterable[PlanningDomainFunction]): PlanningDomainFunction = fs.headOption match {
-    case None => FalseVariable
+    case None => TrueVariable
     case Some(x) => fs.reduce(_ and _)
   }
 
