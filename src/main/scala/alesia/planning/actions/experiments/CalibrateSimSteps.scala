@@ -9,6 +9,18 @@ import scala.math._
 import alesia.planning.domain.ParameterizedModel
 import alesia.planning.context.ExecutionContext
 import alesia.planning.execution.NoStateUpdate
+import alesia.planning.actions.ActionDeclaration
+import alesia.query.ProblemSpecification
+import alesia.query.SingleSimulator
+import alesia.planning.actions.SimpleActionDeclaration
+import alesia.planning.actions.ActionSpecification
+import alesia.planning.actions.PublicLiteral
+import alesia.planning.actions.AllDeclaredActions
+import alesia.utils.misc.CollectionHelpers
+import alesia.planning.actions.ActionFormula
+import alesia.planning.actions.ActionEffect
+import sessl.james.NextReactionMethod
+import alesia.planning.actions.SharedLiterals._
 
 /**
  * Find out how much simulation steps need to be executed before a suitable execution time is approximated.
@@ -58,6 +70,44 @@ case class CalibrateSimSteps(problem: ParameterizedModel, sim: Simulator,
 
     addResult(result, (problem, sim, steps, runtime))
     NoStateUpdate //FIXME
+  }
+
+}
+
+object CalibrateSimStepsSpecification extends ActionSpecification {
+
+  val calibratedModel = PublicLiteral(property("calibrated", loadedModel))
+
+  override def preCondition: ActionFormula = PublicLiteral(loadedModel)
+
+  override def effect: ActionFormula = (calibratedModel or !calibratedModel) and !preCondition
+
+  override def shortName = "Calibrate Model"
+
+  override def description = "Checks whether a model can be calibrated."
+
+  override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] = {
+//    if (declaredActions(this).nonEmpty)
+      None
+    /*else Some(
+      Seq(SimpleActionDeclaration(this, shortActionName, Seq(), preCondition, Seq(
+        ActionEffect(add = Seq(calibratedModel), nondeterministic = true),
+        ActionEffect(del = Seq(calibratedModel), nondeterministic = true)))))*/
+  }
+
+  override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
+
+    import CollectionHelpers._
+
+    val models = filterType[ParameterizedModel](c.entitiesForLiterals(loadedModel))
+    require(models.nonEmpty, s"No parameterized model linked to '${loadedModel}'")
+
+    val simulators = filterType[SingleSimulator](c.entities)
+    require(simulators.nonEmpty, s"No single simulator defined.")
+
+    val maxExecTime: Double = 5.0 //FIXME: generalize this
+
+    ???
   }
 
 }

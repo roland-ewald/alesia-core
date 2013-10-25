@@ -33,4 +33,4 @@ case class ModelSet(val setURI: String, params: ModelParameter[_]*) extends User
 case class ModelDistribution(val generatorURI: String, paramBounds: Map[String, List[_]]) extends UserDomainEntity
 
 /** A single simulator. */
-case class SingleSimulator[T <: sessl.Simulator](override val entity: T) extends Algorithm[T]
+case class SingleSimulator(name: String, override val entity: sessl.Simulator) extends Algorithm[sessl.Simulator]

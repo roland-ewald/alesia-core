@@ -16,5 +16,5 @@ abstract class ExperimentationTest extends FunSuite with Logging {
   /** The test problem. */
   val problem = ParameterizedModel("java://" + classOf[LinearChainSystem].getName)
   
-  val nrm = SingleSimulator(sessl.james.NextReactionMethod())
+  val nrm = SingleSimulator("nrm", sessl.james.NextReactionMethod())
 }

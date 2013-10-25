@@ -1,28 +1,28 @@
 package alesia.planning.actions.experiments
 
 import scala.language.existentials
-import alesia.bindings.Simulator
 import alesia.planning.actions.ActionDeclaration
-import alesia.planning.actions.SharedLiterals._
 import alesia.planning.actions.ActionEffect
 import alesia.planning.actions.ActionFormula
 import alesia.planning.actions.ActionSpecification
-import alesia.planning.actions.AllDeclaredActions
 import alesia.planning.actions.PublicLiteral
+import alesia.planning.actions.SharedLiterals._
 import alesia.planning.actions.SimpleActionDeclaration
 import alesia.planning.context.ExecutionContext
 import alesia.planning.domain.Algorithm
 import alesia.planning.domain.ParameterizedModel
-import alesia.planning.execution.NoStateUpdate
-import alesia.query.ProblemSpecification
-import sessl.AfterWallClockTime
-import sessl.james.NextReactionMethod
-import sessl.util.Logging
-import alesia.utils.misc.CollectionHelpers
-import alesia.planning.execution.StateUpdate
 import alesia.planning.execution.AddLiterals
 import alesia.planning.execution.RemoveLiterals
+import alesia.planning.execution.StateUpdate
 import alesia.query.SingleSimulator
+import alesia.query.UserPreference
+import alesia.utils.misc.CollectionHelpers
+import sessl.AfterWallClockTime
+import sessl.util.Logging
+import alesia.query.QSSMaxExecutionWallClockTime
+import alesia.planning.actions.AllDeclaredActions
+import alesia.query.ProblemSpecification
+import alesia.bindings.Simulator
 
 /**
  * Checks whether this model exhibits a quasi-steady state property and, if so, from which point in simulation time on.
@@ -57,7 +57,9 @@ case class CheckQSSModelProperty(problem: ParameterizedModel, sim: Simulator,
 
 object QSSModelPropertyCheckSpecification extends ActionSpecification {
 
-  val qss = PublicLiteral("qss(loadedModel)")
+  val qss = PublicLiteral(property("qss", loadedModel))
+
+  val defaultMaxExecWCT = QSSMaxExecutionWallClockTime(5.0)
 
   override def preCondition: ActionFormula = PublicLiteral(loadedModel) //TODO: and PublicLiteral("loadedSimulator")
 
@@ -77,14 +79,16 @@ object QSSModelPropertyCheckSpecification extends ActionSpecification {
   }
 
   override def createAction(a: ActionDeclaration, c: ExecutionContext) = {
+    import CollectionHelpers._
 
-    val models = CollectionHelpers.filterType[ParameterizedModel](c.entitiesForLiterals(loadedModel))
+    val models = filterType[ParameterizedModel](c.entitiesForLiterals(loadedModel))
     require(models.nonEmpty, s"No parameterized model linked to '${loadedModel}'")
 
-    val simulator: Simulator = SingleSimulator(NextReactionMethod()) //FIXME: generalize this
-    val maxExecTime: Double = 5.0 //FIXME: generalize this
+    val simulators = filterType[SingleSimulator](c.entities)
+    require(simulators.nonEmpty, s"No single simulator defined.")
 
-    CheckQSSModelProperty(models.head, simulator, maxExecTime)
+    val maxExecTime: Double = getOrElse[QSSMaxExecutionWallClockTime](c.preferences, defaultMaxExecWCT).time
+    CheckQSSModelProperty(models.head, simulators.head, maxExecTime)
   }
 
 }

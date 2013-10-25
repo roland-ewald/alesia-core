@@ -19,3 +19,5 @@ case class TerminateWhen(val condition: TerminationCondition) extends UserPrefer
 
 /** Decides which [[alesia.planning.execution.ExecutionStrictness]] to apply. */
 case class WithStrictness(val strictness: ExecutionStrictness) extends UserPreference
+
+case class QSSMaxExecutionWallClockTime(val time: Double) extends UserPreference
