@@ -65,13 +65,15 @@ class ModelSampling(a: SimpleActionDeclaration, sd: SamplingData) extends Action
       val result = RandomSampler.sample(1, lower, upper, new JavaRandom()) //TODO: Use common RNG
       result.get(0)
     }
-    case ModelParameter(_, lower: Double, step: Double, upper: Double) => ??? //TODO: Fiish this!
+    case ModelParameter(_, lower: Double, step: Double, upper: Double) => ??? //TODO: Finish this!
     case _ => ???
   }
 
 }
 
-case class SamplingData(modelSet: ModelSet, val pastSamples: scala.collection.mutable.Set[Map[String, AnyVal]])
+class SamplingData(val modelSet: ModelSet) {
+  val pastSamples = scala.collection.mutable.Set[Map[String, AnyVal]]() //TODO: Use immutable data structure here
+}
 
 object ModelSamplingSpecification extends ActionSpecification {
 
@@ -95,7 +97,8 @@ object ModelSamplingSpecification extends ActionSpecification {
           !PrivateLiteral(depleted),
           Seq(
             ActionEffect(add = Seq(PrivateLiteral(depleted)), nondeterministic = true),
-            ActionEffect(add = Seq(PublicLiteral(loadedModel)), nondeterministic = true)))
+            ActionEffect(add = Seq(PublicLiteral(loadedModel)), nondeterministic = true)),
+          actionSpecifics = Some(new SamplingData(set)))
       }
       Some(actions)
     }
