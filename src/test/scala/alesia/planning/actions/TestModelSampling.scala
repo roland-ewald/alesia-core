@@ -23,6 +23,8 @@ class TestModelSampling extends FunSpec with ShouldMatchers {
     ModelSet("model:/A"),
     ModelSet("model:/B", ModelParameter("test", 1, 1, 10)))
 
+  val context = LocalJamesExecutionContext()
+
   describe("Model sampling") {
 
     lazy val declaredActions = ModelSamplingSpecification.declareConcreteActions(
@@ -45,7 +47,6 @@ class TestModelSampling extends FunSpec with ShouldMatchers {
     }
 
     it("does work only once without parameters") {
-      val context = LocalJamesExecutionContext()
       val action = declaredActions.get(0).toExecutableAction(context)
       action.isInstanceOf[ModelSampling] should be(true)
       val update1 = action.execute(context)
@@ -54,11 +55,24 @@ class TestModelSampling extends FunSpec with ShouldMatchers {
       firstAddition(update2).contains("depleted") should be(true)
     }
 
-    it("does work multiple times with a parameter to sample") {
+    it("works multiple times, and then gets depleted if sample is exhausted") {
+      val action = declaredActions.get(1).toExecutableAction(context)
+      action.isInstanceOf[ModelSampling] should be(true)
+      for (trial <- 1 to 10) {
+        val currentUpdate = action.execute(context)
+        println(trial)
+        firstAddition(currentUpdate).contains("depleted") should be(false)
+      }
+      val depletedUpdate = action.execute(context)
+      firstAddition(depletedUpdate).contains("depleted") should be(true)
+    }
+
+    it("works for parameters with various types") {
       pending
     }
 
     def firstAddition(s: StateUpdate) = s.changes.head.literals.head
+
   }
 
 }

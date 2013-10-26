@@ -31,7 +31,8 @@ class ModelSampling(a: SimpleActionDeclaration, sd: SamplingData) extends Action
 
   val depleted = a.uniqueLiteralName(ModelSamplingSpecification.depletedName(sd.modelSet))
   val loaded = a.uniqueLiteralName(loadedModel)
-  val maxSampleTrials = 10
+  val maxSampleTrials = 100
+  val rng = new JavaRandom() //TODO: Use common RNG
 
   override def execute(e: ExecutionContext): StateUpdate = {
     val newSample = createSample()
@@ -62,7 +63,8 @@ class ModelSampling(a: SimpleActionDeclaration, sd: SamplingData) extends Action
 
   def sampleParameter(p: ModelParameter[_ <: AnyVal]): AnyVal = p match {
     case ModelParameter(_, lower: Int, step: Int, upper: Int) => {
-      val result = RandomSampler.sample(1, lower, upper, new JavaRandom()) //TODO: Use common RNG
+      val result = RandomSampler.sample(1, lower, upper + 1, rng) //Upper bound for sampler seems to be exclusive
+      println("Sampling " + result.get(0))
       result.get(0)
     }
     case ModelParameter(_, lower: Double, step: Double, upper: Double) => ??? //TODO: Finish this!
