@@ -88,7 +88,13 @@ trait ActionDeclaration {
 }
 
 /** Straight-forward action declaration. */
-case class SimpleActionDeclaration(specification: ActionSpecification, name: String, initState: PlanState = Seq(), simplePreCondition: ActionFormula = TrueFormula, effects: Seq[ActionEffect]) extends ActionDeclaration {
+case class SimpleActionDeclaration(
+  specification: ActionSpecification,
+  name: String,
+  initState: PlanState = Seq(),
+  simplePreCondition: ActionFormula = TrueFormula,
+  effects: Seq[ActionEffect],
+  actionSpecifics: Option[Any] = None) extends ActionDeclaration {
 
   def uniqueLiteralName(n: String) = uniquePrivateLiterals(n)
 
