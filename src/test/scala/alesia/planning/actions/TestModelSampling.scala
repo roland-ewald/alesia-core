@@ -7,6 +7,9 @@ import org.scalatest.matchers.ShouldMatchers
 import alesia.planning.actions.housekeeping.ModelSamplingSpecification
 import alesia.query._
 import alesia.planning.actions.housekeeping.SamplingData
+import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.actions.housekeeping.ModelSampling
+import alesia.planning.execution.StateUpdate
 
 /**
  * Tests for [[alesia.planning.actions.housekeeping.ModelSampling]].
@@ -34,16 +37,28 @@ class TestModelSampling extends FunSpec with ShouldMatchers {
       declaredActions.get.size should equal(testModelSets.size)
     }
 
-    it("has a spcification that correctly initializes the initial sampling state") {
+    it("has a specification that correctly initializes the initial sampling state") {
       simpleDeclarations.size should equal(testModelSets.size)
       simpleDeclarations foreach { _.actionSpecifics.isDefined should be(true) }
       samplingData.size should equal(testModelSets.size)
       samplingData(0).modelSet.setURI should not equal (samplingData(1).modelSet.setURI)
     }
 
-    it("works in principle") {
+    it("does work only once without parameters") {
+      val context = LocalJamesExecutionContext()
+      val action = declaredActions.get(0).toExecutableAction(context)
+      action.isInstanceOf[ModelSampling] should be(true)
+      val update1 = action.execute(context)
+      firstAddition(update1).contains("depleted") should be(false)
+      val update2 = action.execute(context)
+      firstAddition(update2).contains("depleted") should be(true)
+    }
+
+    it("does work multiple times with a parameter to sample") {
       pending
     }
+
+    def firstAddition(s: StateUpdate) = s.changes.head.literals.head
   }
 
 }
