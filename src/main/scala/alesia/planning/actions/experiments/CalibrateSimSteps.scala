@@ -47,11 +47,6 @@ import alesia.planning.actions.ActionEffect
 case class CalibrateSimSteps(problem: ParameterizedModel, sims: Seq[Simulator],
   execTime: Double, eps: Double = 0.1, maxIt: Int = 20, maxFactor: Double = 10) extends ExperimentAction {
 
-  /**
-   * Execute the action.
-   *  @param e the execution context
-   *  @return the tuple (#steps, achieved runtime)
-   */
   override def execute(e: ExecutionContext) = {
 
     require(execTime > 0, "Desired execution time has to be positive.")
@@ -98,7 +93,7 @@ object CalibrateSimStepsSpecification extends ActionSpecification {
 
   override def shortName = "Calibrate Model"
 
-  override def description = "Calibrates a model can be calibrated."
+  override def description = "Calibrates a model, i.e. finds suitable simulation end time for experimentation."
 
   override def declareConcreteActions(spec: ProblemSpecification, declaredActions: AllDeclaredActions): Option[Seq[ActionDeclaration]] = {
     singleAction(declaredActions) {
