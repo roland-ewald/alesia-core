@@ -22,8 +22,12 @@ class TestModelSampling extends FunSpec with ShouldMatchers {
 
   describe("Model sampling") {
 
-    val declaredActions = ModelSamplingSpecification.declareConcreteActions(
+    lazy val declaredActions = ModelSamplingSpecification.declareConcreteActions(
       (testModelSets, Seq(), DummyHypothesis), Map(ModelSamplingSpecification -> Seq()))
+
+    lazy val simpleDeclarations = declaredActions.get collect { case x: SimpleActionDeclaration => x }
+
+    lazy val samplingData = simpleDeclarations flatMap (_.actionSpecifics) collect { case s: SamplingData => s }
 
     it("gets declared as an action for each individual model set") {
       declaredActions.isDefined should be(true)
@@ -31,10 +35,8 @@ class TestModelSampling extends FunSpec with ShouldMatchers {
     }
 
     it("has a spcification that correctly initializes the initial sampling state") {
-      val simpleDeclarations = declaredActions.get collect { case x: SimpleActionDeclaration => x }
       simpleDeclarations.size should equal(testModelSets.size)
       simpleDeclarations foreach { _.actionSpecifics.isDefined should be(true) }
-      val samplingData = simpleDeclarations flatMap (_.actionSpecifics) collect { case s: SamplingData => s }
       samplingData.size should equal(testModelSets.size)
       samplingData(0).modelSet.setURI should not equal (samplingData(1).modelSet.setURI)
     }
