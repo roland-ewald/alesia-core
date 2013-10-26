@@ -25,7 +25,7 @@ sealed trait Quantifier {
 
 /** Implements second part of hypothesis syntax. */
 case class QuantifierAndSubject(val q: Quantifier, val p: PredicateSubject) {
-  def |(r: PredicateRelation) = UserHypothesis(q, p, r)
+  def |(r: PredicateRelation) = SimpleHypothesis(q, p, r)
 }
 
 /** Define predicates. */
@@ -53,4 +53,18 @@ case class hasProperty(val property: String) extends PredicateRelation
 case class hasAttributeValue(val attribute: String, val value: Any) extends PredicateRelation
 
 /** A complete (i.e. checkable) hypothesis as defined by the user. */
-case class UserHypothesis(val quantifier: Quantifier, val subject: PredicateSubject, val relation: PredicateRelation)
+trait UserHypothesis {
+  def quantifier: Quantifier
+  def subject: PredicateSubject
+  def relation: PredicateRelation
+}
+
+/** Default implementation of hypothesis. */
+case class SimpleHypothesis(val quantifier: Quantifier, val subject: PredicateSubject, val relation: PredicateRelation) extends UserHypothesis
+
+/** Dummy hypothesis, useful for testing. */
+case object DummyHypothesis extends UserHypothesis {
+  override val quantifier = exists
+  override val subject = model
+  override val relation = hasProperty("")
+}

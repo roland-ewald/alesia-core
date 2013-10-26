@@ -14,7 +14,7 @@ import alesia.query._
  */
 case class DummyDomainSpecificPlanningProblem(literals: String*)
   extends DefaultPlanningProblem(
-    (Seq(), Seq(), UserHypothesis(exists, model, hasProperty(""))), Seq()) {
+    (Seq(), Seq(), DummyHypothesis), Seq()) {
 
   literals.foreach(addVariable)
 }
