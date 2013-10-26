@@ -60,7 +60,7 @@ class ModelSampling(a: SimpleActionDeclaration, sd: SamplingData) extends Action
     assignment.toMap
   }
 
-  def sampleParameter(p: ModelParameter[_]): AnyVal = p match {
+  def sampleParameter(p: ModelParameter[_ <: AnyVal]): AnyVal = p match {
     case ModelParameter(_, lower: Int, step: Int, upper: Int) => {
       val result = RandomSampler.sample(1, lower, upper, new JavaRandom()) //TODO: Use common RNG
       result.get(0)

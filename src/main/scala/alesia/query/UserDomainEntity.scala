@@ -27,7 +27,7 @@ case class ModelParameter[T <: AnyVal](name: String, lower: T, step: T, upper: T
 case class SingleModel(val uri: String) extends UserDomainEntity
 
 /** A set of models. */
-case class ModelSet(val setURI: String, params: ModelParameter[_]*) extends UserDomainEntity
+case class ModelSet(val setURI: String, params: ModelParameter[_ <: AnyVal]*) extends UserDomainEntity
 
 /** A single simulator. */
 case class SingleSimulator(name: String, override val entity: sessl.Simulator) extends Algorithm[sessl.Simulator]
