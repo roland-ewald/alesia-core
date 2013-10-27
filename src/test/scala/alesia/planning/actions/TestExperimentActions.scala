@@ -30,8 +30,8 @@ class TestExperimentActions extends ExperimentationTest with ShouldMatchers {
   describe("Calibration action") {
     it("works in principle") {
       for (result <- calibration.results) {
-        result.steps should be >= 1000L
-        (abs(result.runtime - desiredRuntime) / desiredRuntime) should be <= 0.3
+        result.steps should be >= 100L
+        (abs(result.runtime - desiredRuntime) / desiredRuntime) should be <= 0.5
       }
     }
   }
