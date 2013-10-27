@@ -20,7 +20,7 @@ class TestSimplePerformanceComparison extends FunSpec with ShouldMatchers {
   describe("Simple performance comparison scenario") {
 
     it("works in principle") {
-      pending
+      //      pending
       val result = submit(SimplePerformanceComparisonScenario)
       result should not be ofType[FailurePlanExecutionResult]
     }

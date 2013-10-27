@@ -10,6 +10,9 @@ import alesia.planning.DomainSpecificPlanningProblem
 import alesia.planning.execution.PlanState
 import alesia.planning.actions.Literal
 import alesia.planning.actions.ActionFormula
+import alesia.planning.actions.experiments.CompareSimulatorsSpecification
+import alesia.utils.misc.CollectionHelpers
+import alesia.query.SingleSimulator
 
 /**
  * Default implementation of how to construct a [[DomainSpecificPlanningProblem]] from a [[ProblemSpecification]].
@@ -135,8 +138,13 @@ class DefaultPlanningProblem(
       case alesia.query.hasProperty(prop) => addVariable(s"${prop}(loadedModel)")
       case alesia.query.hasAttributeValue(a, v) => addVariable("${a}(loadedModel, ${v})")
       case alesia.query.isFaster(s1, s2, subject) => {
+        import CollectionHelpers._ //TODO: Generalize this:
         require(subject == alesia.query.model, "Subject of isFaster must be the model")
-        ???
+        val simulators = filterType[SingleSimulator](spec._1)
+        val sims = Seq(s1, s2) map (s => (s, simulators find (_.name == s)))
+        for (sim <- sims)
+          require(sim._2.isDefined, s"Simulator with short name '${sim._1}' is not defined.")
+        addVariable(CompareSimulatorsSpecification.fasterThanLiteral(sims(0)._2.get, sims(1)._2.get))
       }
     }
 
