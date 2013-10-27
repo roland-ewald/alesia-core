@@ -51,6 +51,7 @@ case class Negation(val relation: PredicateRelation) extends PredicateRelation
 
 case class hasProperty(val property: String) extends PredicateRelation
 case class hasAttributeValue(val attribute: String, val value: Any) extends PredicateRelation
+case class isFaster(val sim1Id:String, val sim2Id: String, val target: PredicateSubject) extends PredicateRelation
 
 /** A complete (i.e. checkable) hypothesis as defined by the user. */
 trait UserHypothesis {

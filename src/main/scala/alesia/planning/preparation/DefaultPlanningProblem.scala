@@ -134,6 +134,10 @@ class DefaultPlanningProblem(
       case alesia.query.Negation(r) => !convertModelRelation(model, r)
       case alesia.query.hasProperty(prop) => addVariable(s"${prop}(loadedModel)")
       case alesia.query.hasAttributeValue(a, v) => addVariable("${a}(loadedModel, ${v})")
+      case alesia.query.isFaster(s1, s2, subject) => {
+        require(subject == alesia.query.model, "Subject of isFaster must be the model")
+        ???
+      }
     }
 
     //TODO: Generalize this:

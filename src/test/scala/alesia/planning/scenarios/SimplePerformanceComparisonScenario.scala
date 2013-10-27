@@ -25,6 +25,6 @@ object SimplePerformanceComparisonScenario extends Scenario {
   override val preferences = Seq(
     TerminateWhen(MaxOverallNumberOfActions(4)))
 
-  override val hypothesis = exists >> model | hasProperty("todo")
+  override val hypothesis = exists >> model | (hasProperty("qss") and isFaster("tl", "nrm", model))
 
 }

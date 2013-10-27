@@ -20,6 +20,7 @@ import alesia.planning.domain.ParameterizedModel
 import org.jamesii.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
 import org.jamesii.core.math.statistics.univariate.ArithmeticMean
 import alesia.query.UserDomainEntity
+import alesia.planning.execution.RemoveLiterals
 
 /**
  * Compare two (calibrated) simulators with each other.
@@ -31,6 +32,9 @@ import alesia.query.UserDomainEntity
  */
 case class CompareSimulators(simA: SingleSimulator, simB: SingleSimulator,
   replicationsPerConfig: Int = 20, alpha: Double = 0.05) extends ExperimentAction {
+
+  //FIXME: This needs to be handled automatically by the underlying system
+  val temporaryLiteralFix = RemoveLiterals(calibratedModel, loadedModel, property("qss", loadedModel))
 
   override def execute(e: ExecutionContext) = {
 
@@ -63,13 +67,13 @@ case class CompareSimulators(simA: SingleSimulator, simB: SingleSimulator,
     val results = ComparisonResults(simA, runtimesA, simB, runtimesB, pValue)
 
     if (pValue >= alpha) {
-      StateUpdate.specify(Seq(AddLiterals(similarLiteral(simA, simB), similarLiteral(simB, simA))),
+      StateUpdate.specify(Seq(AddLiterals(similarLiteral(simA, simB), similarLiteral(simB, simA)), temporaryLiteralFix),
         Map(similarLiteral(simA, simB) -> results, similarLiteral(simB, simA) -> results))
     } else {
       val meanRuntimeA = ArithmeticMean.arithmeticMean(runtimesA.toArray)
       val meanRuntimeB = ArithmeticMean.arithmeticMean(runtimesB.toArray)
       val resultLiteral = if (meanRuntimeA < meanRuntimeB) fasterThanLiteral(simA, simB) else fasterThanLiteral(simB, simA)
-      StateUpdate.specify(Seq(AddLiterals(resultLiteral)), Map(resultLiteral -> results))
+      StateUpdate.specify(Seq(AddLiterals(resultLiteral), temporaryLiteralFix), Map(resultLiteral -> results))
     }
   }
 }
