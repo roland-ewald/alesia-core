@@ -14,6 +14,8 @@ import sessl.james.TauLeaping
 object SimplePerformanceComparisonScenario extends Scenario {
 
   import alesia.query._
+  
+  val maxActionNumber = 4
 
   override val domain = Seq(
     ModelSet("java://examples.sr.LinearChainSystem",
@@ -23,7 +25,7 @@ object SimplePerformanceComparisonScenario extends Scenario {
     SingleSimulator("tl", TauLeaping(epsilon = 0.025)))
 
   override val preferences = Seq(
-    TerminateWhen(MaxOverallNumberOfActions(4)))
+    TerminateWhen(MaxOverallNumberOfActions(maxActionNumber)), MaxSingleExecutionWallClockTime(seconds = 1))
 
   override val hypothesis = exists >> model | (hasProperty("qss") and isFaster("tl", "nrm", model))
 

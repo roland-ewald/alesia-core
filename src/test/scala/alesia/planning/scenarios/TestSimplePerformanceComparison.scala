@@ -7,6 +7,9 @@ import org.scalatest.matchers.ShouldMatchers
 import alesia.TestUtils._
 import alesia.query._
 import alesia.results.FailurePlanExecutionResult
+import alesia.results.DefaultResultRenderer
+import alesia.results.ReportingResultAnalyzer
+import java.io.File
 
 /**
  * Tests for a simple scenario that aims to compare the performance of two
@@ -18,13 +21,13 @@ import alesia.results.FailurePlanExecutionResult
 class TestSimplePerformanceComparison extends FunSpec with ShouldMatchers {
 
   describe("Simple performance comparison scenario") {
-
     it("works in principle") {
-      //      pending
       val result = submit(SimplePerformanceComparisonScenario)
-      result should not be ofType[FailurePlanExecutionResult]
+      val report = ReportingResultAnalyzer(result)
+      DefaultResultRenderer.storeReport(report, "Simple Comparison Scenario", new File("./simple-comparison"))
+      result should be(ofType[FailurePlanExecutionResult])
+      result.trace.size should equal(SimplePerformanceComparisonScenario.maxActionNumber + 1)
     }
-
   }
 
 }
