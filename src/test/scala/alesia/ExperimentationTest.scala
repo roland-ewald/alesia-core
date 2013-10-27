@@ -19,4 +19,6 @@ abstract class ExperimentationTest extends FunSpec with Logging {
   val problem = ParameterizedModel("java://" + classOf[LinearChainSystem].getName)
 
   val nrm = SingleSimulator("nrm", sessl.james.NextReactionMethod())
+
+  val dm = SingleSimulator("dm", sessl.james.DirectMethod())
 }

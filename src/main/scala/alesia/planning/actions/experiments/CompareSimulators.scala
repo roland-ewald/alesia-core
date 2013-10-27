@@ -16,24 +16,76 @@ import alesia.utils.misc.CollectionHelpers._
 import alesia.planning.actions.AllDeclaredActions
 import alesia.query.ProblemSpecification
 import alesia.planning.actions.SimpleActionDeclaration
+import alesia.planning.domain.ParameterizedModel
+import org.jamesii.core.math.statistics.tests.wilcoxon.WilcoxonRankSumTest
+import org.jamesii.core.math.statistics.univariate.ArithmeticMean
+import alesia.query.UserDomainEntity
 
 /**
  * Compare two (calibrated) simulators with each other.
  *
+ * TODO: Simplify this: the simulator with the alphabetically smaller string representation
+ * is always the first one (needs to be adhered to globally). Then, remove then-obsolete second similarTo-Literal.
+ *
  * @author Roland Ewald
  */
-case class CompareSimulators(simA: SingleSimulator, simB: SingleSimulator) extends ExperimentAction {
+case class CompareSimulators(simA: SingleSimulator, simB: SingleSimulator, replicationsPerConfig: Int = 20) extends ExperimentAction {
 
   override def execute(e: ExecutionContext) = {
 
-    StateUpdate.specify(Seq(AddLiterals(calibratedModel)), Map())
-  }
+    import scala.collection.JavaConversions._
+    import CompareSimulatorsSpecification._
 
+    def resultFor(s: SingleSimulator)(r: CalibrationResult) = r.sim == s
+
+    def execute(p: ParameterizedModel, s: SingleSimulator, steps: Long): Seq[Double] =
+      (1 to replicationsPerConfig).map(_ => e.experiments.executeForNSteps(p, s, steps))
+
+    val entities = filterType[CalibrationResults](e.entitiesForLiterals(calibratedModel))
+
+    val suitableCalibrationResults = entities.find { cr =>
+      cr.results.exists(resultFor(simA)_) && cr.results.exists(resultFor(simB)_)
+    }
+
+    require(suitableCalibrationResults.isDefined, s"No suitable calibration results found to compare ${simA} and ${simB}")
+
+    val singleCalibrationResults = suitableCalibrationResults.get.results
+
+    val problem = singleCalibrationResults.head.problem
+    val maxSteps = singleCalibrationResults.filter(r => resultFor(simA)(r) || resultFor(simB)(r)).map(_.steps).max
+
+    val runtimesA = execute(problem, simA, maxSteps)
+    val runtimesB = execute(problem, simB, maxSteps)
+
+    val pValue = new WilcoxonRankSumTest().executeTest(seqAsJavaList(runtimesA map (_.asInstanceOf[Number])), runtimesA map (_.asInstanceOf[Number]))
+
+    val results = ComparisonResults(simA, runtimesA, simB, runtimesB, pValue)
+
+    if (pValue >= 0.05) { //Uncertain
+      StateUpdate.specify(Seq(AddLiterals(similarLiteral(simA, simB), similarLiteral(simB, simA))),
+        Map(similarLiteral(simA, simB) -> results, similarLiteral(simB, simA) -> results))
+    } else {
+      val meanRuntimeA = ArithmeticMean.arithmeticMean(runtimesA.toArray)
+      val meanRuntimeB = ArithmeticMean.arithmeticMean(runtimesB.toArray)
+      val resultLiteral = if (meanRuntimeA < meanRuntimeB) fasterThanLiteral(simA, simB) else fasterThanLiteral(simB, simA)
+      StateUpdate.specify(Seq(AddLiterals(resultLiteral)), Map(resultLiteral -> results))
+    }
+  }
 }
+
+case class ComparisonResults(
+  simA: SingleSimulator,
+  resultsA: Seq[Double],
+  simB: SingleSimulator,
+  resultsB: Seq[Double],
+  pValue: Double) extends UserDomainEntity
 
 object CompareSimulatorsSpecification extends ActionSpecification {
 
   import CollectionHelpers._
+
+  def fasterThanLiteral(simA: SingleSimulator, simB: SingleSimulator) = simA + " faster than " + simB
+  def similarLiteral(simA: SingleSimulator, simB: SingleSimulator) = simA + " similar to " + simB
 
   override def shortName = "Compare Simulators"
 
@@ -48,13 +100,14 @@ object CompareSimulatorsSpecification extends ActionSpecification {
       None
     } else {
       val actions = for (comparison <- potentialComparisons) yield {
-        val fasterAB = PublicLiteral(comparison._1 + " faster than " + comparison._2)
-        val fasterBA = PublicLiteral(comparison._2 + " faster than " + comparison._1)
-        val similar = PublicLiteral(comparison._2 + " similar to " + comparison._1)
+        val fasterAB = PublicLiteral(fasterThanLiteral(comparison._1, comparison._2))
+        val fasterBA = PublicLiteral(fasterThanLiteral(comparison._2, comparison._1))
+        val similarAB = PublicLiteral(similarLiteral(comparison._1, comparison._2))
+        val similarBA = PublicLiteral(similarLiteral(comparison._2, comparison._1))
         SimpleActionDeclaration(this, shortActionName, Seq(), PublicLiteral(calibratedModel), Seq(
           ActionEffect(add = Seq(fasterAB), nondeterministic = true),
           ActionEffect(add = Seq(fasterBA), nondeterministic = true),
-          ActionEffect(add = Seq(similar), nondeterministic = true)),
+          ActionEffect(add = Seq(similarAB, similarBA), nondeterministic = true)),
           actionSpecifics = Some(comparison))
       }
       Some(actions)

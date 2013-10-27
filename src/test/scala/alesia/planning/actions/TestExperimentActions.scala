@@ -13,6 +13,10 @@ import alesia.planning.actions.experiments.CalibrationResults
 import org.scalatest.matchers.ShouldMatchers
 import alesia.planning.execution.StateUpdate
 import alesia.planning.actions.experiments.QSSCheckResults
+import alesia.query.SingleSimulator
+import alesia.planning.actions.experiments.CompareSimulators
+import alesia.planning.context.LocalJamesExecutionContext
+import alesia.planning.actions.experiments.ComparisonResults
 
 /**
  * Tests for experiment actions.
@@ -49,8 +53,20 @@ class TestExperimentActions extends ExperimentationTest with ShouldMatchers {
     }
   }
 
-  lazy val calibration: CalibrationResults = {
-    val action = CalibrateSimSteps(problem, Seq(nrm), desiredRuntime, eps = 0.4)
+  describe("Comparison Action") {
+    it("works in principle") {
+      val calibrationResults = CalibrationResults(Seq(calibration.results.head, calibrate(dm).results.head))
+      val context = LocalJamesExecutionContext(entities = Seq(calibrationResults))
+      val update = CompareSimulators(nrm, dm).execute(context)
+      val results = update.addedEntities.collect { case c: ComparisonResults => c }
+      results.size should equal(1)
+    }
+  }
+
+  lazy val calibration: CalibrationResults = calibrate(nrm)
+
+  def calibrate(s: SingleSimulator) = {
+    val action = CalibrateSimSteps(problem, Seq(s), desiredRuntime, eps = 0.4)
     val update = action.execute(LocalJamesExecutionContext())
     update.addedEntities.collect { case c: CalibrationResults => c }.head
   }
