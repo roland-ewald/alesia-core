@@ -29,7 +29,8 @@ import alesia.query.UserDomainEntity
  *
  * @author Roland Ewald
  */
-case class CompareSimulators(simA: SingleSimulator, simB: SingleSimulator, replicationsPerConfig: Int = 20) extends ExperimentAction {
+case class CompareSimulators(simA: SingleSimulator, simB: SingleSimulator,
+  replicationsPerConfig: Int = 20, alpha: Double = 0.05) extends ExperimentAction {
 
   override def execute(e: ExecutionContext) = {
 
@@ -61,7 +62,7 @@ case class CompareSimulators(simA: SingleSimulator, simB: SingleSimulator, repli
 
     val results = ComparisonResults(simA, runtimesA, simB, runtimesB, pValue)
 
-    if (pValue >= 0.05) { //Uncertain
+    if (pValue >= alpha) {
       StateUpdate.specify(Seq(AddLiterals(similarLiteral(simA, simB), similarLiteral(simB, simA))),
         Map(similarLiteral(simA, simB) -> results, similarLiteral(simB, simA) -> results))
     } else {

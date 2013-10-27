@@ -25,7 +25,7 @@ import alesia.planning.actions.experiments.ComparisonResults
 @RunWith(classOf[JUnitRunner])
 class TestExperimentActions extends ExperimentationTest with ShouldMatchers {
 
-  val desiredRuntime = 4.0
+  val desiredRuntime = 0.1
 
   describe("Calibration action") {
     it("works in principle") {
@@ -54,12 +54,33 @@ class TestExperimentActions extends ExperimentationTest with ShouldMatchers {
   }
 
   describe("Comparison Action") {
+
+    import SharedLiterals._
+
+    val significanceLevel = 0.1
+    val replicationNumber = 21
+
     it("works in principle") {
       val calibrationResults = CalibrationResults(Seq(calibration.results.head, calibrate(dm).results.head))
-      val context = LocalJamesExecutionContext(entities = Seq(calibrationResults))
-      val update = CompareSimulators(nrm, dm).execute(context)
+      val context = LocalJamesExecutionContext(entitiesForLiterals = Map(calibratedModel -> Seq(calibrationResults)))
+      val update = CompareSimulators(nrm, dm, replicationNumber, significanceLevel).execute(context)
+
       val results = update.addedEntities.collect { case c: ComparisonResults => c }
-      results.size should equal(1)
+      results.nonEmpty should be(true)
+
+      if (results.head.pValue < significanceLevel)
+        results.size should be(1)
+      else {
+        results.size should be(2)
+        results(0) should equal(results(1))
+      }
+
+      results.head.pValue should (be >= 0.0 and be <= 1.0)
+
+      for (r <- Seq(results.head.resultsA, results.head.resultsB)) {
+        r.size should be(replicationNumber)
+        r.forall(_ > 0) should be(true)
+      }
     }
   }
 
